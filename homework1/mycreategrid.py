@@ -28,7 +28,7 @@ def myCreateGrid(world, cellsize):
   ### YOUR CODE GOES BELOW HERE ###
 
   # Get dimensions
-  dimensions = (int(WORLD[0]/cellsize), int(WORLD[1]/cellsize))
+  dimensions = (int(world.dimensions[0]/cellsize), int(world.dimensions[1]/cellsize))
 
   # Create grid of all True
   grid = numpy.full((dimensions[0], dimensions[1]), True, dtype=bool)
