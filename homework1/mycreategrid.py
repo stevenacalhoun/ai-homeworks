@@ -28,23 +28,26 @@ def myCreateGrid(world, cellsize):
   ### YOUR CODE GOES BELOW HERE ###
 
   # Get dimensions
-  numCols = int(round(SCREEN[0]/cellsize))
-  numRows = int(round(SCREEN[1]/cellsize))
-  dimensions = (numCols, numRows)
+  print WORLD
+  numCols = int(round(WORLD[0]/cellsize))
+  numRows = int(round(WORLD[1]/cellsize))
+  dimensions = (numRows, numCols)
 
   # Create grid of all True
-  grid = numpy.full((numCols, numRows), True, dtype=bool)
+  grid = numpy.full((numRows, numCols), True, dtype=bool)
 
   # Check each space in the grid
-  for colCount, col in enumerate(grid):
-    for rowCount, row in enumerate(col):
+  for rowCount, row in enumerate(grid):
+    for colCount, col in enumerate(row):
       # Check if there is an obstacle in this space
       if containsObstacle(colCount, rowCount, cellsize, world):
-        grid[colCount][rowCount] = False
+        grid[rowCount][colCount] = False
 
   ### YOUR CODE GOES ABOVE HERE ###
   return grid, dimensions
 
+# 1. If the lines that make up the four borders of the cell intersect any of the boundary or obstacle lines.
+# 2. If the cell lies entirely within any of the obstacles.
 def containsObstacle(col, row, cellsize, world):
   # Get corners of the space
   topLeft = (col*cellsize, row*cellsize)
