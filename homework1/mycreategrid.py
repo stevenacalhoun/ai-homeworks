@@ -28,7 +28,7 @@ def myCreateGrid(world, cellsize):
   ### YOUR CODE GOES BELOW HERE ###
 
   # Get dimensions
-  dimensions = (int(world.dimensions[0]/cellsize), int(world.dimensions[1]/cellsize))
+  dimensions = (int(round(world.dimensions[0]/cellsize)), int(round(world.dimensions[1]/cellsize)))
 
   # Create grid of all True
   grid = numpy.full((dimensions[0], dimensions[1]), True, dtype=bool)
@@ -45,7 +45,7 @@ def myCreateGrid(world, cellsize):
 # 1. If the lines that make up the four borders of the cell intersect any of the boundary or obstacle lines.
 # 2. If the cell lies entirely within any of the obstacles.
 def cellObstacleFree(row, col, cellsize, world):
-  # Get corners of the space
+  # Get corners of the cell
   topL = ((col+0)*cellsize, (row+0)*cellsize)
   topR = ((col+1)*cellsize, (row+0)*cellsize)
   botL = ((col+0)*cellsize, (row+1)*cellsize)
@@ -56,6 +56,7 @@ def cellObstacleFree(row, col, cellsize, world):
 
   # Check if any obstacle line intersects this cell's borders
   for line in world.getLinesWithoutBorders():
+  # for line in world.getLines():
     for cellLine in cellLines:
       if calculateIntersectPoint(line[0], line[1], cellLine[0], cellLine[1]):
         return False
