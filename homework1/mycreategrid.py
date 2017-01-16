@@ -25,9 +25,37 @@ from core import *
 
 # Creates a grid as a 2D array of True/False values (True =  traversable). Also returns the dimensions of the grid as a (columns, rows) list.
 def myCreateGrid(world, cellsize):
-	grid = None
-	dimensions = (0, 0)
-	### YOUR CODE GOES BELOW HERE ###
+  ### YOUR CODE GOES BELOW HERE ###
 
-	### YOUR CODE GOES ABOVE HERE ###
-	return grid, dimensions
+  # Get dimensions
+  numCols = int(round(SCREEN[0]/cellsize))
+  numRows = int(round(SCREEN[1]/cellsize))
+  dimensions = (numCols, numRows)
+
+  # Create grid of all True
+  grid = numpy.full((numCols, numRows), True, dtype=bool)
+
+  # Check each space in the grid
+  for colCount, col in enumerate(grid):
+    for rowCount, row in enumerate(col):
+      # Check if there is an obstacle in this space
+      if containsObstacle(colCount, rowCount, cellsize, world):
+        grid[colCount][rowCount] = False
+
+  ### YOUR CODE GOES ABOVE HERE ###
+  return grid, dimensions
+
+def containsObstacle(col, row, cellsize, world):
+  # Get corners of the space
+  topLeft = (col*cellsize, row*cellsize)
+  topRight = ((col+1)*cellsize, (row)*cellsize)
+  botLeft = ((col)*cellsize, (row+1)*cellsize)
+  botRight = ((col+1)*cellsize, (row+1)*cellsize)
+
+  # Check if any of these corners are in any of the obstacles
+  obstacles = world.getObstacles()
+  for obstacle in obstacles:
+    if obstacle.pointInside(topLeft) or obstacle.pointInside(topRight) or obstacle.pointInside(botLeft) or obstacle.pointInside(botRight):
+      return True
+
+  return False
