@@ -28,37 +28,47 @@ def myCreateGrid(world, cellsize):
   ### YOUR CODE GOES BELOW HERE ###
 
   # Get dimensions
-  print WORLD
-  numCols = int(round(WORLD[0]/cellsize))
-  numRows = int(round(WORLD[1]/cellsize))
-  dimensions = (numRows, numCols)
+  dimensions = (int(WORLD[0]/cellsize), int(WORLD[1]/cellsize))
 
   # Create grid of all True
-  grid = numpy.full((numRows, numCols), True, dtype=bool)
+  grid = numpy.full((dimensions[0], dimensions[1]), True, dtype=bool)
 
   # Check each space in the grid
-  for rowCount, row in enumerate(grid):
-    for colCount, col in enumerate(row):
+  for rowCount in xrange(dimensions[1]):
+    for colCount in xrange(dimensions[0]):
       # Check if there is an obstacle in this space
-      if containsObstacle(colCount, rowCount, cellsize, world):
-        grid[rowCount][colCount] = False
+      grid[colCount][rowCount] = cellObstacleFree(rowCount, colCount, cellsize, world)
 
   ### YOUR CODE GOES ABOVE HERE ###
   return grid, dimensions
 
 # 1. If the lines that make up the four borders of the cell intersect any of the boundary or obstacle lines.
 # 2. If the cell lies entirely within any of the obstacles.
-def containsObstacle(col, row, cellsize, world):
+def cellObstacleFree(row, col, cellsize, world):
   # Get corners of the space
-  topLeft = (col*cellsize, row*cellsize)
-  topRight = ((col+1)*cellsize, (row)*cellsize)
-  botLeft = ((col)*cellsize, (row+1)*cellsize)
-  botRight = ((col+1)*cellsize, (row+1)*cellsize)
+  topL = ((col+0)*cellsize, (row+0)*cellsize)
+  topR = ((col+1)*cellsize, (row+0)*cellsize)
+  botL = ((col+0)*cellsize, (row+1)*cellsize)
+  botR = ((col+1)*cellsize, (row+1)*cellsize)
 
-  # Check if any of these corners are in any of the obstacles
-  obstacles = world.getObstacles()
-  for obstacle in obstacles:
-    if obstacle.pointInside(topLeft) or obstacle.pointInside(topRight) or obstacle.pointInside(botLeft) or obstacle.pointInside(botRight):
-      return True
+  # Lines of cell
+  cellLines = [(topL, topR), (topR, botR), (botR, botL), (botL, topL)]
 
-  return False
+  # Check if any obstacle line intersects this cell's borders
+  for line in world.getLinesWithoutBorders():
+    for cellLine in cellLines:
+      if calculateIntersectPoint(line[0], line[1], cellLine[0], cellLine[1]):
+        return False
+
+  # Check if any cell point lies with in an obstacle
+  for obstacle in world.getObstacles():
+    if obstacle.pointInside(topL) or obstacle.pointInside(topR) or obstacle.pointInside(botL) or obstacle.pointInside(botR):
+      return False
+
+  # Check if any obstacle point lies with cell
+  for obstacle in world.getObstacles():
+    for obstaclePoint in obstacle.getPoints():
+      if pointInsidePolygonLines(obstaclePoint, cellLines):
+        return False
+
+  return True

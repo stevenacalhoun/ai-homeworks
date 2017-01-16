@@ -17,7 +17,7 @@
 '''
 
 import sys, pygame, math, numpy, random, time, copy
-from pygame.locals import * 
+from pygame.locals import *
 
 from constants import *
 from utils import *
@@ -88,12 +88,12 @@ class GridNavigator(Navigator):
 ###
 ### The RandomGridNavigator dynamically creates a grid for the world with 4-connectivity.
 ### But when asked to move the agent, it computes a random path through the network and probably fails to reach its destination.
-		
+
 class RandomGridNavigator(GridNavigator):
 
 	def __init__(self):
 		GridNavigator.__init__(self)
-	
+
 
 
 	### Finds the shortest path from the source to the destination. It should minimally set the path.
@@ -125,7 +125,7 @@ class RandomGridNavigator(GridNavigator):
 				first = self.path.pop(0)
 				if first is not None:
 					self.agent.moveToTarget(first)
-	
+
 
 ################
 ### GreedyGridNavigator
@@ -134,18 +134,18 @@ class RandomGridNavigator(GridNavigator):
 ### But when asked to move the agent, it computes a path through the network always moving closer to the destination and probably fails to reach its destination.
 
 class GreedyGridNavigator(GridNavigator):
-	
+
 	def __init__(self):
 		GridNavigator.__init__(self)
-	
-	
+
+
 	### Create the grid
 	### self: the navigator object
 	### world: the world object
 	def createGrid(self, world):
 		self.grid, self.dimensions = myCreateGrid(world, self.cellSize)
 		return None
-	
+
 
 
 	### Finds the shortest path from the source to the destination. It should minimally set the path.
@@ -230,5 +230,3 @@ def translatePathToCoordinates(path, cellsize):
 	for cell in path:
 		newpath.append(translateCellToCoordinates(cell, cellsize))
 	return newpath
-
-
