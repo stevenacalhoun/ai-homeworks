@@ -42,8 +42,7 @@ def myCreateGrid(world, cellsize):
   ### YOUR CODE GOES ABOVE HERE ###
   return grid, dimensions
 
-# 1. If the lines that make up the four borders of the cell intersect any of the boundary or obstacle lines.
-# 2. If the cell lies entirely within any of the obstacles.
+# Check if a cell is obstacle free
 def cellObstacleFree(row, col, cellsize, world):
   # Get corners of the cell
   topL = ((col+0)*cellsize, (row+0)*cellsize)
@@ -55,8 +54,7 @@ def cellObstacleFree(row, col, cellsize, world):
   cellLines = [(topL, topR), (topR, botR), (botR, botL), (botL, topL)]
 
   # Check if any obstacle line intersects this cell's borders
-  for line in world.getLinesWithoutBorders():
-  # for line in world.getLines():
+  for line in world.getLines():
     for cellLine in cellLines:
       if calculateIntersectPoint(line[0], line[1], cellLine[0], cellLine[1]):
         return False
