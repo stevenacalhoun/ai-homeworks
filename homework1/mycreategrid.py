@@ -54,7 +54,7 @@ def cellObstacleFree(row, col, cellsize, world):
   cellLines = [(topL, topR), (topR, botR), (botR, botL), (botL, topL)]
 
   # Check if any obstacle line intersects this cell's borders
-  for line in world.getLines():
+  for line in world.getLinesWithoutBorders():
     for cellLine in cellLines:
       if calculateIntersectPoint(line[0], line[1], cellLine[0], cellLine[1]):
         return False
