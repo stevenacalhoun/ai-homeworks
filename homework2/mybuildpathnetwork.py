@@ -50,7 +50,7 @@ def lineUnobstructed(p1, p2, world):
   # Make sure the agent won't clip any obstacle points along a line
   for point in world.getPoints():
     ## This distance can be modified
-    if minimumDistance([p1,p2], point) < 20.0:
+    if minimumDistance([p1,p2], point) < 35.0:
       return False
 
   return True
