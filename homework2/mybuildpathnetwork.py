@@ -25,8 +25,32 @@ from core import *
 
 # Creates the pathnetwork as a list of lines between all pathnodes that are traversable by the agent.
 def myBuildPathNetwork(pathnodes, world, agent = None):
-	lines = []
-	### YOUR CODE GOES BELOW HERE ###
+  lines = []
+  ### YOUR CODE GOES BELOW HERE ###
 
-	### YOUR CODE GOES ABOVE HERE ###
-	return lines
+  # Check each node
+  for parentNode in pathnodes:
+    # Check each node for each node
+    for childNode in pathnodes:
+      # Skip itself
+      if parentNode != childNode:
+        # Add line if unobstructed
+        if lineUnobstructed(parentNode, childNode, world):
+          lines.append([parentNode, childNode])
+
+  ### YOUR CODE GOES ABOVE HERE ###
+  return lines
+
+# Check if line is unobstructed
+def lineUnobstructed(p1, p2, world):
+  # Ensure the line between the tow points doesn't intersect any object lines
+  if rayTraceWorld(p1, p2, world.getLines()) != None:
+    return False
+
+  # Make sure the agent won't clip any obstacle points along a line
+  for point in world.getPoints():
+    ## This distance can be modified
+    if minimumDistance([p1,p2], point) < 20.0:
+      return False
+
+  return True
