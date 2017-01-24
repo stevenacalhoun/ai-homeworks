@@ -35,7 +35,7 @@ def myBuildPathNetwork(pathnodes, world, agent = None):
       # Skip itself
       if parentNode != childNode:
         # Add line if unobstructed
-        if lineUnobstructed(parentNode, childNode, world):
+        if lineUnobstructed(parentNode, childNode, world) and (lineInList(parentNode, childNode, lines) == False):
           lines.append([parentNode, childNode])
 
   ### YOUR CODE GOES ABOVE HERE ###
@@ -54,3 +54,12 @@ def lineUnobstructed(p1, p2, world):
       return False
 
   return True
+
+def lineInList(p1,p2,lines):
+  for line in lines:
+    if (samePoint(p1,line[0]) and samePoint(p2,line[1])) or (samePoint(p1,line[1]) and samePoint(p2,line[0])):
+      return True
+  return False
+
+def samePoint(p1, p2):
+  return distance(p1,p2) == 0
