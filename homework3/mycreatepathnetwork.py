@@ -74,18 +74,7 @@ def createNavMesh(worldPoints, worldLines, worldObstacles):
   polys = createTriangleMesh(worldPoints, worldLines, worldObstacles)
 
   # Combine triangles to higher order polygons
-  keepGoing = True
-  keepGoing = False
-  while keepGoing:
-    combinedPoly, poly1, poly2 = combinePolysOnce(polys)
-
-    if combinedPoly != None:
-      print "Combining"
-      removePoly(poly1, polys)
-      removePoly(poly2, polys)
-      polys.append(combinedPoly)
-    else:
-      keepGoing = False
+  # polys = mergePolys(polys)
 
   return polys
 
@@ -151,14 +140,22 @@ def isSuccessor(point1, point2, worldLines, worldObstacles):
 
   return False
 
-# Combine triangles to higher order convex polys
-def combinePolysOnce(polys):
+def mergePolys(polys):
+  mergeCount = 0
   for poly1 in polys:
     for poly2 in polys:
       combinedPoly = poly1.combinePoly(poly2)
       if combinedPoly != None:
-        return combinedPoly, poly1, poly2
-  return None, None, None
+        print
+        print combinedPoly
+        print combinedPoly.order
+        polys = removePoly(poly1, polys)
+        polys = removePoly(poly2, polys)
+        polys.append(combinedPoly)
+        mergeCount+=1
+
+  print str(mergeCount) + " merges"
+  return polys
 
 ################################################################################################
 # Path node creation
@@ -182,15 +179,20 @@ def createPathNodes(polys,worldLines):
 # Create lines between pathnodes
 def createPathLines(pathnodes, worldPoints, worldLines):
   lines = []
+  coveredNodes = []
 
   # Check each node
-  for parentNode in pathnodes:
-    visibleNodes = getAllUnobstructedLines(parentNode, pathnodes, worldPoints, worldLines)
-    bestPathNode = findClosestUnobstructed(parentNode, visibleNodes,worldLines)
-    if bestPathNode:
-      newLine = Line(parentNode, bestPathNode)
-      if newLine not in lines:
-        lines.append(newLine)
+  while len(coveredNodes) <= len(coveredNodes):
+    print str(len(coveredNodes)) + "/" + str(len(pathnodes))
+    for parentNode in pathnodes:
+      visibleNodes = getAllUnobstructedLines(parentNode, pathnodes, worldPoints, worldLines)
+      bestPathNode = findClosestUnobstructed(parentNode, visibleNodes,worldLines)
+      if bestPathNode:
+        newLine = Line(parentNode, bestPathNode)
+        if newLine not in lines:
+          lines.append(newLine)
+          coveredNodes.append(parentNode)
+          coveredNodes.append(bestPathNode)
 
   return lines
 
@@ -241,7 +243,10 @@ class Point():
     return not self.__eq__(otherPoint)
 
   def __str__(self):
-    return "("+str(self.x)+","+str(self.y)+")"
+    return str(self.x)+","+str(self.y)
+
+  def __repr__(self):
+    return str(self)
 
   def __getitem__(self, key):
     if key == 0:
@@ -274,6 +279,9 @@ class Line():
 
   def __str__(self):
     return str(self.p1) + "<->" + str(self.p2)
+
+  def __repr__(self):
+    return str(self)
 
   def __getitem__(self, key):
     if key == 0:
@@ -324,10 +332,13 @@ class Polygon():
       # Convert to points
       self._generatePoints()
 
+    self.order = len(self.lines)
+
   def __eq__(self, otherPoly):
     if otherPoly == None:
       return False
 
+    # Different number of lines
     if len(self.lines) != len(otherPoly.lines):
       return False
 
@@ -344,8 +355,11 @@ class Polygon():
   def __str__(self):
     returnStr = ""
     for line in self.lines:
-      returnStr += str(line)
+      returnStr += str(line) + " "
     return returnStr
+
+  def __repr__(self):
+    return str(self)
 
   # Generate points based on lines
   def _generatePoints(self):
@@ -359,11 +373,13 @@ class Polygon():
     while True:
       stuck += 1
       if stuck > 1000:
-        print self.lines
-        print coveredLines
-        print currentPoint
-        print startingPoint
-        print pointTrail
+        # print
+        # print self.lines
+        # print coveredLines
+        # print currentPoint
+        # print startingPoint
+        # print pointTrail
+        s
 
       for line in self.lines:
         if line not in coveredLines:
@@ -438,14 +454,13 @@ class Polygon():
     adjPoints = polygonsAdjacent(self.points, otherPoly.points)
     if adjPoints:
       # Combine two polys lines
-      combinedPolyLines = self.lines
+      combinedPolyLines = []
+      combinedPolyLines.extend(self.lines)
       combinedPolyLines.extend(otherPoly.lines)
 
-      commonLine = (adjPoints[0],adjPoints[1])
+      commonLine = Line(adjPoints[0],adjPoints[1])
       if commonLine in combinedPolyLines:
         combinedPolyLines = filter(lambda a: a != commonLine, combinedPolyLines)
-      if reverseLine(commonLine) in combinedPolyLines:
-        combinedPolyLines = filter(lambda a: a != reverseLine(commonLine), combinedPolyLines)
 
       # New poly must be convex
       combinedPoly = Polygon(lines=combinedPolyLines)
@@ -487,8 +502,8 @@ def polysToLineTuples(polys):
   return tuples
 
 def removePoly(deletedPoly, polys):
-  polys.remove(deletedPoly)
-
+  polys = filter(lambda a: a != deletedPoly, polys)
+  return polys
 
 def test():
   p1 = Point(1,1)
