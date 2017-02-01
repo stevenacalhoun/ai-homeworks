@@ -17,7 +17,7 @@
 '''
 
 import sys, pygame, math, numpy, random, time, copy
-from pygame.locals import * 
+from pygame.locals import *
 from constants import *
 
 
@@ -40,21 +40,21 @@ def load_image(name, colorkey=None):
 ### Distance between two points
 def distance(p1, p2):
 	return (((p2[0]-p1[0])**2) + ((p2[1]-p1[1])**2))**0.5
-  
+
 # Calc the gradient 'm' of a line between p1 and p2
 def calculateGradient(p1, p2):
-  
+
 	# Ensure that the line is not vertical
 	if (p1[0] != p2[0]):
 		m = (p1[1] - p2[1]) / float(p1[0] - p2[0])
 		return m
 	else:
 		return None
- 
+
 # Calc the point 'b' where line crosses the Y axis
 def calculateYAxisIntersect(p, m):
 	return  p[1] - (m * p[0])
- 
+
 # Calc the point where two infinitely long lines (p1 to p2 and p3 to p4) intersect.
 # Handle parallel lines and vertical lines (the later has infinite 'm').
 # Returns a point tuple of points like this ((x,y),...)  or None
@@ -64,32 +64,32 @@ def calculateYAxisIntersect(p, m):
 def getIntersectPoint(p1, p2, p3, p4):
 	m1 = calculateGradient(p1, p2)
 	m2 = calculateGradient(p3, p4)
-      
+
 	# See if the the lines are parallel
 	if (m1 != m2):
 		# Not parallel
-      
+
 		# See if either line is vertical
 		if (m1 is not None and m2 is not None):
-			# Neither line vertical           
+			# Neither line vertical
 			b1 = calculateYAxisIntersect(p1, m1)
-			b2 = calculateYAxisIntersect(p3, m2)  
-			x = (b2 - b1) / float(m1 - m2)       
-			y = (m1 * x) + b1           
+			b2 = calculateYAxisIntersect(p3, m2)
+			x = (b2 - b1) / float(m1 - m2)
+			y = (m1 * x) + b1
 		else:
 			# Line 1 is vertical so use line 2's values
 			if (m1 is None):
-				b2 = calculateYAxisIntersect(p3, m2)   
+				b2 = calculateYAxisIntersect(p3, m2)
 				x = p1[0]
 				y = (m2 * x) + b2
-			# Line 2 is vertical so use line 1's values               
+			# Line 2 is vertical so use line 1's values
 			elif (m2 is None):
 				b1 = calculateYAxisIntersect(p1, m1)
 				x = p3[0]
-				y = (m1 * x) + b1           
+				y = (m1 * x) + b1
 			else:
 				assert false
-              
+
 		return ((x,y),)
 	else:
 		# Parallel lines with same 'b' value must be the same line so they intersect
@@ -99,21 +99,21 @@ def getIntersectPoint(p1, p2, p3, p4):
 		b1, b2 = None, None # vertical lines have no b value
 		if m1 is not None:
 			b1 = calculateYAxisIntersect(p1, m1)
-          
-		if m2 is not None:   
+
+		if m2 is not None:
 			b2 = calculateYAxisIntersect(p3, m2)
-      
-		# If these parallel lines lay on one another   
+
+		# If these parallel lines lay on one another
 		if b1 == b2:
 			return p1,p2,p3,p4
 		else:
-			return None  
-  
-  
- 
+			return None
+
+
+
 # For line segments (ie not infinitely long lines) the intersect point
 # may not lay on both lines.
-#   
+#
 # If the point where two lines intersect is inside both line's bounding
 # rectangles then the lines intersect. Returns intersect point if the line
 # intesect o None if not
@@ -135,7 +135,7 @@ def between(p, p1, p2):
 def rayTrace(p1, p2, line):
 	return calculateIntersectPoint(line[0], line[1], p1, p2)
 	#pygame.draw.line(background, (0, 0, 0), p1, p2)
-	
+
 def rayTraceWorld(p1, p2, worldLines):
 	for l in worldLines:
 		hit = rayTrace(p1, p2, l)
@@ -161,6 +161,9 @@ def rayTraceWorld(p1, p2, worldLines):
 # Check whether the line between p1 and p2 intersects with line anywhere except an endpoint.
 def rayTraceNoEndpoints(p1, p2, line):
 	# They are the same line: bad
+	# print line
+	# print p1
+	# print p2
 	if (p1 == line[0] and p2 == line[1]) or (p2 == line[0] and p1 == line[1]):
 		return p1
 	# They are not the same line but share an endpoint: good
@@ -184,17 +187,17 @@ def rayTraceWorldNoEndPoints(p1, p2, worldLines):
 # Return minimum distance between line segment and point
 def minimumDistance(line, point):
 	d2 = distance(line[1], line[0])**2.0
-	if d2 == 0.0: 
+	if d2 == 0.0:
 		return distance(point, line[0])
 	# Consider the line extending the segment, parameterized as line[0] + t (line[1] - line[0]).
-	# We find projection of point p onto the line. 
+	# We find projection of point p onto the line.
 	# It falls where t = [(point-line[0]) . (line[1]-line[0])] / |line[1]-line[0]|^2
 	p1 = (point[0] - line[0][0], point[1] - line[0][1])
 	p2 = (line[1][0] - line[0][0], line[1][1] - line[0][1])
 	t = dotProduct(p1, p2) / d2  # numpy.dot(p1, p2) / d2
-	if t < 0.0: 
+	if t < 0.0:
 		return distance(point, line[0])	# Beyond the line[0] end of the segment
-	elif t > 1.0: 
+	elif t > 1.0:
 		return distance(point, line[1])	# Beyond the line[1] end of the segment
 	p3 = (line[0][0] + (t * (line[1][0] - line[0][0])), line[0][1] + (t * (line[1][1] - line[0][1]))) # projection falls on the segment
 	return distance(point, p3)
@@ -250,7 +253,7 @@ def polygonsAdjacent(poly1, poly2):
 		return points
 	else:
 		return False
-		
+
 def isConvex(points):
 	p1 = None
 	p2 = None
@@ -283,14 +286,14 @@ def isConvex(points):
 		return False
 	else:
 		return True
-	
+
 def crossProduct(p1, p2, p3):
 	dx1 = p2[0] - p1[0]
 	dy1 = p2[1] - p1[1]
 	dx2 = p3[0] - p2[0]
 	dy2 = p3[1] - p2[1]
 	return (dx1*dy2) - (dy1*dx2)
-	
+
 def dotProduct(p1, p2):
 	return (p1[0]*p2[0]) + (p1[1]*p2[1])
 
@@ -301,11 +304,11 @@ def appendLineNoDuplicates(line, lines):
 		return lines.append(line)
 	else:
 		return lines
-	
-#Reverse the order of points in a line.	
+
+#Reverse the order of points in a line.
 def reverseLine(line):
 	return (line[1], line[0])
-	
+
 #Determine whether a point is inside an simple polygon. Polygon is a set of lines.
 def pointInsidePolygonLines(point, polygon):
 	count = 0
@@ -339,7 +342,7 @@ def angle(pt1, pt2):
 
 def vectorMagnitude(v):
 	return reduce(lambda x, y: (x**2)+(y**2), v)**0.5
-	
+
 # Find the point in nodes closest to p that is unobstructed
 # NOTE: there is a problem in that this function doesn't compute whether there is enough clearance for an agent to get to the nearest unobstructed point
 def findClosestUnobstructed(p, nodes, worldLines):
@@ -371,7 +374,7 @@ def findClosestUnobstructed(p, nodes, worldLines):
 #	return best
 
 
-	
+
 def drawCross(surface, point, color = (0, 0, 0), size = 2, width = 1):
 	pygame.draw.line(surface, color, (point[0]-size, point[1]-size), (point[0]+size, point[1]+size), width)
 	pygame.draw.line(surface, color, (point[0]+size, point[1]-size), (point[0]-size, point[1]+size), width)

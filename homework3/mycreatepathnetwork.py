@@ -29,13 +29,32 @@ def myCreatePathNetwork(world, agent = None):
   edges = []
   polys = []
   ### YOUR CODE GOES BELOW HERE ###
+  test()
 
-  polys = createNavMesh(world.getPoints(), world.getLinesWithoutBorders(), world.getObstacles())
+  # Convert world information to my own classes
+  worldPoints = []
+  for point in world.getPoints():
+    worldPoints.append(Point(point[0], point[1]))
+  worldLines = []
+  for line in world.getLinesWithoutBorders():
+    worldLines.append(Line(Point(line[0][0], line[0][1]), Point(line[1][0], line[1][1])))
+  worldObstacles = []
+  for obstacle in world.getObstacles():
+    obstacleLines = []
+    for line in obstacle.lines:
+      obstacleLines.append(Line(Point(line[0][0],line[0][1]),Point(line[1][0],line[1][1])))
+    worldObstacles.append(Polygon(lines=obstacleLines))
+
+  polys = createNavMesh(worldPoints, worldLines, worldObstacles)
   print str(len(polys)) + " Polys"
-  nodes = createPathNodes(polys)
+  nodes = createPathNodes(polys, worldLines)
   print str(len(nodes)) + " Nodes"
-  edges = createPathLines(nodes, world.getPoints(), world.getLinesWithoutBorders())
+  edges = createPathLines(nodes, worldPoints, worldLines)
   print str(len(edges)) + " Edges"
+
+  polys = polysToPointTuples(polys)
+  nodes = pointsToTuples(nodes)
+  edges = linesToTuples(edges)
 
   for node in nodes:
     drawCross(world.debug, node, color=(0,0,255))
@@ -44,11 +63,9 @@ def myCreatePathNetwork(world, agent = None):
   return nodes, edges, polys
 
 # Create navmesh
-def createNavMesh(obstaclePoints, obstacleLines, obstacles):
-  polyPoints = []
-
+def createNavMesh(worldPoints, worldLines, worldObstacles):
   # Create navmesh only out of triangles
-  polys = createTriangleMesh(obstaclePoints, obstacleLines, obstacles)
+  polys = createTriangleMesh(worldPoints, worldLines, worldObstacles)
 
   # Combine triangles to higher order polygons
   keepGoing = True
@@ -64,65 +81,63 @@ def createNavMesh(obstaclePoints, obstacleLines, obstacles):
     else:
       keepGoing = False
 
-  for poly in polys:
-    polyPoints.append(poly.points)
-
-  return polyPoints
+  return polys
 
 # Create triangle mesh
-def createTriangleMesh(obstaclePoints, obstacleLines, obstacles):
+def createTriangleMesh(worldPoints, worldLines, worldObstacles):
   completedPoints = []
   tris = []
 
   # Continue until all points covered
-  for point in obstaclePoints:
+  for point in worldPoints:
 
     # Create triangles around this point
-    createTrianglesFromPoint(obstaclePoints, obstacleLines, point, tris, obstacles)
+    createTrianglesFromPoint(worldPoints, worldLines, point, tris, worldObstacles)
 
   return tris
 
 # Get all successors of a point
-def getAllSuccessors(startPoint, obstaclePoints, obstacleLines, obstacles):
+def getAllSuccessors(startPoint, worldPoints, worldLines, worldObstacles):
   successors = []
-  for point in obstaclePoints:
-    if isSuccessor(startPoint, point, obstacleLines, obstacles):
+  for point in worldPoints:
+    if isSuccessor(startPoint, point, worldLines, worldObstacles):
       successors.append(point)
 
   return successors
 
-def createTrianglesFromPoint(obstaclePoints, obstacleLines, currentPoint, currentTris, obstacles):
+def createTrianglesFromPoint(worldPoints, worldLines, currentPoint, currentTris, worldObstacles):
   coveredSuccessors = []
-  successors = getAllSuccessors(currentPoint, obstaclePoints, obstacleLines, obstacles)
+  successors = getAllSuccessors(currentPoint, worldPoints, worldLines, worldObstacles)
 
   for successor1 in successors:
     # Start with an uncovered successor
     if successor1 not in coveredSuccessors:
       # Find a suitable second successor
       for successor2 in successors:
-        if isSuccessor(successor1, successor2, obstacleLines, obstacles):
+        if isSuccessor(successor1, successor2, worldLines, worldObstacles):
           testTri = Polygon(points=[currentPoint, successor1, successor2])
 
           # Make sure our test tri is unobstructed
-          if testTri.unobstructed(obstaclePoints, obstacleLines, currentTris):
+          if testTri.unobstructed(worldPoints, worldLines, currentTris):
             coveredSuccessors.append(successor1)
             coveredSuccessors.append(successor2)
             currentTris.append(testTri)
 
 # Check if two lines are successors
-def isSuccessor(point1, point2, obstacleLines, obstacles):
-  for obstacle in obstacles:
-    if pointInsidePolygonLines(getMidPoint(point1,point2), obstacle.lines):
+def isSuccessor(point1, point2, worldLines, worldObstacles):
+  for obstacle in worldObstacles:
+    line = Line(point1,point2)
+    if pointInsidePolygonLines(line.midpoint(), obstacle.toLineTuple()):
       return False
 
   # Lines along obstacleLines are okay
-  if (point1,point2) in obstacleLines:
+  if Line(point1,point2) in worldLines:
     return True
-  if (point2,point1) in obstacleLines:
+  if Line(point2,point1) in worldLines:
     return True
 
   # Lines through free space are okay
-  if (rayTraceWorldNoEndPoints(point1, point2, obstacleLines) == None and point1 != point2):
+  if (rayTraceWorldNoEndPoints(point1, point2, worldLines) == None and point1 != point2):
     return True
 
   return False
@@ -136,77 +151,58 @@ def combinePolysOnce(polys):
         return combinedPoly, poly1, poly2
   return None, None, None
 
-# def combineTwoPolys(poly1,poly2):
-#   adjPoints = polygonsAdjacent(poly1,poly2)
-#   if adjPoints:
-#     combinedPoly = []
-#     for point in poly1:
-#       appendPointNoDuplicates(point, combinedPoly)
-#     for point in poly2:
-#       appendPointNoDuplicates(point, combinedPoly)
-#
-#     if isConvex(combinedPoly):
-#       return combinedPoly
-#     else:
-#       return None
-#
-#   else:
-#     return None
-
 # Create path nodes from navmesh polys
-def createPathNodes(polys):
+def createPathNodes(polys,worldLines):
   nodes = []
 
   # For every shared line between polys, add a path node at the midpoint
   for poly1 in polys:
-    for line in createLineRepOfPolyPoints(poly1):
-      appendPointNoDuplicates(getMidPoint(line[0],line[1]), nodes)
-
-    # for poly2 in polys:
-    #   print
-    #   print poly1
-    #   print poly2
-    #   adjacentPoints = polygonsAdjacent(poly1, poly2)
-    #   if adjacentPoints:
-    #     print adjacentPoints
-    #     appendPointNoDuplicates(getMidPoint(adjacentPoints[0],adjacentPoints[1]), nodes)
+    for line in poly1.lines:
+      if line not in worldLines:
+        appendPointNoDuplicates(line.midpoint(), nodes)
 
   return nodes
 
 # Create lines between pathnodes
-def createPathLines(pathnodes, obstaclePoints, obstacleLines):
+def createPathLines(pathnodes, worldPoints, worldLines):
   lines = []
 
   # Check each node
   for parentNode in pathnodes:
-    # Check each node for each node
-    for childNode in pathnodes:
-      # Skip itself
-      if parentNode != childNode:
-        # Add line if unobstructed
-        if lineUnobstructed(parentNode, childNode, obstaclePoints, obstacleLines):
-          appendLineNoDuplicates([parentNode, childNode],lines)
+    visibleNodes = getAllVisbileNodes(parentNode, pathnodes, worldPoints, worldLines)
+    bestPathNode = findClosestUnobstructed(parentNode, visibleNodes,worldLines)
+    if bestPathNode:
+      newLine = Line(parentNode, bestPathNode)
+      if newLine not in lines:
+        lines.append(newLine)
 
   return lines
 
+def getAllVisbileNodes(parentNode, pathnodes, worldPoints, worldLines):
+  visibleNodes = []
+
+  # Check each node for each node
+  for childNode in pathnodes:
+    # Skip itself
+    if parentNode != childNode:
+      # Add line if unobstructed
+      if lineUnobstructed(parentNode, childNode, worldPoints, worldLines):
+        visibleNodes.append(childNode)
+  return visibleNodes
+
 # Check if line is unobstructed
-def lineUnobstructed(p1, p2, obstaclePoints, obstacleLines):
+def lineUnobstructed(p1, p2, worldPoints, worldLines):
   # Ensure the line between the tow points doesn't intersect any object lines
-  if rayTraceWorldNoEndPoints(p1, p2, obstacleLines) != None:
+  if rayTraceWorldNoEndPoints(p1, p2, worldLines) != None:
     return False
 
   # Make sure the agent won't clip any obstacle points along a line
-  for point in obstaclePoints:
+  for point in worldPoints:
     ## This distance can be modified
     if minimumDistance([p1,p2], point) < 35.0:
       return False
 
   return True
-
-# Get midpoint of line
-def getMidPoint(point1, point2):
-  mid = [(point1[0]+point2[0])/2, (point1[1]+point2[1])/2]
-  return mid
 
 def appendPointNoDuplicates(point, points):
   if point in points:
@@ -214,22 +210,67 @@ def appendPointNoDuplicates(point, points):
   else:
     return points.append(point)
 
-def linesEqual(line1, line2):
-  if line1 == line2:
-    return True
-  if line1 == reverseLine(line2):
-    return True
-  return False
-
-def linesContainsCommonPoint(line1, line2):
-  if line1[0] == line2[0] or line1[0] == line2[1]:
-    return True
-  if line1[1] == line2[0] or line1[1] == line2[1]:
-    return True
-  return False
-
 def removePoly(deletedPoly, polys):
   polys.remove(deletedPoly)
+
+class Point():
+  def __init__(self, x, y):
+    self.x = x
+    self.y = y
+
+  def __eq__(self, otherPoint):
+    if otherPoint == None:
+      return False
+    if self.x == otherPoint.x and self.y == otherPoint.y:
+      return True
+    return False
+
+  def __ne__(self, otherPoint):
+    return not self.__eq__(otherPoint)
+
+  def __str__(self):
+    return "("+str(self.x)+","+str(self.y)+")"
+
+  def __getitem__(self, key):
+    if key == 0:
+      return self.x
+    if key == 1:
+      return self.y
+
+  def toTuple(self):
+    return (self.x,self.y)
+
+class Line():
+  def __init__(self, p1, p2):
+    self.p1 = p1
+    self.p2 = p2
+
+  def __eq__(self, otherLine):
+    if otherLine == None:
+      return False
+    if self.p1 == otherLine.p1 and self.p2 == otherLine.p2:
+      return True
+    if self.p2 == otherLine.p1 and self.p1 == otherLine.p2:
+      return True
+    return False
+
+  def __ne__(self, otherLine):
+    return not self.__eq__(otherLine)
+
+  def __str__(self):
+    return str(self.p1) + "<->" + str(self.p2)
+
+  def __getitem__(self, key):
+    if key == 0:
+      return self.p1
+    if key == 1:
+      return self.p2
+
+  def midpoint(self):
+    return Point((self.p1.x+self.p2.x)/2, (self.p1.y+self.p2.y)/2)
+
+  def toTuple(self):
+    return (self.p1.toTuple(),self.p2.toTuple())
 
 class Polygon():
   def __init__(self, points=None, lines=None):
@@ -248,7 +289,7 @@ class Polygon():
     if lines != None:
       # Add all lines
       for line in lines:
-        if line not in self.lines and reverseLine(line) not in self.lines:
+        if line not in self.lines:
           self.lines.append(line)
 
       # Convert to points
@@ -262,7 +303,7 @@ class Polygon():
       return False
 
     for line in self.lines:
-      if line not in otherPoly.lines and reverseLine(line) not in otherPoly.lines:
+      if line not in otherPoly.lines:
         return False
 
     return True
@@ -271,9 +312,27 @@ class Polygon():
     result = self.__eq__(otherPoly)
     return not result
 
+  def __str__(self):
+    returnStr = ""
+    for line in self.lines:
+      returnStr += str(line)
+    return returnStr
+
+  def toPointTuple(self):
+    points = []
+    for point in self.points:
+      points.append(point.toTuple())
+    return points
+
+  def toLineTuple(self):
+    lines = []
+    for line in self.lines:
+      lines.append(line.toTuple())
+    return lines
+
   def isPolyLine(self,testLine):
     for line in self.lines:
-      if linesEqual(line, testLine):
+      if line == testLine:
         return True
     return False
 
@@ -281,17 +340,17 @@ class Polygon():
     return pointInsidePolygonLines(point, self.lines) and point not in self.points
 
   def lineInside(self, testLine):
-    if self.pointInside(testLine[0]) and self.pointInside(testLine[1]):
+    if self.pointInside(testLine.p1) and self.pointInside(testLine.p2):
       return True
 
-    if (self.pointInside(testLine[0]) or self.pointInside(testLine[1])) and self.lineIntersects(testLine):
+    if (self.pointInside(testLine.p1) or self.pointInside(testLine.p2)) and self.lineIntersects(testLine):
       return True
 
     return False
 
   def lineIntersects(self, testLine):
     for line in self.lines:
-      if rayTraceNoEndpoints(line[0],line[1],testLine) and not linesEqual(line, testLine):
+      if rayTraceNoEndpoints(line.p1,line.p2,testLine) and line != testLine:
         return True
 
     return False
@@ -311,7 +370,7 @@ class Polygon():
   def overlapsPoly(self, poly):
     for line1 in self.lines:
       for line2 in poly.lines:
-        if rayTraceNoEndpoints(line1[0],line1[1], line2) and not linesEqual(line1,line2):
+        if rayTraceNoEndpoints(line1.p1,line1.p2, line2) and line1 != line2:
           return True
 
     return False
@@ -367,18 +426,17 @@ def createLineRepOfPolyPoints(points):
   last = None
   for p in points:
     if last != None:
-      lines.append((last, p))
+      lines.append(Line(last, p))
     last = p
-  lines.append((points[len(points)-1], points[0]))
+  lines.append(Line(points[len(points)-1], points[0]))
   return lines
 
 def createPointRepOfPolyLines(lines):
   points = []
-  startingPoint = lines[0][0]
+  startingPoint = lines[0].p1
   currentPoint = startingPoint
   coveredLines = []
   pointTrail = []
-
 
   stuck = 0
 
@@ -390,59 +448,66 @@ def createPointRepOfPolyLines(lines):
       print currentPoint
       print startingPoint
       print pointTrail
-      a
 
     for line in lines:
       if line not in coveredLines:
-        if line[0] == currentPoint:
+        if line.p1 == currentPoint:
           points.append(currentPoint)
           coveredLines.append(line)
           pointTrail.append(currentPoint)
-          currentPoint = line[1]
+          currentPoint = line.p2
 
-        elif line[1] == currentPoint:
+        elif line.p2 == currentPoint:
           points.append(currentPoint)
           coveredLines.append(line)
           pointTrail.append(currentPoint)
-          currentPoint = line[0]
+          currentPoint = line.p1
 
         if currentPoint == startingPoint:
           return points
 
+def pointsToTuples(points):
+  tuples = []
+  for point in points:
+    tuples.append(point.toTuple())
+  return tuples
+
+def linesToTuples(lines):
+  tuples = []
+  for line in lines:
+    tuples.append(line.toTuple())
+  return tuples
+
+def polysToPointTuples(polys):
+  tuples = []
+  for poly in polys:
+    tuples.append(poly.toPointTuple())
+  return tuples
+
+def polysToLineTuples(polys):
+  tuples = []
+  for poly in polys:
+    tuples.append(poly.toLineTuple())
+  return tuples
+
 def test():
-  # No overlap
-  poly1 = Polygon(points=[(0,0), (100,0), (0, 100)])
-  poly2 = Polygon(lines=[((100,0),(0,100)), ((0,100),(100,100)), ((100,100),(100,0))])
-  assert poly1.overlapsPoly(poly2) == False
+  p1 = Point(1,1)
+  p12 = Point(1,1)
+  p2 = Point(2,2)
+  p3 = Point(3,3)
+  p4 = Point(4,4)
+  points = [p1,p2,p3]
+  assert (p1 in points) == True
+  assert (p12 in points) == True
+  assert (p3 in points) == True
+  assert (p4 in points) == False
 
-  # No Overlap
-  poly1 = Polygon(points=[(0,0), (100,0), (0, 100)])
-  poly2 = Polygon(lines=[((100,0),(0,100)), ((0,100),(10,10)), ((10,10),(100,0))])
-  assert poly1.overlapsPoly(poly2) == False
-
-  # Overlap
-  poly1 = Polygon(points=[(0,0), (100,0), (0, 100)])
-  poly2 = Polygon(points=[(10,10), (200,200), (0, 100)])
-  assert poly1.overlapsPoly(poly2) == True
-
-  # Line test
-  poly = Polygon(points=[(10,10), (110,10), (110, 110), (10,110)])
-  assert poly.lineObstructs(((10,10),(110,10))) == False
-  assert poly.lineObstructs(((10,10),(110,110))) == True
-  assert poly.lineObstructs(((0,0),(10,10))) == False
-  assert poly.lineObstructs(((10,10),(50,50))) == True
-  assert poly.lineObstructs(((0,0),(50,50))) == True
-
-  # Eq test
-  poly1 = Polygon(points=[(0,0), (100,0), (0, 100)])
-  poly2 = Polygon(points=[(0,0), (0, 100), (100,0)])
-  assert (poly1==poly1) == True
-  assert (poly1!=poly1) == False
-  assert (poly1==poly2) == True
-  assert (poly1!=poly2) == False
-
-  # Combine test
-  poly1 = Polygon(points=[(0,0), (100,0), (0, 100)])
-  poly2 = Polygon(points=[(100,0),(0,100), (100,100)])
-  combinedPoly = poly1.combinePoly(poly2)
-  assert combinedPoly != None
+  l1 = Line(p1,p2)
+  l12 = Line(p2,p1)
+  l2 = Line(p1,p3)
+  l3 = Line(p3,p4)
+  lines = [l1,l2]
+  assert (l1 in lines) == True
+  assert (l12 in lines) == True
+  assert (l2 in lines) == True
+  assert (l3 in lines) == False
