@@ -140,22 +140,22 @@ def combinePolysOnce(polys):
         return combinedPoly, poly1, poly2
   return None, None, None
 
-def combineTwoPolys(poly1,poly2):
-  adjPoints = polygonsAdjacent(poly1,poly2)
-  if adjPoints:
-    combinedPoly = []
-    for point in poly1:
-      appendPointNoDuplicates(point, combinedPoly)
-    for point in poly2:
-      appendPointNoDuplicates(point, combinedPoly)
-
-    if isConvex(combinedPoly):
-      return combinedPoly
-    else:
-      return None
-
-  else:
-    return None
+# def combineTwoPolys(poly1,poly2):
+#   adjPoints = polygonsAdjacent(poly1,poly2)
+#   if adjPoints:
+#     combinedPoly = []
+#     for point in poly1:
+#       appendPointNoDuplicates(point, combinedPoly)
+#     for point in poly2:
+#       appendPointNoDuplicates(point, combinedPoly)
+#
+#     if isConvex(combinedPoly):
+#       return combinedPoly
+#     else:
+#       return None
+#
+#   else:
+#     return None
 
 # Create path nodes from navmesh polys
 def createPathNodes(polys):
@@ -228,26 +228,6 @@ def polysOverlap(poly1, poly2):
 
   return False
 
-def createLineRepOfPolyPoints(polygon):
-  lines = []
-  last = None
-  for p in polygon:
-    if last != None:
-      lines.append((last, p))
-    last = p
-  lines.append((polygon[len(polygon)-1], polygon[0]))
-  return lines
-
-def createPointRepOfPolyLines(polygon):
-  points = []
-  for line in polygon:
-    if line[0] not in points:
-      points.append(line[0])
-    if line[1] not in points:
-      points.append(line[1])
-
-  return points
-
 def linesEqual(line1, line2):
   if line1 == line2:
     return True
@@ -267,15 +247,31 @@ def removePoly(deletedPoly, polys):
 
 class Polygon():
   def __init__(self, points=None, lines=None):
+    self.points = []
+    self.lines = []
+
     if points != None:
-      self.points = points
+      # Add all points
+      for point in points:
+        if point not in self.points:
+          self.points.append(point)
+
+      # Conver to lines
       self.lines = createLineRepOfPolyPoints(self.points)
 
     if lines != None:
-      self.lines = lines
+      # Add all lines
+      for line in lines:
+        if line not in self.lines and reverseLine(line) not in self.lines:
+          self.lines.append(line)
+
+      # Convert to points
       self.points = createPointRepOfPolyLines(self.lines)
 
   def __eq__(self, otherPoly):
+    if otherPoly == None:
+      return False
+
     if len(self.lines) != len(otherPoly.lines):
       return False
 
@@ -334,6 +330,64 @@ class Polygon():
 
     return False
 
+  def combinePoly(self, otherPoly):
+    # Check if polys are adjacent
+    adjPoints = polygonsAdjacent(self.points, otherPoly.points)
+    if adjPoints:
+      # Combine two polys lines
+      combinedPolyLines = self.lines
+      combinedPolyLines.extend(otherPoly.lines)
+
+      commonLine = (adjPoints[0],adjPoints[1])
+      if commonLine in combinedPolyLines:
+        combinedPolyLines = filter(lambda a: a != commonLine, combinedPolyLines)
+      if reverseLine(commonLine) in combinedPolyLines:
+        combinedPolyLines = filter(lambda a: a != reverseLine(commonLine), combinedPolyLines)
+
+      # New poly must be convex
+      combinedPoly = Polygon(lines=combinedPolyLines)
+      if combinedPoly.isConvex():
+        return combinedPoly
+
+      else:
+        return None
+
+    else:
+      return None
+
+  def isConvex(self):
+    return isConvex(self.points)
+
+def createLineRepOfPolyPoints(points):
+  lines = []
+  last = None
+  for p in points:
+    if last != None:
+      lines.append((last, p))
+    last = p
+  lines.append((points[len(points)-1], points[0]))
+  return lines
+
+def createPointRepOfPolyLines(lines):
+  points = []
+  startingPoint = lines[0][0]
+  currentPoint = startingPoint
+  coveredLines = []
+  while True:
+    for line in lines:
+      if line not in coveredLines:
+        if line[0] == currentPoint:
+          points.append(currentPoint)
+          coveredLines.append(line)
+          currentPoint = line[1]
+
+        elif line[1] == currentPoint:
+          points.append(currentPoint)
+          coveredLines.append(line)
+          currentPoint = line[0]
+
+        if currentPoint == startingPoint:
+          return points
 
 def test():
   # No overlap
@@ -366,3 +420,9 @@ def test():
   assert (poly1!=poly1) == False
   assert (poly1==poly2) == True
   assert (poly1!=poly2) == False
+
+  # Combine test
+  poly1 = Polygon(points=[(0,0), (100,0), (0, 100)])
+  poly2 = Polygon(points=[(100,0),(0,100), (100,100)])
+  combinedPoly = poly1.combinePoly(poly2)
+  assert combinedPoly != None
