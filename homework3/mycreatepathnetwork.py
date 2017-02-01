@@ -23,6 +23,9 @@ from constants import *
 from utils import *
 from core import *
 
+# My include
+from random import shuffle
+
 # Creates a pathnode network that connects the midpoints of each navmesh together
 def myCreatePathNetwork(world, agent = None):
   nodes = []
@@ -62,6 +65,9 @@ def myCreatePathNetwork(world, agent = None):
   ### YOUR CODE GOES ABOVE HERE ###
   return nodes, edges, polys
 
+################################################################################################
+# Nav mesh creation
+################################################################################################
 # Create navmesh
 def createNavMesh(worldPoints, worldLines, worldObstacles):
   # Create navmesh only out of triangles
@@ -88,22 +94,16 @@ def createTriangleMesh(worldPoints, worldLines, worldObstacles):
   completedPoints = []
   tris = []
 
-  # Continue until all points covered
-  for point in worldPoints:
+  # Randomize point selection
+  startingPoints = worldPoints
+  shuffle(startingPoints)
 
+  # Continue until all points covered
+  for point in startingPoints:
     # Create triangles around this point
     createTrianglesFromPoint(worldPoints, worldLines, point, tris, worldObstacles)
 
   return tris
-
-# Get all successors of a point
-def getAllSuccessors(startPoint, worldPoints, worldLines, worldObstacles):
-  successors = []
-  for point in worldPoints:
-    if isSuccessor(startPoint, point, worldLines, worldObstacles):
-      successors.append(point)
-
-  return successors
 
 def createTrianglesFromPoint(worldPoints, worldLines, currentPoint, currentTris, worldObstacles):
   coveredSuccessors = []
@@ -118,10 +118,19 @@ def createTrianglesFromPoint(worldPoints, worldLines, currentPoint, currentTris,
           testTri = Polygon(points=[currentPoint, successor1, successor2])
 
           # Make sure our test tri is unobstructed
-          if testTri.unobstructed(worldPoints, worldLines, currentTris):
+          if not testTri.overlapsAnyPoly(currentTris):
             coveredSuccessors.append(successor1)
             coveredSuccessors.append(successor2)
             currentTris.append(testTri)
+
+# Get all successors of a point
+def getAllSuccessors(startPoint, worldPoints, worldLines, worldObstacles):
+  successors = []
+  for point in worldPoints:
+    if isSuccessor(startPoint, point, worldLines, worldObstacles):
+      successors.append(point)
+
+  return successors
 
 # Check if two lines are successors
 def isSuccessor(point1, point2, worldLines, worldObstacles):
@@ -151,6 +160,9 @@ def combinePolysOnce(polys):
         return combinedPoly, poly1, poly2
   return None, None, None
 
+################################################################################################
+# Path node creation
+################################################################################################
 # Create path nodes from navmesh polys
 def createPathNodes(polys,worldLines):
   nodes = []
@@ -159,17 +171,21 @@ def createPathNodes(polys,worldLines):
   for poly1 in polys:
     for line in poly1.lines:
       if line not in worldLines:
-        appendPointNoDuplicates(line.midpoint(), nodes)
+        if line.midpoint() not in nodes:
+          nodes.append(line.midpoint())
 
   return nodes
 
+################################################################################################
+# Path line creation
+################################################################################################
 # Create lines between pathnodes
 def createPathLines(pathnodes, worldPoints, worldLines):
   lines = []
 
   # Check each node
   for parentNode in pathnodes:
-    visibleNodes = getAllVisbileNodes(parentNode, pathnodes, worldPoints, worldLines)
+    visibleNodes = getAllUnobstructedLines(parentNode, pathnodes, worldPoints, worldLines)
     bestPathNode = findClosestUnobstructed(parentNode, visibleNodes,worldLines)
     if bestPathNode:
       newLine = Line(parentNode, bestPathNode)
@@ -178,7 +194,8 @@ def createPathLines(pathnodes, worldPoints, worldLines):
 
   return lines
 
-def getAllVisbileNodes(parentNode, pathnodes, worldPoints, worldLines):
+# Get all visible nodes
+def getAllUnobstructedLines(parentNode, pathnodes, worldPoints, worldLines):
   visibleNodes = []
 
   # Check each node for each node
@@ -186,33 +203,28 @@ def getAllVisbileNodes(parentNode, pathnodes, worldPoints, worldLines):
     # Skip itself
     if parentNode != childNode:
       # Add line if unobstructed
-      if lineUnobstructed(parentNode, childNode, worldPoints, worldLines):
+      if lineUnobstructed(Line(parentNode, childNode), worldPoints, worldLines):
         visibleNodes.append(childNode)
+
   return visibleNodes
 
 # Check if line is unobstructed
-def lineUnobstructed(p1, p2, worldPoints, worldLines):
+def lineUnobstructed(line, worldPoints, worldLines):
   # Ensure the line between the tow points doesn't intersect any object lines
-  if rayTraceWorldNoEndPoints(p1, p2, worldLines) != None:
+  if rayTraceWorldNoEndPoints(line.p1, line.p2, worldLines) != None:
     return False
 
   # Make sure the agent won't clip any obstacle points along a line
   for point in worldPoints:
     ## This distance can be modified
-    if minimumDistance([p1,p2], point) < 35.0:
+    if minimumDistance([line.p1,line.p2], point) < 35.0:
       return False
 
   return True
 
-def appendPointNoDuplicates(point, points):
-  if point in points:
-    return points
-  else:
-    return points.append(point)
-
-def removePoly(deletedPoly, polys):
-  polys.remove(deletedPoly)
-
+################################################################################################
+# Custom Point class instead of tuples
+################################################################################################
 class Point():
   def __init__(self, x, y):
     self.x = x
@@ -240,6 +252,9 @@ class Point():
   def toTuple(self):
     return (self.x,self.y)
 
+################################################################################################
+# Custom Line class for the same reasons
+################################################################################################
 class Line():
   def __init__(self, p1, p2):
     self.p1 = p1
@@ -272,6 +287,20 @@ class Line():
   def toTuple(self):
     return (self.p1.toTuple(),self.p2.toTuple())
 
+  def intersects(self, otherLine):
+    if rayTraceNoEndpoints(self.p1, self.p2, otherLine) and self != otherLine:
+      return True
+    return False
+
+  def intersectsAny(self, worldLines):
+    for line in worldLines:
+      if self.intersects(line):
+        return True
+    return False
+
+################################################################################################
+# Custom Polygon class instead of...you already know by now
+################################################################################################
 class Polygon():
   def __init__(self, points=None, lines=None):
     self.points = []
@@ -284,7 +313,7 @@ class Polygon():
           self.points.append(point)
 
       # Conver to lines
-      self.lines = createLineRepOfPolyPoints(self.points)
+      self._generateLines()
 
     if lines != None:
       # Add all lines
@@ -293,7 +322,7 @@ class Polygon():
           self.lines.append(line)
 
       # Convert to points
-      self.points = createPointRepOfPolyLines(self.lines)
+      self._generatePoints()
 
   def __eq__(self, otherPoly):
     if otherPoly == None:
@@ -318,80 +347,91 @@ class Polygon():
       returnStr += str(line)
     return returnStr
 
+  # Generate points based on lines
+  def _generatePoints(self):
+    startingPoint = self.lines[0].p1
+    currentPoint = startingPoint
+    coveredLines = []
+    pointTrail = []
+
+    stuck = 0
+
+    while True:
+      stuck += 1
+      if stuck > 1000:
+        print self.lines
+        print coveredLines
+        print currentPoint
+        print startingPoint
+        print pointTrail
+
+      for line in self.lines:
+        if line not in coveredLines:
+          if line.p1 == currentPoint:
+            self.points.append(currentPoint)
+            coveredLines.append(line)
+            pointTrail.append(currentPoint)
+            currentPoint = line.p2
+
+          elif line.p2 == currentPoint:
+            self.points.append(currentPoint)
+            coveredLines.append(line)
+            pointTrail.append(currentPoint)
+            currentPoint = line.p1
+
+          if currentPoint == startingPoint:
+            return
+
+  # Generate lines based on points
+  def _generateLines(self):
+    last = None
+    for p in self.points:
+      if last != None:
+        self.lines.append(Line(last, p))
+      last = p
+    self.lines.append(Line(self.points[len(self.points)-1], self.points[0]))
+
+  # Convert poly to list of point tuples
   def toPointTuple(self):
     points = []
     for point in self.points:
       points.append(point.toTuple())
     return points
 
+  # Convert poly to list of line tuples
   def toLineTuple(self):
     lines = []
     for line in self.lines:
       lines.append(line.toTuple())
     return lines
 
-  def isPolyLine(self,testLine):
-    for line in self.lines:
-      if line == testLine:
-        return True
-    return False
-
   def pointInside(self, point):
-    return pointInsidePolygonLines(point, self.lines) and point not in self.points
+    return pointInsidePolygonLines(point, self.lines) and not point in self.points and not pointOnPolygon(point,self.toPointTuple())
 
-  def lineInside(self, testLine):
+  # Check if line intersect poly
+  def lineObstructs(self, testLine):
+    # Line crosses inside
     if self.pointInside(testLine.p1) and self.pointInside(testLine.p2):
       return True
 
-    if (self.pointInside(testLine.p1) or self.pointInside(testLine.p2)) and self.lineIntersects(testLine):
-      return True
-
-    return False
-
-  def lineIntersects(self, testLine):
-    for line in self.lines:
-      if rayTraceNoEndpoints(line.p1,line.p2,testLine) and line != testLine:
-        return True
-
-    return False
-
-
-  def lineObstructs(self, testLine):
-    # Line crosses inside
-    if self.lineInside(testLine) and not self.isPolyLine(testLine):
-      return True
-
     # Line intersects
-    if self.lineIntersects(testLine):
+    if testLine.intersectsAny(self.lines):
       return True
 
     return False
 
+  # Check if polygon overlaps
   def overlapsPoly(self, poly):
-    for line1 in self.lines:
-      for line2 in poly.lines:
-        if rayTraceNoEndpoints(line1.p1,line1.p2, line2) and line1 != line2:
-          return True
-
+    for line in poly.lines:
+      if self.lineObstructs(line):
+        return True
     return False
 
-  def unobstructed(self, points, lines, polys):
-    for point in points:
-      if self.pointInside(point):
-        # print "Point inside"
-        return False
-
-    for line in lines:
-      if self.lineObstructs(line):
-        print "Line obstructs"
-        return False
-
+  def overlapsAnyPoly(self, polys):
     for poly in polys:
       if self.overlapsPoly(poly):
-        # print "Poly overlap"
-        return False
-
-    return True
+        return True
+    return False
 
   def combinePoly(self, otherPoly):
     # Check if polys are adjacent
@@ -421,51 +461,7 @@ class Polygon():
   def isConvex(self):
     return isConvex(self.points)
 
-def createLineRepOfPolyPoints(points):
-  lines = []
-  last = None
-  for p in points:
-    if last != None:
-      lines.append(Line(last, p))
-    last = p
-  lines.append(Line(points[len(points)-1], points[0]))
-  return lines
-
-def createPointRepOfPolyLines(lines):
-  points = []
-  startingPoint = lines[0].p1
-  currentPoint = startingPoint
-  coveredLines = []
-  pointTrail = []
-
-  stuck = 0
-
-  while True:
-    stuck += 1
-    if stuck > 1000:
-      print lines
-      print coveredLines
-      print currentPoint
-      print startingPoint
-      print pointTrail
-
-    for line in lines:
-      if line not in coveredLines:
-        if line.p1 == currentPoint:
-          points.append(currentPoint)
-          coveredLines.append(line)
-          pointTrail.append(currentPoint)
-          currentPoint = line.p2
-
-        elif line.p2 == currentPoint:
-          points.append(currentPoint)
-          coveredLines.append(line)
-          pointTrail.append(currentPoint)
-          currentPoint = line.p1
-
-        if currentPoint == startingPoint:
-          return points
-
+# Various lists of Point/Line/Poly functions
 def pointsToTuples(points):
   tuples = []
   for point in points:
@@ -489,6 +485,10 @@ def polysToLineTuples(polys):
   for poly in polys:
     tuples.append(poly.toLineTuple())
   return tuples
+
+def removePoly(deletedPoly, polys):
+  polys.remove(deletedPoly)
+
 
 def test():
   p1 = Point(1,1)
