@@ -50,10 +50,7 @@ def myCreatePathNetwork(world, agent = None):
   # Tests for my classes
   classTests()
 
-  # Draw path network
-  drawPathNetwork(nodeObjects, edgeObjects, polyObjects, world)
-
-  # Print results
+  # Check results
   results(nodeObjects, edgeObjects, polyObjects, worldPoints, worldLines, worldObstacles, world)
   ### NOT NEEDED
 
@@ -84,21 +81,24 @@ def convertWorldComponenets(world):
 
 # Create path network
 def createPathNetwork(worldPoints, worldLines, worldObstacles):
-  print "Creating network"
-
   # Nav mesh
+  print "Creating Nav Mesh"
   polys = createNavMesh(worldPoints, worldLines, worldObstacles)
   print str(len(polys)) + " Polys"
+  print
 
   # Path nodes
+  print "Creating Path Nodes"
   nodes = createPathNodes(polys, worldLines)
   print str(len(nodes)) + " Nodes"
+  print
 
   # Path edges
+  print "Creating Path Edges"
   edges = createPathLines(nodes, polys, worldPoints, worldLines)
   print str(len(edges)) + " Edges"
-
   print
+
   return nodes, edges, polys
 
 ################################################################################################
@@ -632,26 +632,39 @@ def polysToLineTuples(polys):
 
 # Draw network my way
 def drawPathNetwork(nodes, edges, polys, world):
+  # Draw nav mesh area (no way to get it transparent)
+  for poly in polys:
+    pygame.draw.polygon(world.debug, (255,0,0), poly.toPointTuple())
+
+  # Lines on edges
+  for edge in edges:
+    pygame.draw.line(world.debug, (0,0,255), edge.p1.toTuple(), edge.p2.toTuple(), 1)
+
   # Crosses on nodes
   for node in nodes:
-    drawCross(world.debug, node.toTuple(), color=(0,0,255), size=3, width=2)
+    drawCross(world.debug, node.toTuple(), color=(0,255,0), size=3, width=2)
 
-  # # Draw nav mesh area (no way to get it transparent)
-  # for poly in polys:
-  #   pygame.draw.polygon(world.debug, (255,0,0), poly.toPointTuple())
 
 # Test end result
 def results(nodes, edges, polys, worldPoints, worldLines, worldObstacles, world):
+  print "########################"
   print "Results"
+  print "########################"
 
   # Reachability results
-  reachabilityResults()
+  reachable = reachabilityResults()
 
   # Coverage results
-  coverageResults(polys, worldObstacles, world)
+  covered = coverageResults(polys, worldObstacles, world)
 
   # Mesh results
-  meshOptimizationResults(polys)
+  optimized = meshOptimizationResults(polys)
+
+  # Draw eveyrthing if something is wrong
+  if reachable and covered and optimized:
+    print "PASSED"
+  else:
+    drawPathNetwork(nodes, edges, polys, world)
 
   return
 
@@ -660,6 +673,10 @@ def reachabilityResults():
   print "Reachability results"
   print "Dunno how to test this"
   print
+
+  result = True
+
+  return result
 
 # Coverage results
 def coverageResults(polys, worldObstacles, world):
@@ -673,37 +690,54 @@ def coverageResults(polys, worldObstacles, world):
   meshArea = 0
   for poly in polys:
     meshArea += poly.area()
+
+  # Coverage is good
   if closeToEqual(meshArea,navigableArea):
+    result = True
     print "Everything is covered"
+
+  # Coverage is off
   else:
+    result = False
+
+    print "World: " + str(navigableArea)
+    print "Mesh: " + str(meshArea)
     if meshArea > navigableArea:
       print "Too much coverage"
     else:
       print "Too little coverage"
 
   print
+  return result
 
 # Mesh optimization reslts
 def meshOptimizationResults(polys):
   print "Mesh Optimization Results"
 
-  orders = {}
+  # Ensure highest order is greater than 3
+  highestOrder = 0
   for poly in polys:
-    if str(poly.order) not in orders:
-      orders[str(poly.order)] = 0
-    orders[str(poly.order)] += 1
+    if poly.order > highestOrder:
+      highestOrder = poly.order
 
-  for order in orders:
-    print str(orders[order]) + " " + str(order) + "-order Polygons"
+  if highestOrder > 3:
+    print "Highest order good: " + str(highestOrder)
+    result = True
+  else:
+    print "Highest order too low: " + str(highestOrder)
+    result = False
 
   print
+  return result
 
 def closeToEqual(val1, val2, thresh=1.0):
   return val1 > (val2-thresh) and val1 < (val2+thresh)
 
 # Testing classes
 def classTests():
+  print "########################"
   print "Class tests"
+  print "########################"
   # p1 = Point(1,1)
   # p12 = Point(1,1)
   # p2 = Point(2,2)
@@ -746,5 +780,5 @@ def classTests():
   weirdShape = hexShape.combinePoly(secondSquare)
   assert (square.points == poly1.points) == True
   assert (closeToEqual(weirdShape.area(), 250, thresh=0.0001))
-  print "Passed"
+  print "PASSED"
   print
