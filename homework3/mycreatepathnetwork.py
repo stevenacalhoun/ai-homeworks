@@ -53,8 +53,8 @@ def myCreatePathNetwork(world, agent = None):
   # Draw path network
   drawPathNetwork(nodeObjects, edgeObjects, polyObjects, world)
 
-  # Test results
-  coverageTests(nodeObjects, edgeObjects, polyObjects, worldPoints, worldLines, worldObstacles, world)
+  # Print results
+  results(nodeObjects, edgeObjects, polyObjects, worldPoints, worldLines, worldObstacles, world)
   ### NOT NEEDED
 
   ### YOUR CODE GOES ABOVE HERE ###
@@ -615,21 +615,6 @@ def polysToLineTuples(polys):
     tuples.append(poly.toLineTuple())
   return tuples
 
-# Just prints out info about polys
-def analyzePolys(polys):
-  print "Polygon info"
-  orders = {}
-  for poly in polys:
-    if str(poly.order) not in orders:
-      orders[str(poly.order)] = 0
-    orders[str(poly.order)] += 1
-
-  print "Polygon order info"
-  for order in orders:
-    print str(orders[order]) + " " + str(order) + "-order Polygons"
-
-  print
-
 # Draw network my way
 def drawPathNetwork(nodes, edges, polys, world):
   # Crosses on nodes
@@ -641,13 +626,31 @@ def drawPathNetwork(nodes, edges, polys, world):
     pygame.draw.polygon(world.debug, (255,0,0), poly.toPointTuple())
 
 # Test end result
-def coverageTests(nodes, edges, polys, worldPoints, worldLines, worldObstacles, world):
-  print "Coverage tests"
+def results(nodes, edges, polys, worldPoints, worldLines, worldObstacles, world):
+  print "Results"
+  
+  # Reachability results
+  reachabilityResults()
 
-  # Print out some info about polys
-  analyzePolys(polys)
+  # Coverage results
+  coverageResults(polys, worldObstacles, world)
 
-  # Check that everything is navigable
+  # Mesh results
+  meshOptimizationResults(polys)
+
+  return
+
+# Reachability results
+def reachabilityResults():
+  print "Reachability results"
+  print "Dunno how to test this"
+  print
+
+# Coverage results
+def coverageResults(polys, worldObstacles, world):
+  print "Coverage results"
+
+  # Check that everything is covered
   navigableArea = world.dimensions[0]*world.dimensions[1]
   for obstacle in worldObstacles:
     navigableArea -= obstacle.area()
@@ -656,7 +659,7 @@ def coverageTests(nodes, edges, polys, worldPoints, worldLines, worldObstacles, 
   for poly in polys:
     meshArea += poly.area()
   if closeToEqual(meshArea,navigableArea):
-    print "Everything is navigable"
+    print "Everything is covered"
   else:
     if meshArea > navigableArea:
       print "Too much coverage"
@@ -664,7 +667,21 @@ def coverageTests(nodes, edges, polys, worldPoints, worldLines, worldObstacles, 
       print "Too little coverage"
 
   print
-  return
+
+# Mesh optimization reslts
+def meshOptimizationResults(polys):
+  print "Mesh Optimization Results"
+
+  orders = {}
+  for poly in polys:
+    if str(poly.order) not in orders:
+      orders[str(poly.order)] = 0
+    orders[str(poly.order)] += 1
+
+  for order in orders:
+    print str(orders[order]) + " " + str(order) + "-order Polygons"
+
+  print
 
 def closeToEqual(val1, val2, thresh=1.0):
   return val1 > (val2-thresh) and val1 < (val2+thresh)
