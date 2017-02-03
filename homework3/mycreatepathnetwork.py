@@ -34,33 +34,28 @@ def myCreatePathNetwork(world, agent = None):
   polys = []
   ### YOUR CODE GOES BELOW HERE ###
 
-  # Tests for my classes
-  classTests()
-
   ### NEEDED FOR SUBMISSION
   # Convert objects
   worldPoints, worldLines, worldObstacles = convertWorldComponenets(world)
 
   # Create network
-  nodes, edges, polys = createPathNetwork(worldPoints, worldLines, worldObstacles)
-  ### NEEDED FOR SUBMISSION
+  nodeObjects, edgeObjects, polyObjects = createPathNetwork(worldPoints, worldLines, worldObstacles)
+  # Convert my classes to expected output form
+  polys = polysToPointTuples(polyObjects)
+  nodes = pointsToTuples(nodeObjects)
+  edges = linesToTuples(edgeObjects)
+  ### NEEDED
 
-  # Print out some info about polys
-  analyzePolys(polys)
+  ### NOT NEEDED
+  # Tests for my classes
+  classTests()
 
-  # Draw cross on each path node
-  for node in nodes:
-    drawCross(world.debug, node.toTuple(), color=(0,0,255), size=3, width=2)
+  # Draw path network
+  drawPathNetwork(nodeObjects, edgeObjects, polyObjects, world)
 
   # Test results
-  coverageTests(nodes, edges, polys, worldPoints, worldLines, worldObstacles, world)
-
-  ### NEEDED FOR SUBMISSION
-  # Convert my classes to expected output form
-  polys = polysToPointTuples(polys)
-  nodes = pointsToTuples(nodes)
-  edges = linesToTuples(edges)
-  ### NEEDED FOR SUBMISSION
+  coverageTests(nodeObjects, edgeObjects, polyObjects, worldPoints, worldLines, worldObstacles, world)
+  ### NOT NEEDED
 
   ### YOUR CODE GOES ABOVE HERE ###
   return nodes, edges, polys
@@ -126,7 +121,7 @@ def createTriangleMesh(worldPoints, worldLines, worldObstacles):
 
   # Randomize point selection
   startingPoints = worldPoints
-  shuffle(startingPoints)
+  # shuffle(startingPoints)
 
   # Continue until all points covered
   for point in startingPoints:
@@ -136,22 +131,17 @@ def createTriangleMesh(worldPoints, worldLines, worldObstacles):
   return tris
 
 def createTrianglesFromPoint(point, tris, worldPoints, worldLines, worldObstacles):
-  coveredSuccessors = []
   successors = point.getAllSuccessors(worldPoints, worldLines, worldObstacles)
 
   for successor1 in successors:
-    # Start with an uncovered successor
-    if successor1 not in coveredSuccessors:
-      # Find a suitable second successor
-      for successor2 in successors:
-        if successor1.isSuccessor(successor2, worldLines, worldObstacles):
-          testTri = Polygon(points=[point, successor1, successor2])
+    # Find a suitable second successor
+    for successor2 in successors:
+      if successor1.isSuccessor(successor2, worldLines, worldObstacles):
+        testTri = Polygon(points=[point, successor1, successor2])
 
-          # Make sure our test tri is unobstructed and new
-          if not testTri.overlapsAnyPoly(tris) and testTri not in tris:
-            coveredSuccessors.append(successor1)
-            coveredSuccessors.append(successor2)
-            tris.append(testTri)
+        # Make sure our test tri is unobstructed and new
+        if not testTri.overlapsAnyPoly(tris) and not testTri.overlapsAnyPoly(worldObstacles) and testTri not in tris and testTri not in worldObstacles:
+          tris.append(testTri)
 
 def mergePolys(polys):
   mergeCount = 0
@@ -160,8 +150,11 @@ def mergePolys(polys):
     for poly2 in polys:
       combinedPoly = poly1.combinePoly(poly2)
       if combinedPoly != None:
-        polys.remove(poly1)
-        polys.remove(poly2)
+        ### This shouldn't be the way, every time I merge, I should restart these loops
+        if poly1 in polys:
+          polys.remove(poly1)
+        if poly2 in polys:
+          polys.remove(poly2)
         polys.append(combinedPoly)
         mergeCount+=1
 
@@ -335,15 +328,15 @@ class Point(object):
 
   # Check if point is a successor
   def isSuccessor(self, otherPoint, worldLines, worldObstacles):
+    # Lines along obstacleLines are okay
+    if Line(self,otherPoint) in worldLines:
+      return True
+
     # Lines that stretch obstaclePoint to obstaclePoint but not along an obstacle edge, this would result a false True using rayTraceWorldNoEndPoints
     for obstacle in worldObstacles:
       line = Line(self,otherPoint)
       if pointInsidePolygonLines(line.midpoint(), obstacle.toLineTuple()):
         return False
-
-    # Lines along obstacleLines are okay
-    if Line(self,otherPoint) in worldLines:
-      return True
 
     # Lines through free space are okay
     if (rayTraceWorldNoEndPoints(self, otherPoint, worldLines) == None and self != otherPoint):
@@ -637,24 +630,44 @@ def analyzePolys(polys):
 
   print
 
+# Draw network my way
+def drawPathNetwork(nodes, edges, polys, world):
+  # Crosses on nodes
+  for node in nodes:
+    drawCross(world.debug, node.toTuple(), color=(0,0,255), size=3, width=2)
+
+  # Draw nav mesh area (no way to get it transparent)
+  for poly in polys:
+    pygame.draw.polygon(world.debug, (255,0,0), poly.toPointTuple())
+
 # Test end result
 def coverageTests(nodes, edges, polys, worldPoints, worldLines, worldObstacles, world):
   print "Coverage tests"
 
-  worldArea = world.dimensions[0]*world.dimensions[1]
-  navigableArea = worldArea
+  # Print out some info about polys
+  analyzePolys(polys)
+
+  # Check that everything is navigable
+  navigableArea = world.dimensions[0]*world.dimensions[1]
   for obstacle in worldObstacles:
     navigableArea -= obstacle.area()
 
-  myNavigableArea = 0
+  meshArea = 0
   for poly in polys:
-    myNavigableArea += poly.area()
-
-  print "Actual navigable area: " + str(navigableArea)
-  print "My navigable area: " + str(myNavigableArea)
+    meshArea += poly.area()
+  if closeToEqual(meshArea,navigableArea):
+    print "Everything is navigable"
+  else:
+    if meshArea > navigableArea:
+      print "Too much coverage"
+    else:
+      print "Too little coverage"
 
   print
   return
+
+def closeToEqual(val1, val2, thresh=1.0):
+  return val1 > (val2-thresh) and val1 < (val2+thresh)
 
 # Testing classes
 def classTests():
@@ -700,6 +713,6 @@ def classTests():
   secondSquare = Polygon(points=[Point(0,0),Point(10,10),Point(10,0),Point(0,10)])
   weirdShape = hexShape.combinePoly(secondSquare)
   assert (square.points == poly1.points) == True
-  # Off by very little
-  # assert (weirdShape.area() == 250) == True
+  assert (closeToEqual(weirdShape.area(), 250, thresh=0.0001))
+  print "Passed"
   print

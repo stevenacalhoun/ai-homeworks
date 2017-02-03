@@ -992,6 +992,7 @@ class GameWorld():
     pos = pygame.mouse.get_pos()
     offsetX = pos[0] + self.agent.position[0] - self.camera[0]
     offsetY = pos[1] + self.agent.position[1] - self.camera[1]
+    print [offsetX,offsetY]
     self.agent.navigateTo([offsetX, offsetY])
 
 
