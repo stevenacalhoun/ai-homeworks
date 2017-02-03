@@ -33,7 +33,7 @@ def myCreatePathNetwork(world, agent = None):
   polys = []
   ### YOUR CODE GOES BELOW HERE ###
   test()
-
+  return
   # Convert world information to my own classes
   worldPoints = []
   for point in world.getPoints():
@@ -232,6 +232,9 @@ class Point():
     self.x = x
     self.y = y
 
+    # Used for sorting in a clockwise manner
+    self.center = None
+
   def __eq__(self, otherPoint):
     if otherPoint == None:
       return False
@@ -241,6 +244,38 @@ class Point():
 
   def __ne__(self, otherPoint):
     return not self.__eq__(otherPoint)
+
+  def __lt__(self, other):
+    if self.center == None:
+      return False
+
+    if self.x - self.center.x >= 0 and other.x - self.center.x < 0:
+      return True
+    if self.x - self.center.x < 0 and other.x - self.center.x >= 0:
+        return False
+    if self.x - self.center.x == 0 and other.x - self.center.x == 0:
+      if self.y - self.center.y >= 0 or other.y - self.center.y >= 0:
+        return self.y > other.y
+      return other.y > self.y
+
+    det = (self.x - self.center.x) * (other.y - self.center.y) - (other.x - self.center.x) * (self.y - self.center.y);
+    if det < 0:
+      return True
+    if det > 0:
+      return False
+
+    d1 = (self.x - self.center.x) * (self.x - self.center.x) + (self.y - self.center.y) * (self.y - self.center.y)
+    d2 = (other.x - self.center.x) * (other.x - self.center.x) + (other.y - self.center.y) * (other.y - self.center.y)
+    return d1 > d2
+
+  def __gt__(self, other):
+    return not self.__lt__(other) and not self.__eq__(other)
+
+  def __lq__(self, other):
+    return self.__lt__(other) or self.__eq__(other)
+
+  def __gq__(self, other):
+    return self.__gt__(other) or self.__eq__(other)
 
   def __str__(self):
     return str(self.x)+","+str(self.y)
@@ -254,8 +289,29 @@ class Point():
     if key == 1:
       return self.y
 
+  def __add__(self, other):
+    x = self.x + other.x
+    y = self.y + other.y
+    return Point(x,y)
+
+  def __sub__(self, other):
+    x = self.x - other.x
+    y = self.y - other.y
+    return Point(x,y)
+
+  def __div__(self, other):
+    if type(other) == int:
+      x = self.x/other
+      y = self.y/other
+    if type(other) == Point:
+      x = self.x/other.x
+      y = self.y/other.y
+
+    return Point(x,y)
+
   def toTuple(self):
     return (self.x,self.y)
+
 
 ################################################################################################
 # Custom Line class for the same reasons
@@ -314,20 +370,22 @@ class Polygon():
     self.points = []
     self.lines = []
 
-    if points != None:
-      # Add all points
-      for point in points:
-        if point not in self.points:
-          self.points.append(point)
+    self.center = Point(0,0)
 
-      # Conver to lines
+    if points != None:
+      # Calculate center
+      for point in points:
+        self.center += point
+      self.center = self.center/len(points)
+
+      # Clockwisify the points
+      self.points = sortPointsClockwise(points,self.center)
+
+      # Convert to lines
       self._generateLines()
 
     if lines != None:
-      # Add all lines
-      for line in lines:
-        if line not in self.lines:
-          self.lines.append(line)
+      self.lines = lines
 
       # Convert to points
       self._generatePoints()
@@ -363,40 +421,21 @@ class Polygon():
 
   # Generate points based on lines
   def _generatePoints(self):
-    startingPoint = self.lines[0].p1
-    currentPoint = startingPoint
-    coveredLines = []
-    pointTrail = []
+    # Add in all unique points
+    points = []
+    for line in self.lines:
+      if line.p1 not in points:
+        points.append(line.p1)
+      if line.p2 not in points:
+        points.append(line.p2)
 
-    stuck = 0
+    # Calculate center
+    for point in points:
+      self.center += point
+    self.center = self.center/len(points)
 
-    while True:
-      stuck += 1
-      if stuck > 1000:
-        # print
-        # print self.lines
-        # print coveredLines
-        # print currentPoint
-        # print startingPoint
-        # print pointTrail
-        s
-
-      for line in self.lines:
-        if line not in coveredLines:
-          if line.p1 == currentPoint:
-            self.points.append(currentPoint)
-            coveredLines.append(line)
-            pointTrail.append(currentPoint)
-            currentPoint = line.p2
-
-          elif line.p2 == currentPoint:
-            self.points.append(currentPoint)
-            coveredLines.append(line)
-            pointTrail.append(currentPoint)
-            currentPoint = line.p1
-
-          if currentPoint == startingPoint:
-            return
+    # Clockwisify points
+    self.points = sortPointsClockwise(points,self.center)
 
   # Generate lines based on points
   def _generateLines(self):
@@ -476,19 +515,26 @@ class Polygon():
   def isConvex(self):
     return isConvex(self.points)
 
-# Various lists of Point/Line/Poly functions
+# Point Lists
 def pointsToTuples(points):
   tuples = []
   for point in points:
     tuples.append(point.toTuple())
   return tuples
 
+def sortPointsClockwise(points, center):
+  for point in points:
+    point.center = center
+  return sorted(points)
+
+# Line Lists
 def linesToTuples(lines):
   tuples = []
   for line in lines:
     tuples.append(line.toTuple())
   return tuples
 
+# Poly Lists
 def polysToPointTuples(polys):
   tuples = []
   for poly in polys:
@@ -526,3 +572,20 @@ def test():
   assert (l12 in lines) == True
   assert (l2 in lines) == True
   assert (l3 in lines) == False
+
+  p1 = Point(10,10)
+  p2 = Point(0,10)
+  p3 = Point(0,0)
+  p4 = Point(10,0)
+  l1 = Line(p1,p2)
+  l2 = Line(p2,p3)
+  l3 = Line(p3,p4)
+  l4 = Line(p4,p1)
+  poly1 = Polygon(points=[p1,p4,p3,p2])
+  poly2 = Polygon(lines=[l4,l2,l3,l1])
+  assert (poly1.points == poly2.points) == True
+
+  tri1 = Polygon(points=[p3,p4,p2])
+  tri2 = Polygon(points=[p1,p4,p2])
+  combinedPoly = tri1.combinePoly(tri2)
+  assert (combinedPoly.points == poly1.points) == True
