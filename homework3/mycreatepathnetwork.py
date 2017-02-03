@@ -33,7 +33,7 @@ def myCreatePathNetwork(world, agent = None):
   polys = []
   ### YOUR CODE GOES BELOW HERE ###
   test()
-  return
+
   # Convert world information to my own classes
   worldPoints = []
   for point in world.getPoints():
@@ -55,12 +55,14 @@ def myCreatePathNetwork(world, agent = None):
   edges = createPathLines(nodes, worldPoints, worldLines)
   print str(len(edges)) + " Edges"
 
+  analyzePolys(polys)
+
   polys = polysToPointTuples(polys)
   nodes = pointsToTuples(nodes)
   edges = linesToTuples(edges)
 
   for node in nodes:
-    drawCross(world.debug, node, color=(0,0,255))
+    drawCross(world.debug, node, color=(0,0,255), size=3, width=2)
 
   ### YOUR CODE GOES ABOVE HERE ###
   return nodes, edges, polys
@@ -74,7 +76,7 @@ def createNavMesh(worldPoints, worldLines, worldObstacles):
   polys = createTriangleMesh(worldPoints, worldLines, worldObstacles)
 
   # Combine triangles to higher order polygons
-  # polys = mergePolys(polys)
+  polys = mergePolys(polys)
 
   return polys
 
@@ -106,8 +108,8 @@ def createTrianglesFromPoint(worldPoints, worldLines, currentPoint, currentTris,
         if isSuccessor(successor1, successor2, worldLines, worldObstacles):
           testTri = Polygon(points=[currentPoint, successor1, successor2])
 
-          # Make sure our test tri is unobstructed
-          if not testTri.overlapsAnyPoly(currentTris):
+          # Make sure our test tri is unobstructed and new
+          if not testTri.overlapsAnyPoly(currentTris) and testTri not in currentTris:
             coveredSuccessors.append(successor1)
             coveredSuccessors.append(successor2)
             currentTris.append(testTri)
@@ -146,9 +148,6 @@ def mergePolys(polys):
     for poly2 in polys:
       combinedPoly = poly1.combinePoly(poly2)
       if combinedPoly != None:
-        print
-        print combinedPoly
-        print combinedPoly.order
         polys = removePoly(poly1, polys)
         polys = removePoly(poly2, polys)
         polys.append(combinedPoly)
@@ -166,10 +165,11 @@ def createPathNodes(polys,worldLines):
 
   # For every shared line between polys, add a path node at the midpoint
   for poly1 in polys:
-    for line in poly1.lines:
-      if line not in worldLines:
-        if line.midpoint() not in nodes:
-          nodes.append(line.midpoint())
+    nodes.append(poly1.centroid)
+    # for line in poly1.lines:
+    #   if line not in worldLines:
+    #     if line.midpoint() not in nodes:
+    #       nodes.append(line.midpoint())
 
   return nodes
 
@@ -182,17 +182,17 @@ def createPathLines(pathnodes, worldPoints, worldLines):
   coveredNodes = []
 
   # Check each node
-  while len(coveredNodes) <= len(coveredNodes):
-    print str(len(coveredNodes)) + "/" + str(len(pathnodes))
-    for parentNode in pathnodes:
-      visibleNodes = getAllUnobstructedLines(parentNode, pathnodes, worldPoints, worldLines)
-      bestPathNode = findClosestUnobstructed(parentNode, visibleNodes,worldLines)
-      if bestPathNode:
-        newLine = Line(parentNode, bestPathNode)
-        if newLine not in lines:
-          lines.append(newLine)
-          coveredNodes.append(parentNode)
-          coveredNodes.append(bestPathNode)
+  # while len(coveredNodes) <= len(coveredNodes):
+  #   print str(len(coveredNodes)) + "/" + str(len(pathnodes))
+  for parentNode in pathnodes:
+    visibleNodes = getAllUnobstructedLines(parentNode, pathnodes, worldPoints, worldLines)
+    bestPathNode = findClosestUnobstructed(parentNode, visibleNodes,worldLines)
+    if bestPathNode:
+      newLine = Line(parentNode, bestPathNode)
+      if newLine not in lines:
+        lines.append(newLine)
+        coveredNodes.append(parentNode)
+        coveredNodes.append(bestPathNode)
 
   return lines
 
@@ -370,16 +370,16 @@ class Polygon():
     self.points = []
     self.lines = []
 
-    self.center = Point(0,0)
+    self.centroid = Point(0,0)
 
     if points != None:
-      # Calculate center
+      # Calculate centroid
       for point in points:
-        self.center += point
-      self.center = self.center/len(points)
+        self.centroid += point
+      self.centroid = self.centroid/len(points)
 
       # Clockwisify the points
-      self.points = sortPointsClockwise(points,self.center)
+      self.points = sortPointsClockwise(points,self.centroid)
 
       # Convert to lines
       self._generateLines()
@@ -429,13 +429,13 @@ class Polygon():
       if line.p2 not in points:
         points.append(line.p2)
 
-    # Calculate center
+    # Calculate centroid
     for point in points:
-      self.center += point
-    self.center = self.center/len(points)
+      self.centroid += point
+    self.centroid = self.centroid/len(points)
 
     # Clockwisify points
-    self.points = sortPointsClockwise(points,self.center)
+    self.points = sortPointsClockwise(points,self.centroid)
 
   # Generate lines based on points
   def _generateLines(self):
@@ -550,6 +550,15 @@ def polysToLineTuples(polys):
 def removePoly(deletedPoly, polys):
   polys = filter(lambda a: a != deletedPoly, polys)
   return polys
+
+def analyzePolys(polys):
+  orders = {}
+  for poly in polys:
+    if str(poly.order) not in orders:
+      orders[str(poly.order)] = 0
+    orders[str(poly.order)] += 1
+
+  print orders
 
 def test():
   p1 = Point(1,1)
