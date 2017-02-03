@@ -69,7 +69,7 @@ def convertWorldComponenets(world):
 
   # Convert world lines obstacles to Lines
   worldLines = []
-  for line in world.getLinesWithoutBorders():
+  for line in world.getLines():
     worldLines.append(Line(Point(line[0][0], line[0][1]), Point(line[1][0], line[1][1])))
 
   # Convert world obstacles to Polygons
@@ -95,7 +95,7 @@ def createPathNetwork(worldPoints, worldLines, worldObstacles):
   print str(len(nodes)) + " Nodes"
 
   # Path edges
-  edges = createPathLines(nodes, worldPoints, worldLines)
+  edges = createPathLines(nodes, polys, worldPoints, worldLines)
   print str(len(edges)) + " Edges"
 
   print
@@ -167,13 +167,15 @@ def mergePolys(polys):
 def createPathNodes(polys,worldLines):
   nodes = []
 
-  # For every shared line between polys, add a path node at the midpoint
   for poly1 in polys:
-    nodes.append(poly1.centroid)
-    # for line in poly1.lines:
-    #   if line not in worldLines:
-    #     if line.midpoint() not in nodes:
-    #       nodes.append(line.midpoint())
+    # Add centroid
+    # nodes.append(poly1.centroid)
+
+    # For every shared line between polys, add a path node at the midpoint
+    for line in poly1.lines:
+      if line not in worldLines:
+        if line.midpoint() not in nodes:
+          nodes.append(line.midpoint())
 
   return nodes
 
@@ -181,30 +183,39 @@ def createPathNodes(polys,worldLines):
 # Path line creation
 ################################################################################################
 # Create lines between pathnodes
-def createPathLines(pathnodes, worldPoints, worldLines):
+def createPathLines(pathnodes, polys, worldPoints, worldLines):
   lines = []
-  coveredNodes = []
 
-  # Check each node
-  # while len(coveredNodes) <= len(coveredNodes):
-  #   print str(len(coveredNodes)) + "/" + str(len(pathnodes))
+  # # All visible nodes added
+  # for parentNode in pathnodes:
+  #   visibleNodes = getAllUnobstructedLines(parentNode, pathnodes, worldPoints, worldLines)
+  #
+  #   for visibleNode in visibleNodes:
+  #     newLine = Line(parentNode, visibleNode)
+  #     if newLine not in lines:
+  #       lines.append(newLine)
+
+  # Construct hull inclusions dictionary
+  hullInclusions = {}
+  for node in pathnodes:
+    includedHulls = []
+    # Find all the hulls this node is part of
+    for poly in polys:
+      if poly.hullIncludesPoint(node):
+        includedHulls.append(poly)
+
+    # All the hulls for this point, should never be more than 2
+    hullInclusions[node] = includedHulls
+
+  # Find all the node pairs that share a hull
   for parentNode in pathnodes:
-    visibleNodes = getAllUnobstructedLines(parentNode, pathnodes, worldPoints, worldLines)
+    for testNode in pathnodes:
+      for hull in hullInclusions[parentNode]:
+        if hull in hullInclusions[testNode]:
+          testLine = Line(parentNode,testNode)
+          if testLine not in lines:
+            lines.append(testLine)
 
-    # All visible nodes added
-    for visibleNode in visibleNodes:
-      newLine = Line(parentNode, visibleNode)
-      if newLine not in lines:
-        lines.append(newLine)
-
-    # Smarter solution, doesn't result in full coverage
-    # bestPathNode = findClosestUnobstructed(parentNode, visibleNodes,worldLines)
-    # if bestPathNode:
-    #   newLine = Line(parentNode, bestPathNode)
-    #   if newLine not in lines:
-    #     lines.append(newLine)
-    #     coveredNodes.append(parentNode)
-    #     coveredNodes.append(bestPathNode)
 
   return lines
 
@@ -523,6 +534,10 @@ class Polygon(object):
       lines.append(line.toTuple())
     return lines
 
+  # Point part of hull
+  def hullIncludesPoint(self, point):
+    return pointInsidePolygonLines(point, self.lines) or point in self.points or pointOnPolygon(point,self.toPointTuple())
+
   # Point inside poly
   def pointInside(self, point):
     return pointInsidePolygonLines(point, self.lines) and not point in self.points and not pointOnPolygon(point,self.toPointTuple())
@@ -621,14 +636,14 @@ def drawPathNetwork(nodes, edges, polys, world):
   for node in nodes:
     drawCross(world.debug, node.toTuple(), color=(0,0,255), size=3, width=2)
 
-  # Draw nav mesh area (no way to get it transparent)
-  for poly in polys:
-    pygame.draw.polygon(world.debug, (255,0,0), poly.toPointTuple())
+  # # Draw nav mesh area (no way to get it transparent)
+  # for poly in polys:
+  #   pygame.draw.polygon(world.debug, (255,0,0), poly.toPointTuple())
 
 # Test end result
 def results(nodes, edges, polys, worldPoints, worldLines, worldObstacles, world):
   print "Results"
-  
+
   # Reachability results
   reachabilityResults()
 
