@@ -32,7 +32,9 @@ def myCreatePathNetwork(world, agent = None):
   edges = []
   polys = []
   ### YOUR CODE GOES BELOW HERE ###
-  test()
+
+  # Tests for my classes
+  classTests()
 
   # Convert world information to my own classes
   worldPoints = []
@@ -48,21 +50,29 @@ def myCreatePathNetwork(world, agent = None):
       obstacleLines.append(Line(Point(line[0][0],line[0][1]),Point(line[1][0],line[1][1])))
     worldObstacles.append(Polygon(lines=obstacleLines))
 
+  # Nav mesh
   polys = createNavMesh(worldPoints, worldLines, worldObstacles)
   print str(len(polys)) + " Polys"
+
+  # Path nodes
   nodes = createPathNodes(polys, worldLines)
   print str(len(nodes)) + " Nodes"
+
+  # Path edges
   edges = createPathLines(nodes, worldPoints, worldLines)
   print str(len(edges)) + " Edges"
 
-  analyzePolys(polys)
+  # # Print out some info about polys
+  # analyzePolys(polys)
 
+  # Draw cross on each path node
+  for node in nodes:
+    drawCross(world.debug, node.toTuple(), color=(0,0,255), size=3, width=2)
+
+  # Convert my classes to expected output form
   polys = polysToPointTuples(polys)
   nodes = pointsToTuples(nodes)
   edges = linesToTuples(edges)
-
-  for node in nodes:
-    drawCross(world.debug, node, color=(0,0,255), size=3, width=2)
 
   ### YOUR CODE GOES ABOVE HERE ###
   return nodes, edges, polys
@@ -92,55 +102,27 @@ def createTriangleMesh(worldPoints, worldLines, worldObstacles):
   # Continue until all points covered
   for point in startingPoints:
     # Create triangles around this point
-    createTrianglesFromPoint(worldPoints, worldLines, point, tris, worldObstacles)
+    createTrianglesFromPoint(point, tris, worldPoints, worldLines, worldObstacles)
 
   return tris
 
-def createTrianglesFromPoint(worldPoints, worldLines, currentPoint, currentTris, worldObstacles):
+def createTrianglesFromPoint(point, tris, worldPoints, worldLines, worldObstacles):
   coveredSuccessors = []
-  successors = getAllSuccessors(currentPoint, worldPoints, worldLines, worldObstacles)
+  successors = point.getAllSuccessors(worldPoints, worldLines, worldObstacles)
 
   for successor1 in successors:
     # Start with an uncovered successor
     if successor1 not in coveredSuccessors:
       # Find a suitable second successor
       for successor2 in successors:
-        if isSuccessor(successor1, successor2, worldLines, worldObstacles):
-          testTri = Polygon(points=[currentPoint, successor1, successor2])
+        if successor1.isSuccessor(successor2, worldLines, worldObstacles):
+          testTri = Polygon(points=[point, successor1, successor2])
 
           # Make sure our test tri is unobstructed and new
-          if not testTri.overlapsAnyPoly(currentTris) and testTri not in currentTris:
+          if not testTri.overlapsAnyPoly(tris) and testTri not in tris:
             coveredSuccessors.append(successor1)
             coveredSuccessors.append(successor2)
-            currentTris.append(testTri)
-
-# Get all successors of a point
-def getAllSuccessors(startPoint, worldPoints, worldLines, worldObstacles):
-  successors = []
-  for point in worldPoints:
-    if isSuccessor(startPoint, point, worldLines, worldObstacles):
-      successors.append(point)
-
-  return successors
-
-# Check if two lines are successors
-def isSuccessor(point1, point2, worldLines, worldObstacles):
-  for obstacle in worldObstacles:
-    line = Line(point1,point2)
-    if pointInsidePolygonLines(line.midpoint(), obstacle.toLineTuple()):
-      return False
-
-  # Lines along obstacleLines are okay
-  if Line(point1,point2) in worldLines:
-    return True
-  if Line(point2,point1) in worldLines:
-    return True
-
-  # Lines through free space are okay
-  if (rayTraceWorldNoEndPoints(point1, point2, worldLines) == None and point1 != point2):
-    return True
-
-  return False
+            tris.append(testTri)
 
 def mergePolys(polys):
   mergeCount = 0
@@ -148,8 +130,8 @@ def mergePolys(polys):
     for poly2 in polys:
       combinedPoly = poly1.combinePoly(poly2)
       if combinedPoly != None:
-        polys = removePoly(poly1, polys)
-        polys = removePoly(poly2, polys)
+        polys.remove(poly1)
+        polys.remove(poly2)
         polys.append(combinedPoly)
         mergeCount+=1
 
@@ -186,13 +168,21 @@ def createPathLines(pathnodes, worldPoints, worldLines):
   #   print str(len(coveredNodes)) + "/" + str(len(pathnodes))
   for parentNode in pathnodes:
     visibleNodes = getAllUnobstructedLines(parentNode, pathnodes, worldPoints, worldLines)
-    bestPathNode = findClosestUnobstructed(parentNode, visibleNodes,worldLines)
-    if bestPathNode:
-      newLine = Line(parentNode, bestPathNode)
+
+    # All visible nodes added
+    for visibleNode in visibleNodes:
+      newLine = Line(parentNode, visibleNode)
       if newLine not in lines:
         lines.append(newLine)
-        coveredNodes.append(parentNode)
-        coveredNodes.append(bestPathNode)
+
+    # Smarter solution, doesn't result in full coverage
+    # bestPathNode = findClosestUnobstructed(parentNode, visibleNodes,worldLines)
+    # if bestPathNode:
+    #   newLine = Line(parentNode, bestPathNode)
+    #   if newLine not in lines:
+    #     lines.append(newLine)
+    #     coveredNodes.append(parentNode)
+    #     coveredNodes.append(bestPathNode)
 
   return lines
 
@@ -227,16 +217,17 @@ def lineUnobstructed(line, worldPoints, worldLines):
 ################################################################################################
 # Custom Point class instead of tuples
 ################################################################################################
-class Point():
+class Point(object):
   def __init__(self, x, y):
     self.x = x
     self.y = y
 
     # Used for sorting in a clockwise manner
-    self.center = None
+    self.center = None;
 
+  # Overloaded operators
   def __eq__(self, otherPoint):
-    if otherPoint == None:
+    if type(otherPoint) is not Point:
       return False
     if self.x == otherPoint.x and self.y == otherPoint.y:
       return True
@@ -288,6 +279,7 @@ class Point():
       return self.x
     if key == 1:
       return self.y
+    return None
 
   def __add__(self, other):
     x = self.x + other.x
@@ -306,23 +298,50 @@ class Point():
     if type(other) == Point:
       x = self.x/other.x
       y = self.y/other.y
-
     return Point(x,y)
 
+  # Point as an x,y tuple
   def toTuple(self):
     return (self.x,self.y)
 
+  # Check if point is a successor
+  def isSuccessor(self, otherPoint, worldLines, worldObstacles):
+    # Lines that stretch obstaclePoint to obstaclePoint but not along an obstacle edge, this would result a false True using rayTraceWorldNoEndPoints
+    for obstacle in worldObstacles:
+      line = Line(self,otherPoint)
+      if pointInsidePolygonLines(line.midpoint(), obstacle.toLineTuple()):
+        return False
+
+    # Lines along obstacleLines are okay
+    if Line(self,otherPoint) in worldLines:
+      return True
+
+    # Lines through free space are okay
+    if (rayTraceWorldNoEndPoints(self, otherPoint, worldLines) == None and self != otherPoint):
+      return True
+
+    return False
+
+  # Get all successors
+  def getAllSuccessors(self, worldPoints, worldLines, worldObstacles):
+    successors = []
+    for worldPoint in worldPoints:
+      if self.isSuccessor(worldPoint, worldLines, worldObstacles):
+        successors.append(worldPoint)
+
+    return successors
 
 ################################################################################################
 # Custom Line class for the same reasons
 ################################################################################################
-class Line():
+class Line(object):
   def __init__(self, p1, p2):
     self.p1 = p1
     self.p2 = p2
 
+  # Overloaded operators
   def __eq__(self, otherLine):
-    if otherLine == None:
+    if type(otherLine) != Line:
       return False
     if self.p1 == otherLine.p1 and self.p2 == otherLine.p2:
       return True
@@ -344,71 +363,66 @@ class Line():
       return self.p1
     if key == 1:
       return self.p2
+    return None
 
-  def midpoint(self):
-    return Point((self.p1.x+self.p2.x)/2, (self.p1.y+self.p2.y)/2)
-
+  # Return tuple of point tuples
   def toTuple(self):
     return (self.p1.toTuple(),self.p2.toTuple())
 
+  # Midpoint of line
+  def midpoint(self):
+    return Point((self.p1.x+self.p2.x)/2, (self.p1.y+self.p2.y)/2)
+
+  # Line intersects line
   def intersects(self, otherLine):
     if rayTraceNoEndpoints(self.p1, self.p2, otherLine) and self != otherLine:
       return True
     return False
 
-  def intersectsAny(self, worldLines):
-    for line in worldLines:
-      if self.intersects(line):
+  # Line intersects any line in list
+  def intersectsAny(self, otherLines):
+    for otherLine in otherLines:
+      if self.intersects(otherLine):
         return True
     return False
 
 ################################################################################################
 # Custom Polygon class instead of...you already know by now
 ################################################################################################
-class Polygon():
+class Polygon(object):
   def __init__(self, points=None, lines=None):
     self.points = []
     self.lines = []
-
     self.centroid = Point(0,0)
 
+    ## Init with points
     if points != None:
-      # Calculate centroid
-      for point in points:
-        self.centroid += point
-      self.centroid = self.centroid/len(points)
-
-      # Clockwisify the points
-      self.points = sortPointsClockwise(points,self.centroid)
-
-      # Convert to lines
+      self.points = points
       self._generateLines()
 
+    ## Init with lines
     if lines != None:
       self.lines = lines
-
-      # Convert to points
       self._generatePoints()
 
+    # Clockwisify points
+    self._calculateCentroid()
+    self.points = sortPointsClockwise(self.points,self.centroid)
     self.order = len(self.lines)
 
+  # Overloaded operators
   def __eq__(self, otherPoly):
-    if otherPoly == None:
+    if type(otherPoly) != Polygon:
       return False
-
-    # Different number of lines
     if len(self.lines) != len(otherPoly.lines):
       return False
-
     for line in self.lines:
       if line not in otherPoly.lines:
         return False
-
     return True
 
   def __ne__(self, otherPoly):
-    result = self.__eq__(otherPoly)
-    return not result
+    return not self.__eq__(otherPoly)
 
   def __str__(self):
     returnStr = ""
@@ -422,20 +436,12 @@ class Polygon():
   # Generate points based on lines
   def _generatePoints(self):
     # Add in all unique points
-    points = []
+    self.points = []
     for line in self.lines:
-      if line.p1 not in points:
-        points.append(line.p1)
-      if line.p2 not in points:
-        points.append(line.p2)
-
-    # Calculate centroid
-    for point in points:
-      self.centroid += point
-    self.centroid = self.centroid/len(points)
-
-    # Clockwisify points
-    self.points = sortPointsClockwise(points,self.centroid)
+      if line.p1 not in self.points:
+        self.points.append(line.p1)
+      if line.p2 not in self.points:
+        self.points.append(line.p2)
 
   # Generate lines based on points
   def _generateLines(self):
@@ -445,6 +451,12 @@ class Polygon():
         self.lines.append(Line(last, p))
       last = p
     self.lines.append(Line(self.points[len(self.points)-1], self.points[0]))
+
+  # Calculate centroid
+  def _calculateCentroid(self):
+    for point in self.points:
+      self.centroid += point
+    self.centroid = self.centroid/len(self.points)
 
   # Convert poly to list of point tuples
   def toPointTuple(self):
@@ -460,6 +472,7 @@ class Polygon():
       lines.append(line.toTuple())
     return lines
 
+  # Point inside poly
   def pointInside(self, point):
     return pointInsidePolygonLines(point, self.lines) and not point in self.points and not pointOnPolygon(point,self.toPointTuple())
 
@@ -482,12 +495,14 @@ class Polygon():
         return True
     return False
 
+  # Overlaps any poly in a list
   def overlapsAnyPoly(self, polys):
     for poly in polys:
       if self.overlapsPoly(poly):
         return True
     return False
 
+  # Combine two polys, return combined poly, None otherwise
   def combinePoly(self, otherPoly):
     # Check if polys are adjacent
     adjPoints = polygonsAdjacent(self.points, otherPoly.points)
@@ -506,51 +521,50 @@ class Polygon():
       if combinedPoly.isConvex():
         return combinedPoly
 
-      else:
-        return None
+    return None
 
-    else:
-      return None
-
+  # Polygon is convex
   def isConvex(self):
     return isConvex(self.points)
 
-# Point Lists
+##### Point Lists
+# Points to list of tuples
 def pointsToTuples(points):
   tuples = []
   for point in points:
     tuples.append(point.toTuple())
   return tuples
 
+# Sort list of points to be clockwise around a center
 def sortPointsClockwise(points, center):
   for point in points:
     point.center = center
   return sorted(points)
 
-# Line Lists
+##### Line Lists
+# Lines to a list of point tuples pairs
 def linesToTuples(lines):
   tuples = []
   for line in lines:
     tuples.append(line.toTuple())
   return tuples
 
-# Poly Lists
+##### Poly Lists
+# Polys to a list of point tuples pairs
 def polysToPointTuples(polys):
   tuples = []
   for poly in polys:
     tuples.append(poly.toPointTuple())
   return tuples
 
+# Polys to a list of line tuples
 def polysToLineTuples(polys):
   tuples = []
   for poly in polys:
     tuples.append(poly.toLineTuple())
   return tuples
 
-def removePoly(deletedPoly, polys):
-  polys = filter(lambda a: a != deletedPoly, polys)
-  return polys
-
+# Just prints out info about polys
 def analyzePolys(polys):
   orders = {}
   for poly in polys:
@@ -560,7 +574,8 @@ def analyzePolys(polys):
 
   print orders
 
-def test():
+# Testing classes
+def classTests():
   p1 = Point(1,1)
   p12 = Point(1,1)
   p2 = Point(2,2)
