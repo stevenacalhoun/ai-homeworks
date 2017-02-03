@@ -23,8 +23,9 @@ from constants import *
 from utils import *
 from core import *
 
-# My include
+# My includes
 from random import shuffle
+import math
 
 # Creates a pathnode network that connects the midpoints of each navmesh together
 def myCreatePathNetwork(world, agent = None):
@@ -36,19 +37,59 @@ def myCreatePathNetwork(world, agent = None):
   # Tests for my classes
   classTests()
 
-  # Convert world information to my own classes
+  ### NEEDED FOR SUBMISSION
+  # Convert objects
+  worldPoints, worldLines, worldObstacles = convertWorldComponenets(world)
+
+  # Create network
+  nodes, edges, polys = createPathNetwork(worldPoints, worldLines, worldObstacles)
+  ### NEEDED FOR SUBMISSION
+
+  # Print out some info about polys
+  analyzePolys(polys)
+
+  # Draw cross on each path node
+  for node in nodes:
+    drawCross(world.debug, node.toTuple(), color=(0,0,255), size=3, width=2)
+
+  # Test results
+  coverageTests(nodes, edges, polys, worldPoints, worldLines, worldObstacles, world)
+
+  ### NEEDED FOR SUBMISSION
+  # Convert my classes to expected output form
+  polys = polysToPointTuples(polys)
+  nodes = pointsToTuples(nodes)
+  edges = linesToTuples(edges)
+  ### NEEDED FOR SUBMISSION
+
+  ### YOUR CODE GOES ABOVE HERE ###
+  return nodes, edges, polys
+
+# Convert world information to my own classes
+def convertWorldComponenets(world):
+  # Convert world points obstacles to Points
   worldPoints = []
   for point in world.getPoints():
     worldPoints.append(Point(point[0], point[1]))
+
+  # Convert world lines obstacles to Lines
   worldLines = []
   for line in world.getLinesWithoutBorders():
     worldLines.append(Line(Point(line[0][0], line[0][1]), Point(line[1][0], line[1][1])))
+
+  # Convert world obstacles to Polygons
   worldObstacles = []
   for obstacle in world.getObstacles():
     obstacleLines = []
     for line in obstacle.lines:
       obstacleLines.append(Line(Point(line[0][0],line[0][1]),Point(line[1][0],line[1][1])))
     worldObstacles.append(Polygon(lines=obstacleLines))
+
+  return worldPoints, worldLines, worldObstacles
+
+# Create path network
+def createPathNetwork(worldPoints, worldLines, worldObstacles):
+  print "Creating network"
 
   # Nav mesh
   polys = createNavMesh(worldPoints, worldLines, worldObstacles)
@@ -62,19 +103,7 @@ def myCreatePathNetwork(world, agent = None):
   edges = createPathLines(nodes, worldPoints, worldLines)
   print str(len(edges)) + " Edges"
 
-  # # Print out some info about polys
-  # analyzePolys(polys)
-
-  # Draw cross on each path node
-  for node in nodes:
-    drawCross(world.debug, node.toTuple(), color=(0,0,255), size=3, width=2)
-
-  # Convert my classes to expected output form
-  polys = polysToPointTuples(polys)
-  nodes = pointsToTuples(nodes)
-  edges = linesToTuples(edges)
-
-  ### YOUR CODE GOES ABOVE HERE ###
+  print
   return nodes, edges, polys
 
 ################################################################################################
@@ -126,6 +155,7 @@ def createTrianglesFromPoint(point, tris, worldPoints, worldLines, worldObstacle
 
 def mergePolys(polys):
   mergeCount = 0
+  # Try to merge every poly with every other poly
   for poly1 in polys:
     for poly2 in polys:
       combinedPoly = poly1.combinePoly(poly2)
@@ -135,7 +165,6 @@ def mergePolys(polys):
         polys.append(combinedPoly)
         mergeCount+=1
 
-  print str(mergeCount) + " merges"
   return polys
 
 ################################################################################################
@@ -338,6 +367,7 @@ class Line(object):
   def __init__(self, p1, p2):
     self.p1 = p1
     self.p2 = p2
+    self.length = math.sqrt(math.pow(p2.x - p1.x,2) + math.pow(p2.y - p1.y,2))
 
   # Overloaded operators
   def __eq__(self, otherLine):
@@ -369,6 +399,10 @@ class Line(object):
   def toTuple(self):
     return (self.p1.toTuple(),self.p2.toTuple())
 
+  def center(self, center):
+    line = Line(self.p1-center, self.p2-center)
+    return line
+
   # Midpoint of line
   def midpoint(self):
     return Point((self.p1.x+self.p2.x)/2, (self.p1.y+self.p2.y)/2)
@@ -390,10 +424,11 @@ class Line(object):
 # Custom Polygon class instead of...you already know by now
 ################################################################################################
 class Polygon(object):
-  def __init__(self, points=None, lines=None):
+  def __init__(self, points=None, lines=None, area=None):
     self.points = []
     self.lines = []
     self.centroid = Point(0,0)
+    self.areaVal = None
 
     ## Init with points
     if points != None:
@@ -457,6 +492,29 @@ class Polygon(object):
     for point in self.points:
       self.centroid += point
     self.centroid = self.centroid/len(self.points)
+
+  def area(self):
+    # See if it's already been calculated
+    if self.areaVal != None:
+      return self.area
+
+    self.areaVal = 0
+    # Triangle
+    if self.order == 3:
+      b = Line(self.points[1],self.points[0]).center(self.points[1])
+      a = Line(self.points[1],self.points[2]).center(self.points[1])
+      self.areaVal += 0.5*a.length*b.length*math.sin(angle(a.p2.toTuple(),b.p2.toTuple()))
+
+    # Higher order poly
+    else:
+      for i,point in enumerate(self.points):
+        if i == len(self.points)-1:
+          tri = Polygon(points=[self.centroid, self.points[i], self.points[0]])
+        else:
+          tri = Polygon(points=[self.centroid, self.points[i], self.points[i+1]])
+        self.areaVal += tri.area()
+
+    return self.areaVal
 
   # Convert poly to list of point tuples
   def toPointTuple(self):
@@ -566,41 +624,66 @@ def polysToLineTuples(polys):
 
 # Just prints out info about polys
 def analyzePolys(polys):
+  print "Polygon info"
   orders = {}
   for poly in polys:
     if str(poly.order) not in orders:
       orders[str(poly.order)] = 0
     orders[str(poly.order)] += 1
 
-  print orders
+  print "Polygon order info"
+  for order in orders:
+    print str(orders[order]) + " " + str(order) + "-order Polygons"
+
+  print
+
+# Test end result
+def coverageTests(nodes, edges, polys, worldPoints, worldLines, worldObstacles, world):
+  print "Coverage tests"
+
+  worldArea = world.dimensions[0]*world.dimensions[1]
+  navigableArea = worldArea
+  for obstacle in worldObstacles:
+    navigableArea -= obstacle.area()
+
+  myNavigableArea = 0
+  for poly in polys:
+    myNavigableArea += poly.area()
+
+  print "Actual navigable area: " + str(navigableArea)
+  print "My navigable area: " + str(myNavigableArea)
+
+  print
+  return
 
 # Testing classes
 def classTests():
-  p1 = Point(1,1)
-  p12 = Point(1,1)
-  p2 = Point(2,2)
-  p3 = Point(3,3)
-  p4 = Point(4,4)
-  points = [p1,p2,p3]
-  assert (p1 in points) == True
-  assert (p12 in points) == True
-  assert (p3 in points) == True
-  assert (p4 in points) == False
-
-  l1 = Line(p1,p2)
-  l12 = Line(p2,p1)
-  l2 = Line(p1,p3)
-  l3 = Line(p3,p4)
-  lines = [l1,l2]
-  assert (l1 in lines) == True
-  assert (l12 in lines) == True
-  assert (l2 in lines) == True
-  assert (l3 in lines) == False
-
-  p1 = Point(10,10)
-  p2 = Point(0,10)
-  p3 = Point(0,0)
-  p4 = Point(10,0)
+  print "Class tests"
+  # p1 = Point(1,1)
+  # p12 = Point(1,1)
+  # p2 = Point(2,2)
+  # p3 = Point(3,3)
+  # p4 = Point(4,4)
+  # points = [p1,p2,p3]
+  # assert (p1 in points) == True
+  # assert (p12 in points) == True
+  # assert (p3 in points) == True
+  # assert (p4 in points) == False
+  #
+  # l1 = Line(p1,p2)
+  # l12 = Line(p2,p1)
+  # l2 = Line(p1,p3)
+  # l3 = Line(p3,p4)
+  # lines = [l1,l2]
+  # assert (l1 in lines) == True
+  # assert (l12 in lines) == True
+  # assert (l2 in lines) == True
+  # assert (l3 in lines) == False
+  #
+  p1 = Point(20,10)
+  p2 = Point(10,10)
+  p3 = Point(10,0)
+  p4 = Point(20,0)
   l1 = Line(p1,p2)
   l2 = Line(p2,p3)
   l3 = Line(p3,p4)
@@ -611,5 +694,12 @@ def classTests():
 
   tri1 = Polygon(points=[p3,p4,p2])
   tri2 = Polygon(points=[p1,p4,p2])
-  combinedPoly = tri1.combinePoly(tri2)
-  assert (combinedPoly.points == poly1.points) == True
+  square = tri1.combinePoly(tri2)
+  tri3 = Polygon(points=[p4,p1,Point(30,0)])
+  hexShape = square.combinePoly(tri3)
+  secondSquare = Polygon(points=[Point(0,0),Point(10,10),Point(10,0),Point(0,10)])
+  weirdShape = hexShape.combinePoly(secondSquare)
+  assert (square.points == poly1.points) == True
+  # Off by very little
+  # assert (weirdShape.area() == 250) == True
+  print
