@@ -24,7 +24,7 @@ from utils import *
 from core import *
 
 # My includes
-from random import shuffle
+from random import shuffle, randint
 import math
 
 # Creates a pathnode network that connects the midpoints of each navmesh together
@@ -133,15 +133,16 @@ def createTriangleMesh(worldPoints, worldLines, worldObstacles):
 def createTrianglesFromPoint(point, tris, worldPoints, worldLines, worldObstacles):
   successors = point.getAllSuccessors(worldPoints, worldLines, worldObstacles)
 
-  for successor1 in successors:
+  for i,successor1 in enumerate(successors):
     # Find a suitable second successor
-    for successor2 in successors:
+    for successor2 in successors[i:]:
       if successor1.isSuccessor(successor2, worldLines, worldObstacles):
         testTri = Polygon(points=[point, successor1, successor2])
 
         # Make sure our test tri is unobstructed and new
         if not testTri.overlapsAnyPoly(tris) and not testTri.overlapsAnyPoly(worldObstacles) and testTri not in tris and testTri not in worldObstacles:
           tris.append(testTri)
+
 
 def mergePolys(polys):
   mergeCount = 0
@@ -167,12 +168,9 @@ def mergePolys(polys):
 def createPathNodes(polys,worldLines):
   nodes = []
 
-  for poly1 in polys:
-    # Add centroid
-    # nodes.append(poly1.centroid)
-
-    # For every shared line between polys, add a path node at the midpoint
-    for line in poly1.lines:
+  # Add a node at the midpoint of every mesh line through free space
+  for poly in polys:
+    for line in poly.lines:
       if line not in worldLines:
         if line.midpoint() not in nodes:
           nodes.append(line.midpoint())
@@ -185,15 +183,6 @@ def createPathNodes(polys,worldLines):
 # Create lines between pathnodes
 def createPathLines(pathnodes, polys, worldPoints, worldLines):
   lines = []
-
-  # # All visible nodes added
-  # for parentNode in pathnodes:
-  #   visibleNodes = getAllUnobstructedLines(parentNode, pathnodes, worldPoints, worldLines)
-  #
-  #   for visibleNode in visibleNodes:
-  #     newLine = Line(parentNode, visibleNode)
-  #     if newLine not in lines:
-  #       lines.append(newLine)
 
   # Construct hull inclusions dictionary
   hullInclusions = {}
@@ -545,7 +534,7 @@ class Polygon(object):
   # Check if line intersect poly
   def lineObstructs(self, testLine):
     # Line crosses inside
-    if self.pointInside(testLine.p1) and self.pointInside(testLine.p2):
+    if self.pointInside(testLine.p1) or self.pointInside(testLine.p2):
       return True
 
     # Line intersects
@@ -633,8 +622,8 @@ def polysToLineTuples(polys):
 # Draw network my way
 def drawPathNetwork(nodes, edges, polys, world):
   # Draw nav mesh area (no way to get it transparent)
-  for poly in polys:
-    pygame.draw.polygon(world.debug, (255,0,0), poly.toPointTuple())
+  for i,poly in enumerate(polys):
+    pygame.draw.polygon(world.debug, randomColor(), poly.toPointTuple())
 
   # Lines on edges
   for edge in edges:
@@ -644,6 +633,8 @@ def drawPathNetwork(nodes, edges, polys, world):
   for node in nodes:
     drawCross(world.debug, node.toTuple(), color=(0,255,0), size=3, width=2)
 
+def randomColor():
+  return (randint(50,255),randint(50,255),randint(50,255))
 
 # Test end result
 def results(nodes, edges, polys, worldPoints, worldLines, worldObstacles, world):
@@ -780,5 +771,6 @@ def classTests():
   weirdShape = hexShape.combinePoly(secondSquare)
   assert (square.points == poly1.points) == True
   assert (closeToEqual(weirdShape.area(), 250, thresh=0.0001))
+
   print "PASSED"
   print

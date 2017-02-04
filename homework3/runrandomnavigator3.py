@@ -17,19 +17,19 @@
 '''
 
 import sys, pygame, math, numpy, random, time, copy
-from pygame.locals import * 
+from pygame.locals import *
 
 from constants import *
 from utils import *
 from core import *
 from randomnavmeshnavigator import *
-			
-			
-			
-			
+
+
+
+
 nav = RandomNavMeshNavigator()
-	
-			
+
+
 world = GameWorld(SEED, (1000, 1000), (1000, 1000))
 agent = Agent(AGENT, (200, 100), 0, SPEED, world)
 world.initializeTerrain([[(5, 160), (870, 260), (5, 320)],
