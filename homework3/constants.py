@@ -59,4 +59,3 @@ DODGERATE = 10
 
 INFINITY = float("inf")
 EPSILON = 0.000001
-

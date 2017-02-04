@@ -27,6 +27,9 @@ from core import *
 from random import shuffle, randint
 import math
 
+# Constant for agent width
+AGENT_WIDTH = 25.0
+
 # Creates a pathnode network that connects the midpoints of each navmesh together
 def myCreatePathNetwork(world, agent = None):
   nodes = []
@@ -34,7 +37,6 @@ def myCreatePathNetwork(world, agent = None):
   polys = []
   ### YOUR CODE GOES BELOW HERE ###
 
-  ### NEEDED FOR SUBMISSION
   # Convert objects
   worldPoints, worldLines, worldObstacles = convertWorldComponenets(world)
 
@@ -44,7 +46,6 @@ def myCreatePathNetwork(world, agent = None):
   polys = polysToPointTuples(polyObjects)
   nodes = pointsToTuples(nodeObjects)
   edges = linesToTuples(edgeObjects)
-  ### NEEDED
 
   ### NOT NEEDED
   # Tests for my classes
@@ -89,7 +90,7 @@ def createPathNetwork(worldPoints, worldLines, worldObstacles):
 
   # Path nodes
   print "Creating Path Nodes"
-  nodes = createPathNodes(polys, worldLines)
+  nodes = createPathNodes(polys, worldPoints, worldLines)
   print str(len(nodes)) + " Nodes"
   print
 
@@ -143,7 +144,6 @@ def createTrianglesFromPoint(point, tris, worldPoints, worldLines, worldObstacle
         if not testTri.overlapsAnyPoly(tris) and not testTri.overlapsAnyPoly(worldObstacles) and testTri not in tris and testTri not in worldObstacles:
           tris.append(testTri)
 
-
 def mergePolys(polys):
   mergeCount = 0
   # Try to merge every poly with every other poly
@@ -165,7 +165,7 @@ def mergePolys(polys):
 # Path node creation
 ################################################################################################
 # Create path nodes from navmesh polys
-def createPathNodes(polys,worldLines):
+def createPathNodes(polys, worldPoints, worldLines):
   nodes = []
 
   # Add a node at the midpoint of every mesh line through free space
@@ -201,40 +201,12 @@ def createPathLines(pathnodes, polys, worldPoints, worldLines):
     for testNode in pathnodes:
       for hull in hullInclusions[parentNode]:
         if hull in hullInclusions[testNode]:
+          # New line, actually a line, agent can get by without collision on line
           testLine = Line(parentNode,testNode)
-          if testLine not in lines:
+          if testLine not in lines and parentNode != testNode and testLine.agentCanFollow(worldPoints, worldLines):
             lines.append(testLine)
 
-
   return lines
-
-# Get all visible nodes
-def getAllUnobstructedLines(parentNode, pathnodes, worldPoints, worldLines):
-  visibleNodes = []
-
-  # Check each node for each node
-  for childNode in pathnodes:
-    # Skip itself
-    if parentNode != childNode:
-      # Add line if unobstructed
-      if lineUnobstructed(Line(parentNode, childNode), worldPoints, worldLines):
-        visibleNodes.append(childNode)
-
-  return visibleNodes
-
-# Check if line is unobstructed
-def lineUnobstructed(line, worldPoints, worldLines):
-  # Ensure the line between the tow points doesn't intersect any object lines
-  if rayTraceWorldNoEndPoints(line.p1, line.p2, worldLines) != None:
-    return False
-
-  # Make sure the agent won't clip any obstacle points along a line
-  for point in worldPoints:
-    ## This distance can be modified
-    if minimumDistance([line.p1,line.p2], point) < 35.0:
-      return False
-
-  return True
 
 ################################################################################################
 # Custom Point class instead of tuples
@@ -412,6 +384,15 @@ class Line(object):
       if self.intersects(otherLine):
         return True
     return False
+
+  # Check if agent can follow line
+  def agentCanFollow(self, worldPoints, worldLines):
+    # Make sure the agent won't clip any obstacle points along a line
+    for point in worldPoints:
+      if minimumDistance([self.p1, self.p2], point) < AGENT_WIDTH and self not in worldLines and point != self.p1 and point != self.p2:
+        return False
+
+    return True
 
 ################################################################################################
 # Custom Polygon class instead of...you already know by now
@@ -655,7 +636,8 @@ def results(nodes, edges, polys, worldPoints, worldLines, worldObstacles, world)
   if reachable and covered and optimized:
     print "PASSED"
   else:
-    drawPathNetwork(nodes, edges, polys, world)
+    print "FAILED"
+    # drawPathNetwork(nodes, edges, polys, world)
 
   return
 
