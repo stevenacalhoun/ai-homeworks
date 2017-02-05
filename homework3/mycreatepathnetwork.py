@@ -24,10 +24,10 @@ from utils import *
 from core import *
 
 # My includes
-from random import shuffle, randint
+from random import randint
 import math
 
-# Constant for agent width
+# My constant for agent width
 AGENT_WIDTH = 25.0
 
 # Creates a pathnode network that connects the midpoints of each navmesh together
@@ -42,6 +42,7 @@ def myCreatePathNetwork(world, agent = None):
 
   # Create network
   nodeObjects, edgeObjects, polyObjects = createPathNetwork(worldPoints, worldLines, worldObstacles)
+
   # Convert my classes to expected output form
   polys = polysToPointTuples(polyObjects)
   nodes = pointsToTuples(nodeObjects)
@@ -53,6 +54,8 @@ def myCreatePathNetwork(world, agent = None):
 
   # Check results
   results(nodeObjects, edgeObjects, polyObjects, worldPoints, worldLines, worldObstacles, world)
+
+  drawPathNetwork(nodeObjects, edgeObjects, polyObjects, world)
   ### NOT NEEDED
 
   ### YOUR CODE GOES ABOVE HERE ###
@@ -100,6 +103,13 @@ def createPathNetwork(worldPoints, worldLines, worldObstacles):
   print str(len(edges)) + " Edges"
   print
 
+  # Cleanup path network
+  edgesPoints = linesToPoints(edges)
+  for node in nodes:
+    goodNode = True
+    if node not in edgesPoints:
+      nodes.remove(node)
+
   return nodes, edges, polys
 
 ################################################################################################
@@ -120,12 +130,8 @@ def createTriangleMesh(worldPoints, worldLines, worldObstacles):
   completedPoints = []
   tris = []
 
-  # Randomize point selection
-  startingPoints = worldPoints
-  # shuffle(startingPoints)
-
   # Continue until all points covered
-  for point in startingPoints:
+  for point in worldPoints:
     # Create triangles around this point
     createTrianglesFromPoint(point, tris, worldPoints, worldLines, worldObstacles)
 
@@ -171,7 +177,7 @@ def createPathNodes(polys, worldPoints, worldLines):
   # Add a node at the midpoint of every mesh line through free space
   for poly in polys:
     for line in poly.lines:
-      if line not in worldLines:
+      if line not in worldLines and line.agentCanFollow(worldPoints, worldLines):
         if line.midpoint() not in nodes:
           nodes.append(line.midpoint())
 
@@ -230,6 +236,10 @@ class Point(object):
   def __ne__(self, otherPoint):
     return not self.__eq__(otherPoint)
 
+  ## CITATION
+  # This code is taken from a stack overflow post. I implemented a point compare
+  # function so that I could then sort a list of points around a center.
+  # URL: http://stackoverflow.com/questions/6989100/sort-points-in-clockwise-order
   def __lt__(self, other):
     if self.center == None:
       return False
@@ -252,6 +262,7 @@ class Point(object):
     d1 = (self.x - self.center.x) * (self.x - self.center.x) + (self.y - self.center.y) * (self.y - self.center.y)
     d2 = (other.x - self.center.x) * (other.x - self.center.x) + (other.y - self.center.y) * (other.y - self.center.y)
     return d1 > d2
+  ## END CITATION
 
   def __gt__(self, other):
     return not self.__lt__(other) and not self.__eq__(other)
@@ -563,6 +574,9 @@ class Polygon(object):
   def isConvex(self):
     return isConvex(self.points)
 
+################################################################################################
+# Lists of my objects helpers
+################################################################################################
 ##### Point Lists
 # Points to list of tuples
 def pointsToTuples(points):
@@ -585,6 +599,16 @@ def linesToTuples(lines):
     tuples.append(line.toTuple())
   return tuples
 
+# Lines to a list of unique points
+def linesToPoints(lines):
+  points = []
+  for line in lines:
+    if line.p1 not in points:
+      points.append(line.p1)
+    if line.p2 not in points:
+      points.append(line.p2)
+  return points
+
 ##### Poly Lists
 # Polys to a list of point tuples pairs
 def polysToPointTuples(polys):
@@ -600,11 +624,14 @@ def polysToLineTuples(polys):
     tuples.append(poly.toLineTuple())
   return tuples
 
+################################################################################################
+# Draw functions
+################################################################################################
 # Draw network my way
 def drawPathNetwork(nodes, edges, polys, world):
-  # Draw nav mesh area (no way to get it transparent)
-  for i,poly in enumerate(polys):
-    pygame.draw.polygon(world.debug, randomColor(), poly.toPointTuple())
+  # # Draw nav mesh area (no way to get it transparent)
+  # for i,poly in enumerate(polys):
+  #   pygame.draw.polygon(world.debug, randomColor(), poly.toPointTuple())
 
   # Lines on edges
   for edge in edges:
@@ -612,11 +639,14 @@ def drawPathNetwork(nodes, edges, polys, world):
 
   # Crosses on nodes
   for node in nodes:
-    drawCross(world.debug, node.toTuple(), color=(0,255,0), size=3, width=2)
+    drawCross(world.debug, node.toTuple(), color=(0,0,0), size=3, width=2)
 
 def randomColor():
   return (randint(50,255),randint(50,255),randint(50,255))
 
+################################################################################################
+# Tests
+################################################################################################
 # Test end result
 def results(nodes, edges, polys, worldPoints, worldLines, worldObstacles, world):
   print "########################"
@@ -637,7 +667,7 @@ def results(nodes, edges, polys, worldPoints, worldLines, worldObstacles, world)
     print "PASSED"
   else:
     print "FAILED"
-    # drawPathNetwork(nodes, edges, polys, world)
+    drawPathNetwork(nodes, edges, polys, world)
 
   return
 
@@ -654,6 +684,12 @@ def reachabilityResults():
 # Coverage results
 def coverageResults(polys, worldObstacles, world):
   print "Coverage results"
+
+  for obstacle in worldObstacles:
+    if not obstacle.isConvex():
+      print "Can't check coverage, non convex shapes in world"
+      print
+      return True
 
   # Check that everything is covered
   navigableArea = world.dimensions[0]*world.dimensions[1]
