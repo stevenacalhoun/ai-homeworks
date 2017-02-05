@@ -49,13 +49,13 @@ def myCreatePathNetwork(world, agent = None):
   edges = linesToTuples(edgeObjects)
 
   ### NOT NEEDED
-  # Tests for my classes
-  classTests()
-
-  # Check results
-  results(nodeObjects, edgeObjects, polyObjects, worldPoints, worldLines, worldObstacles, world)
-
-  drawPathNetwork(nodeObjects, edgeObjects, polyObjects, world)
+  # # Tests for my classes
+  # classTests()
+  #
+  # # Check results
+  # results(nodeObjects, edgeObjects, polyObjects, worldPoints, worldLines, worldObstacles, world)
+  #
+  # drawPathNetwork(nodeObjects, edgeObjects, polyObjects, world)
   ### NOT NEEDED
 
   ### YOUR CODE GOES ABOVE HERE ###
