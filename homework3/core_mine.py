@@ -19,8 +19,8 @@
 import sys, pygame, math, numpy, random, time, copy
 from pygame.locals import *
 
-from constants import *
-from utils import *
+from constants_mine import *
+from utils_mine import *
 
 
 ###########################
@@ -305,6 +305,7 @@ class Agent(Mover):
     self.navigator = navigator
 
   def navigateTo(self, pos):
+    print pos
     if self.navigator != None:
       self.navigator.computePath(self.position, pos)
 

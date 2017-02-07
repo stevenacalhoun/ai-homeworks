@@ -18,7 +18,7 @@
 
 import sys, pygame, math, numpy, random, time, copy
 from pygame.locals import *
-from constants import *
+from constants_mine import *
 
 
 ########################
