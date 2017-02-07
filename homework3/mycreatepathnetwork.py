@@ -517,11 +517,11 @@ class Polygon(object):
 
   # Point part of hull
   def hullIncludesPoint(self, point):
-    return pointInsidePolygonLines(point, self.lines) or point in self.points or pointOnPolygon(point,self.toPointTuple())
+    return pointInsidePolygonLines(point, self.lines) or point in self.points or myPointOnPolygon(point,self.toPointTuple())
 
   # Point inside poly
   def pointInside(self, point):
-    return pointInsidePolygonLines(point, self.lines) and not point in self.points and not pointOnPolygon(point,self.toPointTuple())
+    return pointInsidePolygonLines(point, self.lines) and not point in self.points and not myPointOnPolygon(point,self.toPointTuple())
 
   # Check if line intersect poly
   def lineObstructs(self, testLine):
@@ -741,6 +741,19 @@ def meshOptimizationResults(polys):
 
 def closeToEqual(val1, val2, thresh=1.0):
   return val1 > (val2-thresh) and val1 < (val2+thresh)
+
+# Because you changed this function last minute, and it broke my code
+def myPointOnPolygon(point, polygon):
+  last = None
+  for p in polygon:
+    if last != None:
+      mid = ((last[0]+p[0])/2.0, (last[1]+p[1])/2.0)
+      if withinRange(point, mid, 1.5):
+        return True
+    last = p
+  mid = ((polygon[0][0]+polygon[len(polygon)-1][0])/2.0, (polygon[0][1]+polygon[len(polygon)-1][1])/2.0)
+  if withinRange(point, mid, 1.5):
+    return True
 
 # Testing classes
 def classTests():
