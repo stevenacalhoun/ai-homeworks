@@ -17,7 +17,7 @@
 '''
 
 import sys, pygame, math, numpy, random, time, copy
-from pygame.locals import * 
+from pygame.locals import *
 
 from constants import *
 from utils import *
@@ -29,10 +29,10 @@ from core import *
 ### path: the path previously computed by the Floyd-Warshall algorithm
 ### world: pointer to the world
 def shortcutPath(source, dest, path, world, agent):
-	### YOUR CODE GOES BELOW HERE ###
+  ### YOUR CODE GOES BELOW HERE ###
 
-	### YOUR CODE GOES BELOW HERE ###
-	return path
+  ### YOUR CODE GOES BELOW HERE ###
+  return path
 
 
 ### This function changes the move target of the agent if there is an opportunity to walk a shorter path.
@@ -40,9 +40,7 @@ def shortcutPath(source, dest, path, world, agent):
 ### nav: the navigator object
 ### This function returns True if the moveTarget and/or path is modified and False otherwise
 def mySmooth(nav):
-	### YOUR CODE GOES BELOW HERE ###
+  ### YOUR CODE GOES BELOW HERE ###
 
-	### YOUR CODE GOES ABOVE HERE ###
-	return False
-
-
+  ### YOUR CODE GOES ABOVE HERE ###
+  return False
