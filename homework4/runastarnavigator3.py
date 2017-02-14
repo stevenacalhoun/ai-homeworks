@@ -46,8 +46,8 @@ world.initializeTerrain([[(320, 110), (480, 200), (370, 400), (100, 435), (180, 
 						 [(285, 550), (400, 755), (150, 745)],
 						 [(590, 750), (910, 720), (925, 870), (580, 870)]])
 world.setPlayerAgent(agent)
-nav.setWorld(world)
 agent.setNavigator(nav)
+nav.setWorld(world)
 world.initializeResources([(200, 500), (250, 800), (750, 900), (850, 650), (700, 530), (900, 250), (925, 100), (825, 175), (150, 150)], RESOURCE)
 world.debugging = True
 
