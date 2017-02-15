@@ -33,6 +33,31 @@ from mycreatepathnetwork import *
 def shortcutPath(source, dest, path, world, agent):
   ### YOUR CODE GOES BELOW HERE ###
 
+  # Convert world objects
+  nodePoints = pointTuplesToPoints(path)
+  worldPoints, worldLines = lineTuplesToLinesAndPoints(world.getLines())
+  agentPos = Point(pointTuple=agent.position)
+  destPoint = Point(pointTuple=dest)
+
+  # Check for shortcut from start/goal
+  firstPointIdx = 0
+  lastPointIdx = len(nodePoints)-1
+  for i,node in enumerate(nodePoints):
+    # Check from start
+    pathLine = Line(agentPos, nodePoints[i])
+    if pathLine.agentCanFollow(worldPoints, worldLines, agent.getMaxRadius()):
+      firstPointIdx = i
+
+    # Check from goal
+    j = len(nodePoints) - i - 1
+    pathLine = Line(destPoint, nodePoints[j])
+    if pathLine.agentCanFollow(worldPoints, worldLines, agent.getMaxRadius()):
+      lastPointIdx = j
+
+  if firstPointIdx >= lastPointIdx:
+    path = [path[firstPointIdx]]
+  else:
+    path = path[firstPointIdx:lastPointIdx+1]
 
   ### YOUR CODE GOES BELOW HERE ###
   return path
