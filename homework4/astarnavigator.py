@@ -230,5 +230,12 @@ def myCheckpoint(nav):
 def clearShot(p1, p2, worldLines, worldPoints, agent):
   ### YOUR CODE GOES BELOW HERE ###
 
+  worldLineObjects = []
+  lineObj = Line(lineTuple=(p1,p2))
+  for line in worldLines:
+    worldLineObjects.append(Line(lineTuple=line))
+
+  return not lineObj.intersectsAny(worldLineObjects)
+
   ### YOUR CODE GOES ABOVE HERE ###
   return False

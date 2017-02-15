@@ -218,9 +218,13 @@ def createPathLines(pathnodes, polys, worldPoints, worldLines):
 # Custom Point class instead of tuples
 ################################################################################################
 class Point(object):
-  def __init__(self, x, y):
-    self.x = x
-    self.y = y
+  def __init__(self, x=None, y=None, pointTuple=None):
+    if pointTuple == None:
+      self.x = x
+      self.y = y
+    else:
+      self.x = pointTuple[0]
+      self.y = pointTuple[1]
 
     # Used for sorting in a clockwise manner
     self.center = None;
@@ -343,10 +347,14 @@ class Point(object):
 # Custom Line class for the same reasons
 ################################################################################################
 class Line(object):
-  def __init__(self, p1, p2):
-    self.p1 = p1
-    self.p2 = p2
-    self.length = math.sqrt(math.pow(p2.x - p1.x,2) + math.pow(p2.y - p1.y,2))
+  def __init__(self, p1=None, p2=None, lineTuple=None):
+    if lineTuple == None:
+      self.p1 = p1
+      self.p2 = p2
+    else:
+      self.p1 = Point(pointTuple=lineTuple[0])
+      self.p2 = Point(pointTuple=lineTuple[1])
+    self.length = math.sqrt(math.pow(self.p2.x - self.p1.x,2) + math.pow(self.p2.y - self.p1.y,2))
 
   # Overloaded operators
   def __eq__(self, otherLine):
