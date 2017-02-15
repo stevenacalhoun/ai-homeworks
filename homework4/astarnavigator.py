@@ -35,6 +35,7 @@ class AStarNavigator(NavMeshNavigator):
 
   def __init__(self):
     NavMeshNavigator.__init__(self)
+    self.previousGates = []
 
   ### Create the pathnode network and pre-compute all shortest paths along the network.
   ### self: the navigator object
@@ -142,14 +143,20 @@ def astar(init, goal, network):
   fScore[initPoint] = distance(initPoint.toTuple(), goalPoint.toTuple())
   gScore[initPoint] = 0
 
+  pathNodes = None
   # This should continue until path is found
   while openSet is not []:
     # Find node with lowest fScore in openSet
     lowestScore = INFINITY
+    current = None
     for node in fScore:
       if node in openSet and fScore[node] < lowestScore:
         current = node
         lowestScore = fScore[node]
+
+    # Can't find a path
+    if current == None:
+      break
 
     # We've reached the goal, construct path and break
     if current == goalPoint:
@@ -181,9 +188,12 @@ def astar(init, goal, network):
           gScore[neighbor] = tentative_gScore
           fScore[neighbor] = gScore[neighbor] + distance(neighbor.toTuple(), goalPoint.toTuple())
 
-  # Convert back to tuples
-  path = pointsToTuples(pathNodes)
-  closed = pointsToTuples(closedSet)
+  if pathNodes != None:
+    # Convert back to tuples
+    path = pointsToTuples(pathNodes)
+    closed = pointsToTuples(closedSet)
+  else:
+    return None, None
 
   ### YOUR CODE GOES ABOVE HERE ###
   return path, closed
@@ -207,17 +217,15 @@ def constructPath(cameFrom, current):
   total_path.reverse()
   return total_path
 
-previousGates = []
 def myUpdate(nav, delta):
   ### YOUR CODE GOES BELOW HERE ###
-  global previousGates
 
   # Corner case
   if nav.path == None:
     return
 
   # If the gates haven't changed, don't worry about it
-  if nav.world.getGates() != previousGates:
+  if nav.world.getGates() != nav.previousGates:
     print "GATES HAVE CHANGED"
     # Convert world objects
     gatePoints, gateLines = lineTuplesToLinesAndPoints(nav.world.getGates())
@@ -230,7 +238,7 @@ def myUpdate(nav, delta):
       if line.intersectsAny(gateLines):
         nav.computePath(nav.agent.position, nav.destination)
 
-  previousGates = nav.world.getGates()
+  nav.previousGates = nav.world.getGates()
 
   ### YOUR CODE GOES ABOVE HERE ###
   return None
