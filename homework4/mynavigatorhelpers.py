@@ -55,40 +55,45 @@ def shortcutPath(source, dest, path, world, agent):
 def mySmooth(nav):
   ### YOUR CODE GOES BELOW HERE ###
 
+  # Corner case
   if nav.path == None:
     return False
 
-  if clearShot(nav.agent.position, nav.destination, nav.world.getLines(), nav.world.getPoints()):
+  # Convert world objects
+  worldPointObjects = []
+  worldLineObjects = []
+  for line in nav.world.getLines():
+    p1 = Point(pointTuple=line[0])
+    p2 = Point(pointTuple=line[1])
+    if p1 not in worldLineObjects:
+      worldPointObjects.append(p2)
+    if p2 not in worldLineObjects:
+      worldPointObjects.append(p2)
+    worldLineObjects.append(Line(p1=p1,p2=p2))
+  agentPositionObj = Point(pointTuple=nav.agent.position)
+  destinationObj = Point(pointTuple=nav.destination)
+  pathObjects = []
+  for node in nav.path:
+    pathObjects.append(Point(pointTuple=node))
+
+  # Target in view
+  pathLine = Line(agentPositionObj, destinationObj)
+  if pathLine.agentCanFollow(worldPointObjects, worldLineObjects):
     nav.setPath([])
-    nav.agent.moveToTarget(nav.destination)
+    nav.agent.moveToTarget(destinationObj.toTuple())
     return True
 
-  visibleNode = -1
-  for i,node in enumerate(nav.path):
-    if clearShot(nav.agent.position, node, nav.world.getLines(), nav.world.getPoints()):
+  # See if any future node is in view
+  visibleNodeIdx = 0
+  for i,node in enumerate(pathObjects):
+    pathLine = Line(agentPositionObj, node)
+    if pathLine.agentCanFollow(worldPointObjects, worldLineObjects):
       visibleNodeIdx = i
-      visibleNode = node
 
-  if visibleNode != -1:
-    nav.setPath(nav.path[visibleNodeIdx:])
-    nav.agent.moveToTarget(visibleNode)
-    return True
+  # Set new target and trim path
+  nav.setPath(pointsToTuples(pathObjects[visibleNodeIdx:]))
+  nav.agent.moveToTarget(nav.path[0])
+  return True
 
   ### YOUR CODE GOES ABOVE HERE ###
   return False
-
-def clearShot(p1, p2, worldLines, worldPoints):
-  # Convert world objects
-  worldPointObjects = []
-  for point in worldPoints:
-    p = Point(pointTuple=point)
-    if p not in worldPointObjects:
-      worldPointObjects.append(p)
-  worldLineObjects = []
-  lineObj = Line(lineTuple=(p1,p2))
-  for line in worldLines:
-    worldLineObjects.append(Line(lineTuple=line))
-
-  pathLine = Line(lineTuple=(p1,p2))
-
-  return pathLine.agentCanFollow(worldPointObjects, worldLineObjects) and not pathLine.intersectsAny(worldLines)

@@ -144,8 +144,6 @@ def astar(init, goal, network):
     fScore[node] = INFINITY
   fScore[initPoint] = distance(initPoint.toTuple(), goalPoint.toTuple())
   gScore[initPoint] = 0
-  print "GOAL"
-  print goalPoint
 
   while openSet is not []:
     # Find node with lowest fScore in openSet
@@ -234,15 +232,18 @@ def clearShot(p1, p2, worldLines, worldPoints, agent):
 
   # Convert world objects
   worldPointObjects = []
-  for point in worldPoints:
-    p = Point(pointTuple=point)
-    if p not in worldPointObjects:
-      worldPointObjects.append(p)
   worldLineObjects = []
-  lineObj = Line(lineTuple=(p1,p2))
   for line in worldLines:
-    worldLineObjects.append(Line(lineTuple=line))
+    lineP1 = Point(pointTuple=line[0])
+    lineP2 = Point(pointTuple=line[1])
+    if lineP1 not in worldLineObjects:
+      worldPointObjects.append(lineP1)
+    if lineP2 not in worldLineObjects:
+      worldPointObjects.append(lineP2)
+    worldLineObjects.append(Line(p1=lineP1,p2=lineP2))
 
+  # Desired path
   pathLine = Line(lineTuple=(p1,p2))
 
-  return pathLine.agentCanFollow(worldPointObjects, worldLineObjects) and not pathLine.intersectsAny(worldLines)
+  # Check if clear
+  return pathLine.agentCanFollow(worldPointObjects, worldLineObjects)

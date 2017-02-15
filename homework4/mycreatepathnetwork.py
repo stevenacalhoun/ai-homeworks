@@ -409,6 +409,10 @@ class Line(object):
 
   # Check if agent can follow line
   def agentCanFollow(self, worldPoints, worldLines, agentWidth=AGENT_WIDTH):
+    # Intersection with any world line is obviously unfollowable
+    if self.intersectsAny(worldLines):
+      return False
+
     # Make sure the agent won't clip any obstacle points along a line
     for point in worldPoints:
       if minimumDistance([self.p1, self.p2], point) < agentWidth and self not in worldLines and point != self.p1 and point != self.p2:
