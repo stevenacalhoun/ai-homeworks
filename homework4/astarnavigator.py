@@ -117,11 +117,13 @@ def astar(init, goal, network):
 
   initPoint = Point(init[0],init[1])
   goalPoint = Point(goal[0],goal[1])
-  pathPoints = []
-  pathLines = []
 
+  # Open initial node
   openSet = [initPoint]
 
+  # Convert world objects
+  pathPoints = []
+  pathLines = []
   for line in network:
     p1 = Point(line[0][0],line[0][1])
     p2 = Point(line[1][0],line[1][1])
@@ -129,11 +131,9 @@ def astar(init, goal, network):
       pathPoints.append(p1)
     if p2 not in pathPoints:
       pathPoints.append(p2)
+    pathLines.append(Line(p1,p2))
 
-    line = Line(p1,p2)
-    if line not in pathLines:
-      pathLines.append(line)
-
+  # Map to hold A* paths
   cameFrom = {}
 
   # Set all initial values to infinity
@@ -142,9 +142,12 @@ def astar(init, goal, network):
   for node in pathPoints:
     gScore[node] = INFINITY
     fScore[node] = INFINITY
+
+  # Initialize for initPoint
   fScore[initPoint] = distance(initPoint.toTuple(), goalPoint.toTuple())
   gScore[initPoint] = 0
 
+  # This should continue until path is found
   while openSet is not []:
     # Find node with lowest fScore in openSet
     lowestScore = INFINITY
@@ -198,7 +201,6 @@ def getNeighbors(node, pathLines):
       neighbors.append(line.p2)
     elif line.p2 == node:
       neighbors.append(line.p1)
-
   return neighbors
 
 # Construct a path from A* data structures
@@ -246,4 +248,4 @@ def clearShot(p1, p2, worldLines, worldPoints, agent):
   pathLine = Line(lineTuple=(p1,p2))
 
   # Check if clear
-  return pathLine.agentCanFollow(worldPointObjects, worldLineObjects)
+  return pathLine.agentCanFollow(worldPointObjects, worldLineObjects, agentWidth=agent.getMaxRadius())

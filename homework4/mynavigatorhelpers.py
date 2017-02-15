@@ -33,16 +33,6 @@ from mycreatepathnetwork import *
 def shortcutPath(source, dest, path, world, agent):
   ### YOUR CODE GOES BELOW HERE ###
 
-  # visibleNode = -1
-  # for i,node in enumerate(path):
-  #   if clearShot(source, node, world.getLines(), world.getPoints(), agent):
-  #     print i
-  #     print path
-  #     visibleNode = i
-  #
-  # if visibleNode != -1:
-  #   path = path[visibleNode:]
-  #   return path
 
   ### YOUR CODE GOES BELOW HERE ###
   return path
@@ -56,7 +46,7 @@ def mySmooth(nav):
   ### YOUR CODE GOES BELOW HERE ###
 
   # Corner case
-  if nav.path == None:
+  if nav.path == None or nav.path == []:
     return False
 
   # Convert world objects
@@ -78,22 +68,23 @@ def mySmooth(nav):
 
   # Target in view
   pathLine = Line(agentPositionObj, destinationObj)
-  if pathLine.agentCanFollow(worldPointObjects, worldLineObjects):
-    nav.setPath([])
+  if pathLine.agentCanFollow(worldPointObjects, worldLineObjects, agentWidth=nav.agent.getMaxRadius()):
+    nav.setPath(None)
     nav.agent.moveToTarget(destinationObj.toTuple())
     return True
 
   # See if any future node is in view
-  visibleNodeIdx = 0
+  visibleNodeIdx = -1
   for i,node in enumerate(pathObjects):
     pathLine = Line(agentPositionObj, node)
-    if pathLine.agentCanFollow(worldPointObjects, worldLineObjects):
+    if pathLine.agentCanFollow(worldPointObjects, worldLineObjects, agentWidth=nav.agent.getMaxRadius()):
       visibleNodeIdx = i
 
-  # Set new target and trim path
-  nav.setPath(pointsToTuples(pathObjects[visibleNodeIdx:]))
-  nav.agent.moveToTarget(nav.path[0])
-  return True
+  # Set trim path and set new target
+  if visibleNodeIdx != -1:
+    nav.setPath(pointsToTuples(pathObjects[visibleNodeIdx:]))
+    nav.agent.moveToTarget(nav.path[0])
+    return True
 
   ### YOUR CODE GOES ABOVE HERE ###
   return False

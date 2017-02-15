@@ -28,7 +28,7 @@ from random import randint
 import math
 
 # My constant for agent width
-AGENT_WIDTH = 25.0
+AGENT_WIDTH = 23.0867927612
 
 # Creates a pathnode network that connects the midpoints of each navmesh together
 def myCreatePathNetwork(world, agent = None):
@@ -86,22 +86,22 @@ def convertWorldComponenets(world):
 # Create path network
 def createPathNetwork(worldPoints, worldLines, worldObstacles):
   # Nav mesh
-  print "Creating Nav Mesh"
+  # print "Creating Nav Mesh"
   polys = createNavMesh(worldPoints, worldLines, worldObstacles)
-  print str(len(polys)) + " Polys"
-  print
+  # print str(len(polys)) + " Polys"
+  # print
 
   # Path nodes
-  print "Creating Path Nodes"
+  # print "Creating Path Nodes"
   nodes = createPathNodes(polys, worldPoints, worldLines)
-  print str(len(nodes)) + " Nodes"
-  print
+  # print str(len(nodes)) + " Nodes"
+  # print
 
   # Path edges
-  print "Creating Path Edges"
+  # print "Creating Path Edges"
   edges = createPathLines(nodes, polys, worldPoints, worldLines)
-  print str(len(edges)) + " Edges"
-  print
+  # print str(len(edges)) + " Edges"
+  # print
 
   # Cleanup path network
   edgesPoints = linesToPoints(edges)
