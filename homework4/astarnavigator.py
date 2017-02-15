@@ -138,54 +138,59 @@ def astar(init, goal, network):
 
   # Set all initial values to infinity
   gScore = {}
-  for node in pathPoints:
-    gScore[node] = INFINITY
-  gScore[initPoint] = 0
-
-  # Set all initial values to infinity
   fScore = {}
   for node in pathPoints:
+    gScore[node] = INFINITY
     fScore[node] = INFINITY
-  fScore[initPoint] = heuristic_cost_estimate(initPoint, goalPoint)
+  fScore[initPoint] = distance(initPoint.toTuple(), goalPoint.toTuple())
+  gScore[initPoint] = 0
 
   while openSet is not []:
-    # Find node with lowest fScore
+    # Find node with lowest fScore in openSet
     lowestScore = INFINITY
     for node in fScore:
       if node in openSet and fScore[node] < lowestScore:
         current = node
         lowestScore = fScore[node]
 
+    # We've reached the goal, construct path and break
     if current == goalPoint:
-      pathNodes = reconstruct_path(cameFrom, current)
+      pathNodes = constructPath(cameFrom, current)
       break
 
+    # Close curent point
     openSet.remove(current)
     closedSet.append(current)
+
+    # Check all neighbors of current node
     for neighbor in getNeighbors(current, pathLines):
-      if neighbor in closedSet:
-        continue
+      # Only check non-closed nodes
+      if neighbor not in closedSet:
+        # Caclulate score
+        tentative_gScore = gScore[current] + distance(current.toTuple(), neighbor.toTuple())
 
-      tentative_gScore = gScore[current] + distance(current.toTuple(), neighbor.toTuple())
-      if neighbor not in openSet:
-        openSet.append(neighbor)
-      elif tentative_gScore >= gScore[neighbor]:
-        continue
+        # Neighbor is new to openSet
+        if neighbor not in openSet:
+          openSet.append(neighbor)
 
-      cameFrom[neighbor] = current
-      gScore[neighbor] = tentative_gScore
-      fScore[neighbor] = gScore[neighbor] + heuristic_cost_estimate(neighbor, goalPoint)
+          cameFrom[neighbor] = current
+          gScore[neighbor] = tentative_gScore
+          fScore[neighbor] = gScore[neighbor] + distance(neighbor.toTuple(), goalPoint.toTuple())
 
-  for node in pathNodes:
-    path.append(node.toTuple())
+        # Neighbor is in openSet and has a better gScore
+        elif tentative_gScore < gScore[neighbor]:
+          cameFrom[neighbor] = current
+          gScore[neighbor] = tentative_gScore
+          fScore[neighbor] = gScore[neighbor] + distance(neighbor.toTuple(), goalPoint.toTuple())
 
-  closed = []
-  for node in closedSet:
-    closed.append(node.toTuple())
+  # Convert back to tuples
+  path = pointsToTuples(pathNodes)
+  closed = pointsToTuples(closedSet)
 
   ### YOUR CODE GOES ABOVE HERE ###
   return path, closed
 
+# Get all neighbors of a node
 def getNeighbors(node, pathLines):
   neighbors = []
   for line in pathLines:
@@ -196,17 +201,14 @@ def getNeighbors(node, pathLines):
 
   return neighbors
 
-def reconstruct_path(cameFrom, current):
+# Construct a path from A* data structures
+def constructPath(cameFrom, current):
   total_path = [current]
   while current in cameFrom:
     current = cameFrom[current]
     total_path.append(current)
   total_path.reverse()
   return total_path
-
-# Manhatten distance
-def heuristic_cost_estimate(start, goal):
-  return distance(start.toTuple(), goal.toTuple())
 
 def myUpdate(nav, delta):
   ### YOUR CODE GOES BELOW HERE ###
