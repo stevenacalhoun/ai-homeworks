@@ -23,6 +23,8 @@ from constants import *
 from utils import *
 from core import *
 
+from mycreatepathnetwork import *
+
 ### This function optimizes the given path and returns a new path
 ### source: the current position of the agent
 ### dest: the desired destination of the agent
@@ -30,6 +32,17 @@ from core import *
 ### world: pointer to the world
 def shortcutPath(source, dest, path, world, agent):
   ### YOUR CODE GOES BELOW HERE ###
+
+  # visibleNode = -1
+  # for i,node in enumerate(path):
+  #   if clearShot(source, node, world.getLines(), world.getPoints(), agent):
+  #     print i
+  #     print path
+  #     visibleNode = i
+  #
+  # if visibleNode != -1:
+  #   path = path[visibleNode:]
+  #   return path
 
   ### YOUR CODE GOES BELOW HERE ###
   return path
@@ -42,5 +55,40 @@ def shortcutPath(source, dest, path, world, agent):
 def mySmooth(nav):
   ### YOUR CODE GOES BELOW HERE ###
 
+  if nav.path == None:
+    return False
+
+  if clearShot(nav.agent.position, nav.destination, nav.world.getLines(), nav.world.getPoints()):
+    nav.setPath([])
+    nav.agent.moveToTarget(nav.destination)
+    return True
+
+  visibleNode = -1
+  for i,node in enumerate(nav.path):
+    if clearShot(nav.agent.position, node, nav.world.getLines(), nav.world.getPoints()):
+      visibleNodeIdx = i
+      visibleNode = node
+
+  if visibleNode != -1:
+    nav.setPath(nav.path[visibleNodeIdx:])
+    nav.agent.moveToTarget(visibleNode)
+    return True
+
   ### YOUR CODE GOES ABOVE HERE ###
   return False
+
+def clearShot(p1, p2, worldLines, worldPoints):
+  # Convert world objects
+  worldPointObjects = []
+  for point in worldPoints:
+    p = Point(pointTuple=point)
+    if p not in worldPointObjects:
+      worldPointObjects.append(p)
+  worldLineObjects = []
+  lineObj = Line(lineTuple=(p1,p2))
+  for line in worldLines:
+    worldLineObjects.append(Line(lineTuple=line))
+
+  pathLine = Line(lineTuple=(p1,p2))
+
+  return pathLine.agentCanFollow(worldPointObjects, worldLineObjects) and not pathLine.intersectsAny(worldLines)
