@@ -279,6 +279,9 @@ class Point(object):
   def __repr__(self):
     return str(self)
 
+  def __hash__(self):
+    return hash((self.x, self.y))
+
   def __getitem__(self, key):
     if key == 0:
       return self.x

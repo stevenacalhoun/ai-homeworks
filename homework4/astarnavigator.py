@@ -115,12 +115,6 @@ def astar(init, goal, network):
   openSet = []
   ### YOUR CODE GOES BELOW HERE ###
 
-  drawCross(globalWorld.debug, init, color=(255,0,0),size=4, width=2)
-
-  print
-  print "A Star"
-  print
-
   initPoint = Point(init[0],init[1])
   goalPoint = Point(goal[0],goal[1])
   pathPoints = []
