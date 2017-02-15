@@ -40,7 +40,7 @@ def cloneAStarNavigator(nav):
 nav = AStarNavigator()
 
 
-world = GatedWorld(SEED, (1000, 1000), (1000, 1000), 0, 60)
+world = GatedWorld(SEED, (1000, 1000), (1000, 1000), NUM_GATES, 60)
 agent = Agent(AGENT, (200, 200), 0, SPEED, world)
 world.initializeTerrain([[(180, 420), (360, 275), (680, 371), (630, 660), (380, 697)]])
 world.setPlayerAgent(agent)

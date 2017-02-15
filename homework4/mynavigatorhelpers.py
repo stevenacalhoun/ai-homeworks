@@ -50,25 +50,14 @@ def mySmooth(nav):
     return False
 
   # Convert world objects
-  worldPointObjects = []
-  worldLineObjects = []
-  for line in nav.world.getLines():
-    p1 = Point(pointTuple=line[0])
-    p2 = Point(pointTuple=line[1])
-    if p1 not in worldLineObjects:
-      worldPointObjects.append(p2)
-    if p2 not in worldLineObjects:
-      worldPointObjects.append(p2)
-    worldLineObjects.append(Line(p1=p1,p2=p2))
+  worldPointObjects, worldLineObjects = lineTuplesToLinesAndPoints(nav.world.getLines())
+  pathObjects = pointTuplesToPoints(nav.path)
   agentPositionObj = Point(pointTuple=nav.agent.position)
   destinationObj = Point(pointTuple=nav.destination)
-  pathObjects = []
-  for node in nav.path:
-    pathObjects.append(Point(pointTuple=node))
 
   # Target in view
   pathLine = Line(agentPositionObj, destinationObj)
-  if pathLine.agentCanFollow(worldPointObjects, worldLineObjects, agentWidth=nav.agent.getMaxRadius()):
+  if pathLine.agentCanFollow(worldPointObjects, worldLineObjects, agentWidth=nav.agent.getMaxRadius()+10):
     nav.setPath(None)
     nav.agent.moveToTarget(destinationObj.toTuple())
     return True
@@ -77,7 +66,7 @@ def mySmooth(nav):
   visibleNodeIdx = -1
   for i,node in enumerate(pathObjects):
     pathLine = Line(agentPositionObj, node)
-    if pathLine.agentCanFollow(worldPointObjects, worldLineObjects, agentWidth=nav.agent.getMaxRadius()):
+    if pathLine.agentCanFollow(worldPointObjects, worldLineObjects, agentWidth=nav.agent.getMaxRadius()+10):
       visibleNodeIdx = i
 
   # Set trim path and set new target

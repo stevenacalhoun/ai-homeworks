@@ -16,11 +16,13 @@
  * limitations under the License.
 '''
 
+NUM_GATES = 2
+
 SCREEN = [1024, 768]
 WORLD = [1024, 768]
 TICK = 60
 
-SPEED = (10, 10)
+SPEED = (5, 5)
 NUMOBSTACLES = 3
 OBSTACLERADIUS = 200
 OBSTACLESIGMA = 50

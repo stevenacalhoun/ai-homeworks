@@ -606,6 +606,23 @@ def sortPointsClockwise(points, center):
     point.center = center
   return sorted(points)
 
+def pointTuplesToPoints(pointTuples):
+  points = []
+  for pointTuple in pointTuples:
+    p = Point(pointTuple=pointTuple)
+    if p not in points:
+      points.append(p)
+  return points
+
+def pointTuplesToPointsAndLines(pointTuples):
+  points = pointTuplesToPoints(pointTuples)
+  lines = []
+  for i,p1 in enumerate(points):
+    if i != 0:
+      p2 = points[i-1]
+      lines.append(Line(p1,p2))
+  return points, lines
+
 ##### Line Lists
 # Lines to a list of point tuples pairs
 def linesToTuples(lines):
@@ -623,6 +640,23 @@ def linesToPoints(lines):
     if line.p2 not in points:
       points.append(line.p2)
   return points
+
+def lineTuplesToLines(lineTuples):
+  points, lines = lineTuplesToLinesAndPoints(lineTuples)
+  return lines
+
+def lineTuplesToLinesAndPoints(lineTuples):
+  points = []
+  lines = []
+  for line in lineTuples:
+    p1 = Point(pointTuple=line[0])
+    p2 = Point(pointTuple=line[1])
+    if p1 not in points:
+      points.append(p2)
+    if p2 not in points:
+      points.append(p2)
+    lines.append(Line(p1=p1,p2=p2))
+  return points, lines
 
 ##### Poly Lists
 # Polys to a list of point tuples pairs

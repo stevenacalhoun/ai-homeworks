@@ -26,7 +26,6 @@ from mycreatepathnetwork import *
 from mynavigatorhelpers import *
 
 import time
-globalWorld = None
 
 ###############################
 ### AStarNavigator
@@ -41,9 +40,6 @@ class AStarNavigator(NavMeshNavigator):
   ### self: the navigator object
   ### world: the world object
   def createPathNetwork(self, world):
-    global globalWorld
-
-    globalWorld = world
     self.pathnodes, self.pathnetwork, self.navmesh = myCreatePathNetwork(world, self.agent)
     return None
 
@@ -108,7 +104,6 @@ def unobstructedNetwork(network, worldLines):
   return newnetwork
 
 def astar(init, goal, network):
-  global globalWorld
   path = []
 
   closedSet = []
@@ -212,8 +207,30 @@ def constructPath(cameFrom, current):
   total_path.reverse()
   return total_path
 
+previousGates = []
 def myUpdate(nav, delta):
   ### YOUR CODE GOES BELOW HERE ###
+  global previousGates
+
+  # Corner case
+  if nav.path == None:
+    return
+
+  # If the gates haven't changed, don't worry about it
+  if nav.world.getGates() != previousGates:
+    print "GATES HAVE CHANGED"
+    # Convert world objects
+    gatePoints, gateLines = lineTuplesToLinesAndPoints(nav.world.getGates())
+    pathPoints, pathLines = pointTuplesToPointsAndLines(nav.path)
+
+    pathLines.append(Line(lineTuple=(nav.agent.position, nav.destination)))
+
+    # Check for any path intersections
+    for line in pathLines:
+      if line.intersectsAny(gateLines):
+        nav.computePath(nav.agent.position, nav.destination)
+
+  previousGates = nav.world.getGates()
 
   ### YOUR CODE GOES ABOVE HERE ###
   return None
@@ -233,16 +250,7 @@ def clearShot(p1, p2, worldLines, worldPoints, agent):
   ### YOUR CODE GOES BELOW HERE ###
 
   # Convert world objects
-  worldPointObjects = []
-  worldLineObjects = []
-  for line in worldLines:
-    lineP1 = Point(pointTuple=line[0])
-    lineP2 = Point(pointTuple=line[1])
-    if lineP1 not in worldLineObjects:
-      worldPointObjects.append(lineP1)
-    if lineP2 not in worldLineObjects:
-      worldPointObjects.append(lineP2)
-    worldLineObjects.append(Line(p1=lineP1,p2=lineP2))
+  worldPointObjects, worldLineObjects = lineTuplesToLinesAndPoints(worldLines)
 
   # Desired path
   pathLine = Line(lineTuple=(p1,p2))
