@@ -25,6 +25,9 @@ from core import *
 from mycreatepathnetwork import *
 from mynavigatorhelpers import *
 
+import time
+globalWorld = None
+
 ###############################
 ### AStarNavigator
 ###
@@ -38,6 +41,9 @@ class AStarNavigator(NavMeshNavigator):
   ### self: the navigator object
   ### world: the world object
   def createPathNetwork(self, world):
+    global globalWorld
+
+    globalWorld = world
     self.pathnodes, self.pathnetwork, self.navmesh = myCreatePathNetwork(world, self.agent)
     return None
 
@@ -50,16 +56,18 @@ class AStarNavigator(NavMeshNavigator):
     if self.agent != None and self.world != None:
       self.source = source
       self.destination = dest
+
       ### Step 1: If the agent has a clear path from the source to dest, then go straight there.
       ###   Determine if there are no obstacles between source and destination (hint: cast rays against world.getLines(), check for clearance).
       ###   Tell the agent to move to dest
+      if clearShot(source, dest, self.world.getLines(), self.world.getPoints(), self.agent):
+        self.agent.moveToTarget(dest)
+
       ### Step 2: If there is an obstacle, create the path that will move around the obstacles.
       ###   Find the pathnodes closest to source and destination.
       ###   Create the path by traversing the self.next matrix until the pathnode closes to the destination is reached
       ###   Store the path by calling self.setPath()
       ###   Tell the agent to move to the first node in the path (and pop the first node off the path)
-      if clearShot(source, dest, self.world.getLines(), self.world.getPoints(), self.agent):
-        self.agent.moveToTarget(dest)
       else:
         start = findClosestUnobstructed(source, self.pathnodes, self.world.getLinesWithoutBorders())
         end = findClosestUnobstructed(dest, self.pathnodes, self.world.getLinesWithoutBorders())
@@ -100,13 +108,111 @@ def unobstructedNetwork(network, worldLines):
   return newnetwork
 
 def astar(init, goal, network):
+  global globalWorld
   path = []
-  open = []
-  closed = []
+
+  closedSet = []
+  openSet = []
   ### YOUR CODE GOES BELOW HERE ###
+
+  drawCross(globalWorld.debug, init, color=(255,0,0),size=4, width=2)
+
+  print
+  print "A Star"
+  print
+
+  initPoint = Point(init[0],init[1])
+  goalPoint = Point(goal[0],goal[1])
+  pathPoints = []
+  pathLines = []
+
+  openSet = [initPoint]
+
+  for line in network:
+    p1 = Point(line[0][0],line[0][1])
+    p2 = Point(line[1][0],line[1][1])
+    if p1 not in pathPoints:
+      pathPoints.append(p1)
+    if p2 not in pathPoints:
+      pathPoints.append(p2)
+
+    line = Line(p1,p2)
+    if line not in pathLines:
+      pathLines.append(line)
+
+  cameFrom = {}
+
+  # Set all initial values to infinity
+  gScore = {}
+  for node in pathPoints:
+    gScore[node] = INFINITY
+  gScore[initPoint] = 0
+
+  # Set all initial values to infinity
+  fScore = {}
+  for node in pathPoints:
+    fScore[node] = INFINITY
+  fScore[initPoint] = heuristic_cost_estimate(initPoint, goalPoint)
+
+  while openSet is not []:
+    # Find node with lowest fScore
+    lowestScore = INFINITY
+    for node in fScore:
+      if node in openSet and fScore[node] < lowestScore:
+        current = node
+        lowestScore = fScore[node]
+
+    if current == goalPoint:
+      pathNodes = reconstruct_path(cameFrom, current)
+      break
+
+    openSet.remove(current)
+    closedSet.append(current)
+    for neighbor in getNeighbors(current, pathLines):
+      if neighbor in closedSet:
+        continue
+
+      tentative_gScore = gScore[current] + distance(current.toTuple(), neighbor.toTuple())
+      if neighbor not in openSet:
+        openSet.append(neighbor)
+      elif tentative_gScore >= gScore[neighbor]:
+        continue
+
+      cameFrom[neighbor] = current
+      gScore[neighbor] = tentative_gScore
+      fScore[neighbor] = gScore[neighbor] + heuristic_cost_estimate(neighbor, goalPoint)
+
+  for node in pathNodes:
+    path.append(node.toTuple())
+
+  closed = []
+  for node in closedSet:
+    closed.append(node.toTuple())
 
   ### YOUR CODE GOES ABOVE HERE ###
   return path, closed
+
+def getNeighbors(node, pathLines):
+  neighbors = []
+  for line in pathLines:
+    if line.p1 == node:
+      neighbors.append(line.p2)
+    elif line.p2 == node:
+      neighbors.append(line.p1)
+
+  return neighbors
+
+def reconstruct_path(cameFrom, current):
+  total_path = [current]
+  while current in cameFrom:
+    current = cameFrom[current]
+    total_path.append(current)
+  total_path.reverse()
+  return total_path
+
+# Manhatten distance
+def heuristic_cost_estimate(start, goal):
+  return distance(start.toTuple(), goal.toTuple())
 
 def myUpdate(nav, delta):
   ### YOUR CODE GOES BELOW HERE ###
