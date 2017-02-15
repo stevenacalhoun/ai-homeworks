@@ -220,18 +220,16 @@ def constructPath(cameFrom, current):
 def myUpdate(nav, delta):
   ### YOUR CODE GOES BELOW HERE ###
 
-  # Corner case
-  if nav.path == None:
-    return
-
   # If the gates haven't changed, don't worry about it
   if nav.world.getGates() != nav.previousGates:
-    print "GATES HAVE CHANGED"
     # Convert world objects
+    pathLines = []
     gatePoints, gateLines = lineTuplesToLinesAndPoints(nav.world.getGates())
-    pathPoints, pathLines = pointTuplesToPointsAndLines(nav.path)
+    if nav.path != None:
+      pathPoints, pathLines = pointTuplesToPointsAndLines(nav.path)
 
-    pathLines.append(Line(lineTuple=(nav.agent.position, nav.destination)))
+    # Add line from agent straight to target
+    pathLines.append(Line(lineTuple=(nav.agent.position, nav.agent.moveTarget)))
 
     # Check for any path intersections
     for line in pathLines:
