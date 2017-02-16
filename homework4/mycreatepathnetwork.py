@@ -382,6 +382,9 @@ class Line(object):
       return self.p2
     return None
 
+  def draw(self, surface, color=(0,0,0), size=1):
+    pygame.draw.line(surface, color, self.p1.toTuple(), self.p2.toTuple(), size)
+
   # Return tuple of point tuples
   def toTuple(self):
     return (self.p1.toTuple(),self.p2.toTuple())
