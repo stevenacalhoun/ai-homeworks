@@ -17,7 +17,7 @@
 '''
 
 import sys, pygame, math, numpy, random, time, copy
-from pygame.locals import *
+from pygame.locals import * 
 
 from constants import *
 from utils import *
@@ -28,7 +28,7 @@ from utils import *
 corerandom = random.Random()
 
 
-
+  
 ###########################
 ### Thing
 
@@ -36,20 +36,20 @@ class Thing(object):
 
 	def update(self, delta):
 		return None
-
+		
 	def collision(self, thing):
 		return None
-
+		
 #	def notify(self):
 #		return None
-
+  
 
 ###########################
 ### Mover
 
 class Mover(pygame.sprite.Sprite, Thing):
 
-
+		
 	### rect: the rectangle
 	### image: the image, rotated to orientation
 	### originalImage: the image un-rotated
@@ -60,7 +60,7 @@ class Mover(pygame.sprite.Sprite, Thing):
 	### world: the world
 	### owner: the thing that created me
 	### alive: the agent is alive (boolean)
-
+	
 	def __init__(self, image, position, orientation, speed, world):
 		pygame.sprite.Sprite.__init__(self) # call sprite initializer
 		self.image, self.rect = load_image(image, -1)
@@ -75,7 +75,7 @@ class Mover(pygame.sprite.Sprite, Thing):
 		self.turnToAngle(orientation)
 		self.owner = None
 		self.alive = True
-
+		
 	def getRadius(self):
 		return distance(self.rect.topleft, self.rect.bottomright)/2.0
 
@@ -86,14 +86,14 @@ class Mover(pygame.sprite.Sprite, Thing):
 	def move(self, offset):
 		self.position = tuple(map(lambda x, y: x + y, self.position, offset))
 		self.rect.center = self.position
-
+	
 	### Tells the agent to face a point
 	def turnToFace(self, pos):
 #		direction = [m - n for m,n in zip(pos,self.position)]
 		direction = (pos[0] - self.getLocation()[0], pos[1] - self.getLocation()[1])
 		angle = math.degrees(numpy.arctan2(direction[0],direction[1]))-90
 		self.turnToAngle(angle)
-
+		
 	### Tells the agent which way to face
 	def turnToAngle(self, angle):
 		if angle < 0:
@@ -105,28 +105,28 @@ class Mover(pygame.sprite.Sprite, Thing):
 		img_rect.center = self.position
 		self.image = rot_img
 		self.rect = img_rect
-
+	
 	### Update the agent every tick. Primarily does movement
 	def update(self, delta):
 		Thing.update(self, delta)
 		return None
-
+		
 	### When something collides with me
 	def collision(self, thing):
 		Thing.collision(self, thing)
 #		print "collision", self, thing
 		return None
-
+		
 	# Get the object's (x, y) location
 	def getLocation(self):
 		return self.position
-
+		
 	def getOrientation(self):
 		return self.orientation
-
+		
 	def getOwner(self):
 		return self.owner
-
+		
 	def setOwner(self, owner):
 		self.owner = owner
 
@@ -135,7 +135,7 @@ class Mover(pygame.sprite.Sprite, Thing):
 
 	def die(self):
 		self.alive = False
-
+		
 ############################
 ### RESOURCE
 
@@ -145,7 +145,7 @@ class Resource(Mover):
 		Mover.__init__(self, image, position, orientation, (0, 0), world)
 
 
-
+			
 ###########################
 ### SimpleResource
 
@@ -165,7 +165,7 @@ class SimpleResource(Resource):
 ### BULLET
 
 class Bullet(Mover):
-
+	
 	### damage: amount of damage
 	### distanceTraveled: the total amount of distance traveled by the agent
 
@@ -174,10 +174,10 @@ class Bullet(Mover):
 		Mover.__init__(self, image, position, orientation, speed, world)
 		self.damage = damage
 		self.distanceTraveled = 0
-
+		
 	def getDamage(self):
 		return self.damage
-
+		
 	### Update the agent every tick. Primarily does movement
 	def update(self, delta):
 		Mover.update(self, delta)
@@ -197,7 +197,7 @@ class Bullet(Mover):
 			self.speed = (0, 0)
 			self.world.deleteBullet(self)
 
-	### Hit verifies that it has hit something hitable and what it should do (e.g., cause damage)
+	### Hit verifies that it has hit something hitable and what it should do (e.g., cause damage) 
 	def hit(self, thing):
 		if thing != self.owner and isinstance(thing, Agent) and (thing.getTeam() == None or thing.getTeam() != self.owner.getTeam()):
 			thing.damage(self.damage)
@@ -208,8 +208,8 @@ class Bullet(Mover):
 			return False
 
 
-
-
+				
+				
 
 
 ###########################
@@ -229,7 +229,7 @@ class Agent(Mover):
 
 	### Constructor
 	def __init__(self, image, position, orientation, speed, world, hitpoints = HITPOINTS, firerate = FIRERATE, bulletclass = Bullet):
-		Mover.__init__(self, image, position, orientation, speed, world)
+		Mover.__init__(self, image, position, orientation, speed, world) 
 		self.moveTarget = None
 		self.moveOrigin = None
 		self.navigator = None
@@ -250,7 +250,7 @@ class Agent(Mover):
 			drawCross(self.world.background, self.moveTarget, (0, 0, 0), 5)
 			direction = [m - n for m,n in zip(self.moveTarget,self.position)]
 			# Figure out distance to moveTarget
-#			mag = reduce(lambda x, y: (x**2)+(y**2), direction)**0.5
+#			mag = reduce(lambda x, y: (x**2)+(y**2), direction)**0.5 
 			mag = distance(self.getLocation(), self.moveTarget)
 			if mag < self.getRadius()/2.0: #min(self.rect.width,self.rect.height)/2.0:
 				# Close enough
@@ -280,10 +280,10 @@ class Agent(Mover):
 				self.canfire = True
 				self.firetimer = 0
 		return None
-
+		
 	def doneMoving(self):
 		return None
-
+		
 	### NOTE: problem: Agent can be subclassed and collision() can be overridden such that the agent is not stopped by obstacles/blockers
 	def collision(self, thing):
 		Mover.collision(self, thing)
@@ -295,14 +295,14 @@ class Agent(Mover):
 				if self.navigator != None:
 					self.navigator.collision(thing)
 		return None
-
-
+		
+			
 	### MoveToTarget tells the agent where to go and starts movement
 	def moveToTarget(self, pos):
 		self.moveTarget = pos
 		self.moveOrigin = self.position
 		self.turnToFace(pos)
-
+	
 
 	### Set the pathplanning module
 	def setNavigator(self, navigator):
@@ -323,13 +323,13 @@ class Agent(Mover):
 			return bullet
 		else:
 			return None
-
+			
 	def setTeam(self, team):
 		self.team = team
-
+		
 	def getTeam(self):
 		return self.team
-
+		
 	def damage(self, amount):
 		self.hitpoints = self.hitpoints - amount
 		### Something should happen when hitpoints are <= 0
@@ -340,23 +340,23 @@ class Agent(Mover):
 		Mover.die(self)
 		self.stop()
 		self.world.deleteNPC(self)
-
+		
 	def start(self):
 		return None
-
+		
 	def stop(self):
 		self.stopMoving()
-
+		
 	def stopMoving(self):
 		self.moveTarget = None
-
+		
 	def isMoving(self):
 		if self.moveTarget is not None:
 			return True
 		else:
 			return False
 
-
+		
 	def getMoveTarget(self):
 		return self.moveTarget
 
@@ -364,20 +364,20 @@ class Agent(Mover):
 		return self.hitpoints
 
 	def canFire(self):
-		return self.canfire
+		return self.canfire 
 
-
+							
 #####################
 ### GhostAgent
-###
+### 
 ### Doesn't collide with anything. This is handled by overriding the collision function, which is generally a bad idea.
 
 class GhostAgent(Agent):
 
 	def collision(self, thing):
 		return None
-
-
+		
+		
 
 #####################
 ### Gatherer
@@ -392,16 +392,16 @@ class Gatherer(Agent):
 
 	### Constructor
 	def __init__(self, image, position, orientation, speed, world, hitpoints = HITPOINTS, firerate = FIRERATE, bulletclass = Bullet):
-		Agent.__init__(self, image, position, orientation, speed, world, hitpoints, firerate, bulletclass)
+		Agent.__init__(self, image, position, orientation, speed, world, hitpoints, firerate, bulletclass) 
 		self.targets = []
 		self.score = 0
-
+	
 	def setTargets(self, targets):
 		self.targets = targets
-
+	
 	def addTarget(self, target):
 		self.targets.append(target)
-
+		
 	def addToScore(self, points):
 		self.score = self.score + points
 		print "score", self.score
@@ -411,7 +411,7 @@ class Gatherer(Agent):
 		# Call the parent class, setting the navigator
 		Agent.setNavigator(self, navigator)
 
-
+		
 	def doneMoving(self):
 		if len(self.targets) > 0:
 			current = self.targets[0]
@@ -425,7 +425,7 @@ class Gatherer(Agent):
 		Agent.start(self)
 		if self.navigator != None and len(self.targets) > 0:
 			self.navigateTo(self.targets[0])
-
+			
 	def collision(self, thing):
 		Agent.collision(self, thing)
 #		print "gatherer collision"
@@ -438,14 +438,14 @@ class Gatherer(Agent):
 ### Navigator
 
 class Navigator():
-
+	
 	### Path: the planned path of nodes
 	### World: a pointer to the world object
 	### Agent: the agent doing the navigation
 	### source: where starting from
 	### destination: where trying to go
-
-
+	
+	
 	def __init__(self):
 		self.path = None
 		self.world = None
@@ -453,19 +453,19 @@ class Navigator():
 		self.source = None
 		self.destination = None
 
-
+	
 	def setAgent(self, agent):
 		self.agent = agent
-
+	
 	def setPath(self, path):
 		self.path = path
 
 	def getSource(self):
 		return self.source
-
+	
 	def getDestination(self):
 		return self.destination
-
+	
 	def getPath(self):
 		return self.path
 
@@ -475,8 +475,8 @@ class Navigator():
 	def setWorld(self, world):
 		# Store the world object
 		self.world = world
-
-
+	
+	
 	### Callback from Agent. Agent has reached its move target and must determine what to do next.
 	### If the path has been exhausted, the agent moves directly to the destination. Otherwise, it gets the next waypoint from the path.
 	def doneMoving(self):
@@ -501,16 +501,16 @@ class Navigator():
 	### self: the navigator object
 	def checkpoint(self):
 		return None
-
+	
 	### Callback from Agent. Agent has collided with something.
 	def collision(self, thing):
 		print "Collision"
-
+	
 	### This function gets called by the agent to figure out if some shortcutes can be taken when traversing the path.
 	### This function should update the path and return True if the path was updated
 	def smooth(self):
 		return False
-
+	
 	### Finds the shortest path from the source to the destination. It should minimally set the path.
 	### self: the navigator object
 	### source: the place the agent is starting from (i.e., it's current location)
@@ -556,15 +556,15 @@ class PathNetworkNavigator(Navigator):
 ### Abstract Navigator class that assumes the agent is traversing a path network created by a nav mesh.
 
 class NavMeshNavigator(PathNetworkNavigator):
-
+	
 	### pathnodes: the path nodes
 	### pathnetwork: the edges between path nodes
 	### navmesh: the polygons making up the nav mesh
-
+	
 	def __init__(self):
 		PathNetworkNavigator.__init__(self)
 		self.navmesh = None
-
+	
 	### Set the world object
 	### self: the navigator object
 	### world: the world object
@@ -575,7 +575,7 @@ class NavMeshNavigator(PathNetworkNavigator):
 		# Draw the world
 		self.drawNavMesh(self.world.debug)
 		self.drawPathNetwork(self.world.debug)
-
+	
 	### Create the pathnode network and pre-compute all shortest paths along the network
 	### self: the navigator object
 	### world: the world object
@@ -597,7 +597,7 @@ class NavMeshNavigator(PathNetworkNavigator):
 
 class Blocker:
 	pass
-
+		
 
 #####################
 ### Obstacle
@@ -612,20 +612,20 @@ class Obstacle(Thing, Blocker):
 	### lines: lines of polygon relative to center
 	### surface: the surface
 	### rect: the rectangle of the surface
-
+	
 	def __init__(self):
 		self.points = []
 		self.pos = [0, 0]
 		self.lines = []
 		self.surface = None
 		self.rect = None
-
+		
 	### Draw me
 	def draw(self, parent):
 		if self.surface != None:
 			parent.blit(self.surface, self.pos)
 		return None
-
+		
 	### Returns the lines with the obstacle offset
 	def getLines(self):
 		#lines = map(lambda l: ([m + n for m,n in zip(l[0], self.pos)], [m + n for m,n in zip(l[1], self.pos)]), self.lines)
@@ -642,13 +642,13 @@ class Obstacle(Thing, Blocker):
 	### Is a point one of the obstacle points?
 	def isInPoints(self, point):
 		return point in self.getPoints()
-
+		
 	def twoAdjacentPoints(self, p1, p2):
 		if self.isInPoints(p1) and self.isInPoints(p2):
 			return (abs(self.points.index(p1) - self.points.index(p2)) == 1) or (p1 == self.points[0] and p2 == self.points[len(self.points)-1]) or (p2 == self.points[0] and p1 == self.points[len(self.points)-1])
 		else:
 			return False
-
+			
 	def pointInside(self, point):
 		return pointInsidePolygonLines(point, self.lines)
 
@@ -667,7 +667,7 @@ class Decoration(pygame.sprite.Sprite):
 		img_rect.center = self.rect.center
 		self.image = rot_img
 		self.rect = img_rect
-
+		
 
 
 #####################
@@ -719,14 +719,14 @@ class RandomObstacle(Obstacle):
 		self.lines = lines
 		self.points = transpoints
 #		print "points", self.points
-
-
+		
+		
 #
-
-
+		
+		
 ############################
 ### ManualObstacle
-
+		
 class ManualObstacle(Obstacle):
 
 	### Note: the points are sorted in order of increasing angle around a central point.
@@ -738,7 +738,7 @@ class ManualObstacle(Obstacle):
 	### rect: the rectangle of the surface
 	### sprites: the sprite group for all decorations (redundant with self.decorations, but just easier this way)
 	### decorations: the decorations
-
+		
 	### Constructor
 	# pos = center point of polygon
 	# Points must be in clockwise or counterclockwise order, and relative to (0,0)
@@ -805,7 +805,7 @@ class GameWorld():
 	### bullets: all the bullets active
 	### resources: all the resources
 	### movers: all things that can collide with other things and implement collision()
-	### destinations: places that are not inside of obstacles.
+	### destinations: places that are not inside of obstacles. 
 	### clock: elapsed time in game
 
 	def __init__(self, seed, worlddimensions, screendimensions):
@@ -838,8 +838,8 @@ class GameWorld():
 		self.agent = None
 		self.npcs = []
 		self.dimensions = worlddimensions
-		self.points = None
-		self.lines = None
+		self.points = None 
+		self.lines = None 
 		self.bullets = []
 		self.resources = []
 		self.debugging = False
@@ -849,13 +849,13 @@ class GameWorld():
 		self.camera = [0, 0]
 		# unobstructed places
 		self.destinations = {}
-
+	
 	def getPoints(self):
 		return self.points
-
+	
 	def getLines(self):
 		return self.lines
-
+	
 	def getLinesWithoutBorders(self):
 		corners = [(0, 0), (self.dimensions[0], 0), (self.dimensions[0], self.dimensions[1]), (0, self.dimensions[1])]
 		lines = []
@@ -864,13 +864,13 @@ class GameWorld():
 				lines.append(l)
 		return lines
 
-
+	
 	def getObstacles(self):
 		return self.obstacles
-
+	
 	def getDimensions(self):
 		return self.dimensions
-
+		
 	def setPlayerAgent(self, agent):
 		self.agent = agent
 		self.camera = agent.getLocation()
@@ -898,8 +898,8 @@ class GameWorld():
 			lines = lines + o.getLines()
 		self.obstacles = obstacles
 		self.points = points
-		self.lines = lines
-
+		self.lines = lines 
+		
 	# Make Terrain
 	# polys = list of list points (poly1, poly2, ...) = ((p11, p12, ...), (p21, p22, ...), ...)
 	def initializeTerrain(self, polys, color = (0, 0, 0), linewidth = 4, sprite = None):
@@ -924,7 +924,7 @@ class GameWorld():
 		for point in points:
 			r = SimpleResource(resource, point, 0, self)
 			self.addResource(r)
-
+	
 
 	def initializeRandomResources(self, num, resource = RESOURCE):
 		for _ in xrange(num):
@@ -951,7 +951,7 @@ class GameWorld():
 		for m in self.movers:
 			self.sprites.add(m)
 		clock = pygame.time.Clock()
-
+		
 		# Draw obstacles. Only need to do this once
 		for o in self.obstacles:
 			o.draw(self.background)
@@ -961,7 +961,7 @@ class GameWorld():
 			delta = clock.get_rawtime()
 			self.handleEvents()
 			self.update(delta)
-			self.sprites.update(delta)
+			self.sprites.update(delta) 
 			#print "obstacles"
 			#for o in self.obstacles:
 			#	print o.pos
@@ -969,7 +969,7 @@ class GameWorld():
 			#	o.pos[1] = o.pos[1] + 1.0
 			self.drawWorld()
 			pygame.display.flip()
-
+			
 	def drawWorld(self):
 		#self.screen.blit(self.background, (0, 0))
 		offsetX = self.camera[0] - self.agent.rect.center[0]
@@ -982,23 +982,23 @@ class GameWorld():
 		for o in self.obstacles:
 			o.draw(self.background)
 		#pygame.display.flip()
-
-	def handleEvents(self):
+		
+	def handleEvents(self): 
 		events = pygame.event.get()
 		for event in events:
 			if event.type == QUIT:
-				sys.exit(0)
+				sys.exit(0) 
 			elif event.type == MOUSEBUTTONUP:
 				self.doMouseUp()
 			elif event.type == KEYDOWN:
 				self.doKeyDown(event.key)
-
+				
 	def doMouseUp(self):
 		pos = pygame.mouse.get_pos()
 		offsetX = pos[0] + self.agent.position[0] - self.camera[0]
 		offsetY = pos[1] + self.agent.position[1] - self.camera[1]
 		self.agent.navigateTo([offsetX, offsetY])
-
+		
 
 	def doKeyDown(self, key):
 		if key == 32: #space
@@ -1033,27 +1033,27 @@ class GameWorld():
 		for c in collisions:
 			c[0].collision(c[1])
 			c[1].collision(c[0])
-
+		
 	def update(self, delta):
 		self.clock = self.clock + delta
 		self.worldCollisionTest()
 		return None
-
+		
 	def collision(self, thing):
 		return None
-
+		
 	def getLines(self):
 		return self.lines[:]
 
 	def getPoints(self):
 		return self.points[:]
-
+		
 	def addBullet(self, bullet):
 		self.bullets.append(bullet)
 		if self.sprites is not None:
 			self.sprites.add(bullet)
 		self.movers.append(bullet)
-
+		
 	def deleteBullet(self, bullet):
 		if bullet in self.bullets:
 			self.bullets.remove(bullet)
@@ -1066,19 +1066,19 @@ class GameWorld():
 		if self.sprites is not None:
 			self.sprites.add(res)
 		self.movers.append(res)
-
+	
 	def deleteResource(self, res):
 		self.resources.remove(res)
 		if self.sprites is not None:
 			self.sprites.remove(res)
 		self.movers.remove(res)
-
+		
 	def addNPC(self, npc):
 		self.npcs.append(npc)
 		if self.sprites is not None:
 			self.sprites.add(npc)
 		self.movers.append(npc)
-
+		
 	def deleteNPC(self, npc):
 		if npc in self.npcs:
 			self.npcs.remove(npc)
@@ -1124,13 +1124,13 @@ class GameWorld():
 					if isGood(point, self, grid):
 						destinations.append(point)
 			self.destinations[type(agent)] = destinations
-
+		
 	def getFreeLocations(self, agent):
 		if type(agent) in self.destinations:
 			return self.destinations[type(agent)]
 		else:
 			return None
-
+					
 	def getNPCs(self):
 		return self.npcs
 
@@ -1161,10 +1161,10 @@ class Gate(Thing, Blocker):
 
 	def getLine(self):
 		return self.line
-
+	
 	def draw(self, parent):
 		self.sprites.draw(parent)
-
+			
 	def isColliding(self, rect):
 		for d in self.decorations:
 			if d.rect.colliderect(rect):
@@ -1176,7 +1176,7 @@ def getGateLine(gate):
 
 ############################
 ### GatedWorld
-
+			
 class GatedWorld(GameWorld):
 
 	### Gates: lines (p1, p2) where gates can appear
@@ -1191,13 +1191,13 @@ class GatedWorld(GameWorld):
 		self.alarm = alarm
 		self.gates = []
 		self.numGates = numgates
-
+	
 	def getNumGates(self):
 		return self.numGates
-
+	
 	def getGates(self):
 		return map(getGateLine, self.gates)
-
+	
 	def makePotentialGates(self):
 		if self.obstacles != None:
 			dangerpoints = [(0, 0), (self.dimensions[0], 0), (self.dimensions[0], self.dimensions[1]), (0, self.dimensions[1])]
@@ -1211,7 +1211,7 @@ class GatedWorld(GameWorld):
 									samepoly = True
 							if samepoly == False:
 								if not insideObstacle(((p1[0]+p2[0])/2.0, (p1[1]+p2[1])/2.0), self.obstacles):
-
+									
 									hit = rayTraceWorldNoEndPoints(p1, p2, self.getLines())
 									if hit == None:
 										self.potentialGates.append((p1, p2))
@@ -1220,7 +1220,7 @@ class GatedWorld(GameWorld):
 		GameWorld.drawWorld(self)
 		for g in self.gates:
 			g.draw(self.background)
-
+			
 
 	def worldCollisionTest(self):
 		GameWorld.worldCollisionTest(self)
@@ -1229,7 +1229,7 @@ class GatedWorld(GameWorld):
 				if g.isColliding(m.rect):
 					m.collision(g)
 					g.collision(m)
-
+				
 
 	def update(self, delta):
 		GameWorld.update(self, delta)
@@ -1255,7 +1255,7 @@ class GatedWorld(GameWorld):
 		return None
 
 
-
+		
 	### NOTE: really should get the bounding box and return the lines of the bounding box
 	def getLines(self):
 		lines = GameWorld.getLines(self)
@@ -1292,14 +1292,14 @@ class GatedWorld(GameWorld):
 
 #######################################
 ### HELPERS
-
+	
 
 def insideObstacle(point, obstacles):
 	for o in obstacles:
 		if pointInsidePolygonPoints(point, o.getPoints()):
 			return True
-	return False
-
+	return False		
+				
 def isGood(point, world, threshold):
 	if point[0] > 0 and point[0] < world.dimensions[0] and point[1] > 0 and point[1] < world.dimensions[1]:
 		for o in world.obstacles:
@@ -1310,3 +1310,4 @@ def isGood(point, world, threshold):
 				return False
 		return True
 	return False
+

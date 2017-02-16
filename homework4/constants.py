@@ -16,8 +16,6 @@
  * limitations under the License.
 '''
 
-NUM_GATES = 2
-
 SCREEN = [1024, 768]
 WORLD = [1024, 768]
 TICK = 60
@@ -61,3 +59,4 @@ DODGERATE = 10
 
 INFINITY = float("inf")
 EPSILON = 0.000001
+

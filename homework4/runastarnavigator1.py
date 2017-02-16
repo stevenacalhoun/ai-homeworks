@@ -18,7 +18,7 @@
 
 
 import sys, pygame, math, numpy, random, time, copy
-from pygame.locals import *
+from pygame.locals import * 
 
 from constants import *
 from utils import *
@@ -28,8 +28,8 @@ from nearestgatherer import *
 
 def getLocation(mover):
 	return mover.getLocation()
-
-
+	
+	
 def cloneAStarNavigator(nav):
 	newnav = AStarNavigator()
 	newnav.world = nav.world
@@ -38,8 +38,8 @@ def cloneAStarNavigator(nav):
 	return newnav
 
 nav = AStarNavigator()
-
-world = GatedWorld(SEED, (1000, 1000), (1000, 1000), NUM_GATES, 60)
+			
+world = GatedWorld(SEED, (1000, 1000), (1000, 1000), 2, 60)
 agent = Agent(AGENT, (500, 500), 0, SPEED, world)
 world.initializeTerrain([[(150, 100), (390, 100), (390, 150), (295, 220), (295, 280), (390, 350), (390, 400), (150, 400)],
 						 [(850, 90), (610, 90), (610, 140), (705, 210), (705, 270), (610, 340), (610, 390), (850, 390)],
