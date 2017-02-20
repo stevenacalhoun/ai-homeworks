@@ -34,6 +34,7 @@ from MyMinion import *
 ### SET UP WORLD
 
 dims = (1200, 1200)
+screenDims = (1200, 1000)
 
 obstacles = [[(400, 100), (1100, 100), (1100, 800), (1010, 875), (990, 875), (900, 750), (900, 500), (700, 300), (450, 300), (325, 210), (325, 190)]
 			 ]
@@ -48,18 +49,18 @@ obstacles = obstacles + [[(550, 570), (600, 550), (660, 570), (650, 630), (600, 
 ### Minion Subclasses
 
 class MyHumanMinion(MyMinion):
-	
+
 	def __init__(self, position, orientation, world, image = NPC, speed = SPEED, viewangle = 360, hitpoints = HITPOINTS, firerate = FIRERATE, bulletclass = SmallBullet):
 		MyMinion.__init__(self, position, orientation, world, image, speed, viewangle, hitpoints, firerate, bulletclass)
 
 class MyAlienMinion(MyMinion):
-	
+
 	def __init__(self, position, orientation, world, image = JACKAL, speed = SPEED, viewangle = 360, hitpoints = HITPOINTS, firerate = FIRERATE, bulletclass = SmallBullet):
 		MyMinion.__init__(self, position, orientation, world, image, speed, viewangle, hitpoints, firerate, bulletclass)
 
 ########################
 
-world = MOBAWorld(SEED, dims, dims, 2, 60)
+world = MOBAWorld(SEED, dims, screenDims, 2, 60)
 agent = Hero((SCREEN[0]/2, SCREEN[1]/2), 0, world)
 agent.team = 0
 world.setPlayerAgent(agent)

@@ -24,7 +24,7 @@ from utils import *
 from core import *
 
 # My includes
-from random import randint
+from random import randint, shuffle
 import math
 
 # My constant for agent width
@@ -67,7 +67,7 @@ def myCreatePathNetwork(world, agent = None):
   # # Check results
   # results(nodeObjects, edgeObjects, polyObjects, worldPoints, worldLines, worldObstacles, world)
   #
-  # drawPathNetwork(nodeObjects, edgeObjects, polyObjects, world)
+  drawPathNetwork(nodeObjects, edgeObjects, polyObjects, world)
   ### NOT NEEDED
 
   ### YOUR CODE GOES ABOVE HERE ###
@@ -189,7 +189,7 @@ def createPathNodes(polys, worldPoints, worldLines):
   # Add a node at the midpoint of every mesh line through free space
   for poly in polys:
     for line in poly.lines:
-      if line not in worldLines and line.agentCanFollow(worldPoints, worldLines):
+      if line not in worldLines:
         if line.midpoint() not in nodes:
           nodes.append(line.midpoint())
 
@@ -224,7 +224,24 @@ def createPathLines(pathnodes, polys, worldPoints, worldLines):
           if testLine not in lines and parentNode != testNode and testLine.agentCanFollow(worldPoints, worldLines):
             lines.append(testLine)
 
+  # Connect nodes with single degree to each other, really weird
+  for node1 in pathnodes:
+    for node2 in pathnodes:
+      line = Line(node1, node2)
+      if line.agentCanFollow(worldPoints, worldLines) and getLineCount(node1, lines) == 1 and getLineCount(node2, lines) == 1 and node1 != node2:
+        if line not in lines and not line.intersectsAny(lines):
+          lines.append(line)
+
   return lines
+
+# Get how many lines this node is a part of
+def getLineCount(node, lines):
+  degree = 0
+  for line in lines:
+    if node == line.p1 or node == line.p2:
+      degree += 1
+
+  return degree
 
 ################################################################################################
 # Custom Point class instead of tuples
@@ -693,7 +710,7 @@ def polysToLineTuples(polys):
 ################################################################################################
 # Draw network my way
 def drawPathNetwork(nodes, edges, polys, world):
-  # # Draw nav mesh area (no way to get it transparent)
+  # Draw nav mesh area (no way to get it transparent)
   # for i,poly in enumerate(polys):
   #   pygame.draw.polygon(world.debug, randomColor(), poly.toPointTuple())
 

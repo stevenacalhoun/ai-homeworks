@@ -38,10 +38,6 @@ class MyMinion(Minion):
     Minion.start(self)
     self.changeState(Idle)
 
-
-
-
-
 ############################
 ### Idle
 ###
