@@ -71,8 +71,6 @@ def shortcutPath(source, dest, path, world, agent):
 def mySmooth(nav):
   ### YOUR CODE GOES BELOW HERE ###
 
-  return False
-
   # Corner case
   if nav.path == None or nav.path == []:
     return False

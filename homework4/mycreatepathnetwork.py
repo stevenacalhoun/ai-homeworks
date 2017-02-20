@@ -36,27 +36,17 @@ def myCreatePathNetwork(world, agent = None):
   edges = []
   polys = []
   ### YOUR CODE GOES BELOW HERE ###
-  mapNum = 3
 
-  if mapNum == -1:
-    # Convert objects
-    worldPoints, worldLines, worldObstacles = convertWorldComponenets(world)
+  # Convert objects
+  worldPoints, worldLines, worldObstacles = convertWorldComponenets(world)
 
-    # Create network
-    nodeObjects, edgeObjects, polyObjects = createPathNetwork(worldPoints, worldLines, worldObstacles)
+  # Create network
+  nodeObjects, edgeObjects, polyObjects = createPathNetwork(worldPoints, worldLines, worldObstacles)
 
-    # Convert my classes to expected output form
-    polys = polysToPointTuples(polyObjects)
-    nodes = pointsToTuples(nodeObjects)
-    edges = linesToTuples(edgeObjects)
-
-  else:
-    from fixedNetwork import *
-
-    nodes = fixedPaths[str(mapNum)]["nodes"]
-    edges = fixedPaths[str(mapNum)]["edges"]
-    polys = fixedPaths[str(mapNum)]["polys"]
-
+  # Convert my classes to expected output form
+  polys = polysToPointTuples(polyObjects)
+  nodes = pointsToTuples(nodeObjects)
+  edges = linesToTuples(edgeObjects)
 
   ### NOT NEEDED
   # # Tests for my classes

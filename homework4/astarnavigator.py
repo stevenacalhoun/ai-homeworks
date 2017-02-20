@@ -203,9 +203,11 @@ def getNeighbors(node, pathLines):
   neighbors = []
   for line in pathLines:
     if line.p1 == node:
-      neighbors.append(line.p2)
+      if line.p2 not in neighbors:
+        neighbors.append(line.p2)
     elif line.p2 == node:
-      neighbors.append(line.p1)
+      if line.p1 not in neighbors:
+        neighbors.append(line.p1)
   return neighbors
 
 # Construct a path from A* data structures
