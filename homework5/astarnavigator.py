@@ -69,9 +69,9 @@ class AStarNavigator(NavMeshNavigator):
         start = findClosestUnobstructed(source, self.pathnodes, self.world.getLinesWithoutBorders())
         end = findClosestUnobstructed(dest, self.pathnodes, self.world.getLinesWithoutBorders())
         if start != None and end != None:
-          print len(self.pathnetwork)
+          # print len(self.pathnetwork)
           newnetwork = unobstructedNetwork(self.pathnetwork, self.world.getGates())
-          print len(newnetwork)
+          # print len(newnetwork)
           closedlist = []
           path, closedlist = astar(start, end, newnetwork)
           if path is not None and len(path) > 0:
@@ -104,7 +104,7 @@ def unobstructedNetwork(network, worldLines):
       newnetwork.append(l)
   return newnetwork
 
-def astarTake1(init, goal, network):
+def astar(init, goal, network):
   path = []
 
   closedSet = []
@@ -194,21 +194,6 @@ def astarTake1(init, goal, network):
     closed = pointsToTuples(closedSet)
   else:
     return None, None
-
-
-  if len(path) != len(closed):
-    print "BAD"
-
-  print "Path: " + str(len(path))
-  print "Closed: " + str(len(closed))
-
-  print "Init: " + str(init)
-  print "Goal: " + str(goal)
-  print
-  print path
-  print
-  print closed
-  print
 
   ### YOUR CODE GOES ABOVE HERE ###
   return path, closed

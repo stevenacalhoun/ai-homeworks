@@ -37,28 +37,16 @@ def myCreatePathNetwork(world, agent = None):
   polys = []
   ### YOUR CODE GOES BELOW HERE ###
 
-  # Switch to use static network
-  mapNum = -1
-
-  if mapNum == -1:
-    # Convert objects
-    worldPoints, worldLines, worldObstacles = convertWorldComponenets(world)
-
-    # Create network
-    nodeObjects, edgeObjects, polyObjects = createPathNetwork(worldPoints, worldLines, worldObstacles)
-
-    # Convert my classes to expected output form
-    polys = polysToPointTuples(polyObjects)
-    nodes = pointsToTuples(nodeObjects)
-    edges = linesToTuples(edgeObjects)
-
-  else:
-    # Import static network
-    from fixedNetwork import *
-    nodes = fixedPaths[str(mapNum)]["nodes"]
-    edges = fixedPaths[str(mapNum)]["edges"]
-    polys = fixedPaths[str(mapNum)]["polys"]
-
+  # # Convert objects
+  # worldPoints, worldLines, worldObstacles = convertWorldComponenets(world)
+  #
+  # # Create network
+  # nodeObjects, edgeObjects, polyObjects = createPathNetwork(worldPoints, worldLines, worldObstacles)
+  #
+  # # Convert my classes to expected output form
+  # polys = polysToPointTuples(polyObjects)
+  # nodes = pointsToTuples(nodeObjects)
+  # edges = linesToTuples(edgeObjects)
 
   ### NOT NEEDED
   # # Tests for my classes
@@ -67,8 +55,12 @@ def myCreatePathNetwork(world, agent = None):
   # # Check results
   # results(nodeObjects, edgeObjects, polyObjects, worldPoints, worldLines, worldObstacles, world)
   #
-  drawPathNetwork(nodeObjects, edgeObjects, polyObjects, world)
+  # drawPathNetwork(nodeObjects, edgeObjects, polyObjects, world)
   ### NOT NEEDED
+
+  nodes = [(200.0, 50.0), (162.5, 95.0), (162.5, 105.0), (50.0, 200.0), (95.0, 162.5), (105.0, 162.5), (375.0, 450.0), (645.0, 765.0), (270.0, 315.0), (275.0, 285.0), (300.0, 275.0), (330.0, 285.0), (1150.0, 1000.0), (1105.0, 1037.5), (1095.0, 1037.5), (1000.0, 1150.0), (1037.5, 1105.0), (1037.5, 1095.0), (800.0, 525.0), (675.0, 525.0), (700.0, 765.0), (675.0, 775.0), (1150.0, 50.0), (50.0, 1150.0), (525.0, 675.0), (825.0, 825.0), (780.0, 660.0), (705.0, 735.0)]
+  edges = [((200.0, 50.0), (162.5, 95.0)), ((200.0, 50.0), (1150.0, 50.0)), ((162.5, 95.0), (162.5, 105.0)), ((162.5, 105.0), (330.0, 285.0)), ((50.0, 200.0), (95.0, 162.5)), ((50.0, 200.0), (50.0, 1150.0)), ((95.0, 162.5), (105.0, 162.5)), ((105.0, 162.5), (375.0, 450.0)), ((375.0, 450.0), (270.0, 315.0)), ((375.0, 450.0), (525.0, 675.0)), ((645.0, 765.0), (675.0, 775.0)), ((270.0, 315.0), (275.0, 285.0)), ((275.0, 285.0), (300.0, 275.0)), ((300.0, 275.0), (330.0, 285.0)), ((330.0, 285.0), (675.0, 525.0)), ((1150.0, 1000.0), (1105.0, 1037.5)), ((1150.0, 1000.0), (1150.0, 50.0)), ((1105.0, 1037.5), (1095.0, 1037.5)), ((1095.0, 1037.5), (1037.5, 1095.0)), ((1095.0, 1037.5), (825.0, 825.0)), ((1095.0, 1037.5), (780.0, 660.0)), ((1095.0, 1037.5), (705.0, 735.0)), ((1000.0, 1150.0), (1037.5, 1105.0)), ((1000.0, 1150.0), (50.0, 1150.0)), ((1037.5, 1105.0), (1037.5, 1095.0)), ((1037.5, 1095.0), (825.0, 825.0)), ((1037.5, 1095.0), (780.0, 660.0)), ((1037.5, 1095.0), (705.0, 735.0)), ((800.0, 525.0), (675.0, 525.0)), ((675.0, 525.0), (780.0, 660.0)), ((700.0, 765.0), (675.0, 775.0)), ((700.0, 765.0), (825.0, 825.0)), ((700.0, 765.0), (780.0, 660.0)), ((700.0, 765.0), (705.0, 735.0)), ((825.0, 825.0), (780.0, 660.0)), ((825.0, 825.0), (705.0, 735.0)), ((780.0, 660.0), (705.0, 735.0)), ((645.0, 765.0), (525.0, 675.0))]
+  polys = [[(325, 190), (400, 100), (0, 0)], [(325, 210), (325, 190), (0, 0)], [(100, 400), (190, 325), (0, 0)], [(190, 325), (210, 325), (0, 0)], [(750, 900), (540, 630), (0, 0)], [(550, 570), (600, 550), (0, 0)], [(540, 630), (550, 570), (0, 0)], [(600, 550), (660, 570), (0, 0)], [(1200, 1200), (1100, 800), (1010, 875)], [(1200, 1200), (1010, 875), (990, 875)], [(1200, 1200), (875, 1010), (800, 1100)], [(1200, 1200), (875, 990), (875, 1010)], [(900, 750), (900, 500), (700, 300)], [(900, 750), (700, 300), (450, 300)], [(750, 900), (650, 630), (600, 650)], [(750, 900), (600, 650), (540, 630)], [(1100, 100), (1200, 0), (0, 0), (400, 100)], [(100, 1100), (100, 400), (0, 0), (0, 1200)], [(750, 900), (0, 0), (210, 325), (300, 450)], [(1200, 1200), (1200, 0), (1100, 100), (1100, 800)], [(1200, 1200), (800, 1100), (100, 1100), (0, 1200)], [(750, 900), (900, 750), (660, 570), (650, 630)], [(1200, 1200), (990, 875), (900, 750), (660, 570), (750, 900), (875, 990)], [(500, 900), (750, 900), (300, 450), (300, 700)], [(660, 570), (900, 750), (450, 300), (325, 210), (0, 0)]]
 
   ### YOUR CODE GOES ABOVE HERE ###
   return nodes, edges, polys

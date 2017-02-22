@@ -24,6 +24,10 @@ from utils import *
 from core import *
 from moba import *
 
+import random
+
+minionCount = 0
+
 class MyMinion(Minion):
 
   def __init__(self, position, orientation, world, image = NPC, speed = SPEED, viewangle = 360, hitpoints = HITPOINTS, firerate = FIRERATE, bulletclass = SmallBullet):
@@ -31,12 +35,20 @@ class MyMinion(Minion):
     self.states = [Idle]
     ### Add your states to self.states (but don't remove Idle)
     ### YOUR CODE GOES BELOW HERE ###
+    self.states.append(AttackClosestTower)
+    self.states.append(AttackBase)
+    self.states.append(Attack)
+    self.states.append(Shoot)
+
+    global minionCount
+    minionCount += 1
+    print "Minion Count: " + str(minionCount)
 
     ### YOUR CODE GOES ABOVE HERE ###
 
   def start(self):
     Minion.start(self)
-    self.changeState(Idle)
+    self.changeState(Attack, self)
 
 ############################
 ### Idle
@@ -44,6 +56,8 @@ class MyMinion(Minion):
 ### This is the default state of MyMinion. The main purpose of the Idle state is to figure out what state to change to and do that immediately.
 
 class Idle(State):
+  def parseArgs(self, args):
+    self.agent = args[0]
 
   def enter(self, oldstate):
     State.enter(self, oldstate)
@@ -53,6 +67,8 @@ class Idle(State):
   def execute(self, delta = 0):
     State.execute(self, delta)
     ### YOUR CODE GOES BELOW HERE ###
+
+    self.agent.changeState(Attack, self.agent)
 
     ### YOUR CODE GOES ABOVE HERE ###
     return None
@@ -75,3 +91,63 @@ class Taunt(State):
 
 ##############################
 ### YOUR STATES GO HERE:
+
+class Attack(State):
+  def parseArgs(self, args):
+    self.agent = args[0]
+
+  def execute(self, delta = 0):
+    if towersDead(self.agent, self.agent.world):
+      self.agent.changeState(AttackBase, self.agent, self.agent.world.getEnemyBases(self.agent.getTeam())[0])
+    else:
+      self.agent.changeState(AttackClosestTower, self.agent, self.agent.world.getEnemyBases(self.agent.getTeam())[0])
+
+
+class AttackClosestTower(State):
+  def parseArgs(self, args):
+    self.agent = args[0]
+    self.target = args[1]
+    self.agent.navigateTo(self.target.position)
+
+  def execute(self, delta = 0):
+    # Get all visible towers
+    visibleTowers = self.agent.getVisibleType(Tower)
+    if len(visibleTowers) > 0:
+      # See if any visible tower is in range
+      for visibleTower in visibleTowers:
+        # Shoot tower if in range
+        if targetInRange(self.agent, visibleTower.position) and visibleTower.team != self.agent.getTeam():
+          self.agent.changeState(Shoot, self.agent, visibleTower)
+
+class AttackBase(State):
+  def parseArgs(self, args):
+    self.agent = args[0]
+    self.target = args[1]
+    self.agent.navigateTo(self.target.position)
+
+  def execute(self, delta = 0):
+    if targetInRange(self.agent, self.target.position):
+      self.agent.changeState(Shoot, self.agent, self.target)
+
+class Shoot(State):
+  def parseArgs(self, args):
+    self.agent = args[0]
+    self.target = args[1]
+    self.agent.stopMoving()
+    self.agent.turnToFace(self.target.position)
+
+  def execute(self, delta = 0):
+    # Shoot until target dies
+    if self.target.getHitpoints() > 0:
+      self.agent.shoot()
+    else:
+      self.agent.changeState(Idle, self.agent)
+
+def targetInRange(agent, target):
+  return distance(agent.position, target) < BULLETRANGE
+
+def towersDead(agent, world):
+  for tower in world.getEnemyTowers(agent.getTeam()):
+    if tower.getHitpoints() > 0:
+      return False
+  return True
