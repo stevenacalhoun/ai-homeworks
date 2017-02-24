@@ -27,6 +27,9 @@ from moba import *
 import random
 
 minionCount = 0
+waveCount = 1
+
+minions = []
 
 class MyMinion(Minion):
 
@@ -37,18 +40,34 @@ class MyMinion(Minion):
     ### YOUR CODE GOES BELOW HERE ###
     self.states.append(AttackClosestTower)
     self.states.append(AttackBase)
+    self.states.append(MoveToTarget)
     self.states.append(Attack)
     self.states.append(Shoot)
 
-    global minionCount
+    global minionCount, waveCount
+
+    # Defense team wave
+    if waveCount == 2:
+      self.team = "defend"
+
+    # Otherwise a new attack team
+    else:
+      self.team = "attack"
+
+    # Keep up with minion/wavecount
     minionCount += 1
+    if minionCount % 3 == 0:
+      print "Wave " + str(waveCount)
+      waveCount += 1
     print "Minion Count: " + str(minionCount)
+
+    updateMinions(self)
 
     ### YOUR CODE GOES ABOVE HERE ###
 
   def start(self):
     Minion.start(self)
-    self.changeState(Attack, self)
+    self.agent.changeState(Idle, self.agent)
 
 ############################
 ### Idle
@@ -68,7 +87,10 @@ class Idle(State):
     State.execute(self, delta)
     ### YOUR CODE GOES BELOW HERE ###
 
-    self.agent.changeState(Attack, self.agent)
+    if self.team == "attack":
+      self.team.changeState(MoveToTarget, self)
+    else:
+      self.changeState(Defend, self)
 
     ### YOUR CODE GOES ABOVE HERE ###
     return None
@@ -92,47 +114,62 @@ class Taunt(State):
 ##############################
 ### YOUR STATES GO HERE:
 
+class Defend(State):
+
+  def parseArgs(self, args):
+    self.victim = args[0]
+
+  def execute(self, delta = 0):
+    print "Defend"
+
 class Attack(State):
   def parseArgs(self, args):
     self.agent = args[0]
 
   def execute(self, delta = 0):
+    # Towers are dead, attack base
     if towersDead(self.agent, self.agent.world):
-      self.agent.changeState(AttackBase, self.agent, self.agent.world.getEnemyBases(self.agent.getTeam())[0])
+      target = self.agent.world.getEnemyBases(self.agent.getTeam())[0]
+
+    # Attack closest tower
     else:
-      self.agent.changeState(AttackClosestTower, self.agent, self.agent.world.getEnemyBases(self.agent.getTeam())[0])
+      towers = self.agent.world.getEnemyTowers(self.agent.getTeam())
+      closestDistance = INFINITY
+      # Find closest tower
+      for tower in towers:
+        if distance(self.agent, tower.position) < closestDistance:
+          closestDistance = distance(self.agent, tower.position)
+          target = tower
 
+    self.agent.changeState(MoveToTarget, self.agent, target)
 
-class AttackClosestTower(State):
+# Move in range to a target
+class MoveToTarget(State):
   def parseArgs(self, args):
     self.agent = args[0]
-    self.target = args[1]
-    self.agent.navigateTo(self.target.position)
-
-  def execute(self, delta = 0):
-    # Get all visible towers
-    visibleTowers = self.agent.getVisibleType(Tower)
-    if len(visibleTowers) > 0:
-      # See if any visible tower is in range
-      for visibleTower in visibleTowers:
-        # Shoot tower if in range
-        if targetInRange(self.agent, visibleTower.position) and visibleTower.team != self.agent.getTeam():
-          self.agent.changeState(Shoot, self.agent, visibleTower)
-
-class AttackBase(State):
-  def parseArgs(self, args):
-    self.agent = args[0]
-    self.target = args[1]
+    self.target = args[0]
     self.agent.navigateTo(self.target.position)
 
   def execute(self, delta = 0):
     if targetInRange(self.agent, self.target.position):
       self.agent.changeState(Shoot, self.agent, self.target)
 
+class SpreadOut(State):
+  def parseArgs(self, args):
+    self.agent = args[0]
+    self.target = args[0]
+    self.agent.navigateTo(self.target.position)
+
+  def execute(self, delta = 0):
+    global minions
+    if targetInRange(self.agent, self.target.position) and minionOnTopOfOtherMinion(self.agent, minions):
+      self.agent.changeState(Shoot, self.agent, self.target)
+
+# Shoot until target dead
 class Shoot(State):
   def parseArgs(self, args):
     self.agent = args[0]
-    self.target = args[1]
+    self.target = args[0]
     self.agent.stopMoving()
     self.agent.turnToFace(self.target.position)
 
@@ -143,11 +180,30 @@ class Shoot(State):
     else:
       self.agent.changeState(Idle, self.agent)
 
+# Target is in range of shooting
 def targetInRange(agent, target):
   return distance(agent.position, target) < BULLETRANGE
 
+# Both towers are dead
 def towersDead(agent, world):
   for tower in world.getEnemyTowers(agent.getTeam()):
     if tower.getHitpoints() > 0:
       return False
   return True
+
+def updateMinions(newMinion):
+  global minions
+  deadMinions = []
+  minions.append(newMinion)
+  for minion in minions:
+    if minion.getHitpoints() <= 0:
+      deadMinions.append(minion)
+
+  for minion in deadMinions:
+    minions.remove(minion)
+
+def minionOnTopOfOtherMinion(minion, minions):
+  for otherMinion in minions:
+    if minion.position == otherMinion.position:
+      return True
+  return False
