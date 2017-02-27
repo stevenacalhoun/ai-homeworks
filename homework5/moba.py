@@ -17,7 +17,7 @@
 '''
 
 import sys, pygame, math, numpy, random, time, copy
-from pygame.locals import * 
+from pygame.locals import *
 
 from constants import *
 from utils import *
@@ -27,7 +27,7 @@ from astarnavigator import *
 from clonenav import *
 
 
-BUILDRATE = 180
+BUILDRATE = 30
 TOWERFIRERATE = 15
 BASEFIRERATE = 15
 BULLETRANGE = 150
@@ -42,7 +42,7 @@ BASEBULLETDAMAGE = 10
 BASEBULLETSPEED = (10, 10)
 BASEBULLET = "sprites/bullet2.gif"
 SPAWNNUM = 3
-MAXSPAWN = 20
+MAXSPAWN = 9
 
 ######################
 ### MOBABullet
@@ -50,13 +50,13 @@ MAXSPAWN = 20
 ### MOBABullets are like regular bullets, but expire after a certain distance is traversed.
 
 class MOBABullet(Bullet):
-	
+
 	### range: how far the bullet will travel before expiring
-	
+
 	def __init__(self, position, orientation, world, image = SMALLBULLET, speed = SMALLBULLETSPEED, damage = SMALLBULLETDAMAGE, range = BULLETRANGE):
 		Bullet.__init__(self, position, orientation, world, image, speed, damage)
 		self.range = range
-	
+
 	def update(self, delta):
 		Bullet.update(self, delta)
 		if self.distanceTraveled > self.range:
@@ -128,8 +128,8 @@ class Hero(MOBAAgent):
 ### Base class for Minions
 
 class Minion(MOBAAgent):
-	
-	
+
+
 	def __init__(self, position, orientation, world, image = NPC, speed = SPEED, viewangle = 360, hitpoints = HITPOINTS, firerate = FIRERATE, bulletclass = MOBABullet):
 		MOBAAgent.__init__(self, position, orientation, world, image, speed, viewangle, hitpoints, firerate, bulletclass)
 
@@ -140,7 +140,7 @@ class Minion(MOBAAgent):
 ### BigBullet
 
 class BigBullet(MOBABullet):
-	
+
 	def __init__(self, position, orientation, world):
 		MOBABullet.__init__(self, position, orientation, world, BIGBULLET, BIGBULLETSPEED, BIGBULLETDAMAGE, BIGBULLETRANGE)
 
@@ -148,7 +148,7 @@ class BigBullet(MOBABullet):
 ### SmallBullet
 
 class SmallBullet(MOBABullet):
-	
+
 	def __init__(self, position, orientation, world):
 		MOBABullet.__init__(self, position, orientation, world, SMALLBULLET, SMALLBULLETSPEED, SMALLBULLETDAMAGE, BIGBULLETRANGE)
 
@@ -157,7 +157,7 @@ class SmallBullet(MOBABullet):
 ### TowerBullet
 
 class TowerBullet(MOBABullet):
-	
+
 	def __init__(self, position, orientation, world):
 		MOBABullet.__init__(self, position, orientation, world, TOWERBULLET, TOWERBULLETSPEED, TOWERBULLETDAMAGE, TOWERBULLETRANGE)
 
@@ -165,7 +165,7 @@ class TowerBullet(MOBABullet):
 ### BaseBullet
 
 class BaseBullet(MOBABullet):
-	
+
 	def __init__(self, position, orientation, world):
 		MOBABullet.__init__(self, position, orientation, world, BASEBULLET, BASEBULLETSPEED, BASEBULLETDAMAGE, BASEBULLETRANGE)
 
@@ -182,7 +182,7 @@ class BaseBullet(MOBABullet):
 
 
 class Base(Mover):
-	
+
 	### team: the name of the team owning the base
 	### hitpoints: how much damage the base can withstand
 	### nav: a Navigator that will be cloned and given to any NPCs spawned.
@@ -193,7 +193,7 @@ class Base(Mover):
 	### firerate: how often the tower can fire
 	### firetimer: time lapsed since last fire
 	### numSpawned: number of agents spawned
-	
+
 	def __init__(self, image, position, world, team = None, minionType = Minion, buildrate = BUILDRATE, hitpoints = BASEHITPOINTS, firerate = BASEFIRERATE, bulletclass = BaseBullet):
 		Mover.__init__(self, image, position, 0, 0, world)
 		self.team = team
@@ -207,16 +207,16 @@ class Base(Mover):
 		self.canfire = True
 		self.bulletclass = bulletclass
 		self.numSpawned = 0
-	
+
 	def setNavigator(self, nav):
 		self.nav = nav
-	
+
 	def getTeam(self):
 		return self.team
-	
+
 	def setTeam(self, team):
 		self.team = team
-	
+
 	### Spawn an agent.
 	### type: name of agent class. Must be RTSAgent or subclass thereof
 	### angle: specifies where around the base the agent will be spawned
@@ -282,7 +282,8 @@ class Base(Mover):
 
 	def die(self):
 		Mover.die(self)
-		print "base dies", self
+		# print "base dies", self
+		print "Team " + str(self.team) + " loses"
 		self.world.deleteBase(self)
 
 	def shoot(self):
@@ -311,7 +312,7 @@ class Base(Mover):
 
 
 class Tower(Mover):
-	
+
 	### team: team that the tower is on
 	### bulletclass: type of bullet used
 	### firerate: how often the tower can fire
@@ -328,7 +329,7 @@ class Tower(Mover):
 
 	def getTeam(self):
 		return self.team
-	
+
 	def setTeam(self, team):
 		self.team = team
 
@@ -340,7 +341,8 @@ class Tower(Mover):
 
 	def die(self):
 		Mover.die(self)
-		print "tower dies", self
+		# print "tower dies", self
+		print "Team " + str(self.team) + " has lost a tower"
 		self.world.deleteTower(self)
 
 	def update(self, delta):
@@ -384,35 +386,35 @@ class Tower(Mover):
 ### MOBAWorld
 
 class MOBAWorld(GatedWorld):
-	
+
 	### bases: the bases (one per team)
 	### towers: the towers (many per team)
-	
+
 	def __init__(self, seed, worlddimensions, screendimensions, numgates, alarm):
 		GatedWorld.__init__(self, seed, worlddimensions, screendimensions, numgates, alarm)
 		self.bases = []
 		self.towers = []
-	
+
 	def addBase(self, base):
 		self.bases.append(base)
 		if self.sprites is not None:
 			self.sprites.add(base)
 		self.movers.append(base)
-	
+
 	def deleteBase(self, base):
 		if base in self.bases:
 			self.bases.remove(base)
 			if self.sprites is not None:
 				self.sprites.remove(base)
 			self.movers.remove(base)
-	
-	
+
+
 	def addTower(self, tower):
 		self.towers.append(tower)
 		if self.sprites is not None:
 			self.sprites.add(tower)
 		self.movers.append(tower)
-			
+
 	def deleteTower(self, tower):
 		if tower in self.towers:
 			self.towers.remove(tower)
@@ -422,13 +424,13 @@ class MOBAWorld(GatedWorld):
 
 	def getBases(self):
 		return list(self.bases)
-	
+
 	def getBaseForTeam(self, team):
 		for b in self.bases:
 			if b.getTeam() == team:
 				return b
 		return None
-	
+
 	def getEnemyBases(self, myteam):
 		bases = []
 		for b in self.bases:
@@ -452,7 +454,7 @@ class MOBAWorld(GatedWorld):
 			if t.getTeam() != myteam:
 				towers.append(t)
 		return towers
-	
+
 	def getNPCsForTeam(self, team):
 		npcs = []
 		for x in self.getNPCs():
@@ -466,5 +468,3 @@ class MOBAWorld(GatedWorld):
 			if x.getTeam() != myteam:
 				npcs.append(x)
 		return npcs
-
-
