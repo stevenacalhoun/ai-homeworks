@@ -31,7 +31,7 @@ waveCount = 1
 
 minions = []
 defenderCount = 0
-printStates = False
+globalPrintStatus = False
 
 class MyMinion(Minion):
 
@@ -45,7 +45,7 @@ class MyMinion(Minion):
     self.states.append(MoveToTarget)
     self.states.append(SpreadOut)
     self.states.append(MoveToDefend)
-    self.states.append(WaitForEnemey)
+    self.states.append(WaitForEnemy)
     self.states.append(Shoot)
 
     global minionCount, waveCount, defenderCount
@@ -84,17 +84,20 @@ class Idle(State):
     self.agent = args[0]
 
   def enter(self, oldstate):
+    if printStatus(self.agent):
+      print "Idle"
+
     State.enter(self, oldstate)
     # stop moving
     self.agent.stopMoving()
 
   def execute(self, delta = 0):
     State.execute(self, delta)
-    ### YOUR CODE GOES BELOW HERE ###
+    # YOUR CODE GOES BELOW HERE ###
 
     if self.agent.squad == "attack":
       self.agent.changeState(Attack, self.agent)
-    else:
+    elif self.agent.squad == "defend":
       self.agent.changeState(Defend, self.agent)
 
     ### YOUR CODE GOES ABOVE HERE ###
@@ -111,6 +114,10 @@ class Taunt(State):
   def parseArgs(self, args):
     self.victim = args[0]
 
+  def enter(self, oldstate):
+    if printStatus(self.agent):
+      print "Taunt"
+
   def execute(self, delta = 0):
     if self.victim is not None:
       print "Hey " + str(self.victim) + ", I don't like you!"
@@ -122,119 +129,159 @@ class Taunt(State):
 class Defend(State):
   def parseArgs(self, args):
     self.victim = args[0]
-    if printStates:
+
+  def enter(self, oldstate):
+    if printStatus(self.agent):
       print "Defend"
 
-  def execute(self, delta = 0):
-    enemies = enemiesInRange(self.agent, 300)
-    if len(enemies):
-      self.agent.changeState(MoveToTarget, self.agent, enemies[0], Shoot)
-    else:
-      self.agent.changeState(MoveToDefend, self.agent)
+    if not gameOver(self.agent):
+      self.enemies = enemiesInRange(self.agent, 300)
+
+  def execute(self, oldstate):
+    if not gameOverHandle(self.agent):
+      if len(self.enemies):
+        self.agent.changeState(MoveToTarget, self.agent, self.enemies[0], Shoot)
+      else:
+        self.agent.changeState(MoveToDefend, self.agent)
 
 class Attack(State):
   def parseArgs(self, args):
     self.agent = args[0]
+    self.over = False
 
-  def execute(self, delta = 0):
-    # Towers are dead, attack base
-    if towersDead(self.agent, self.agent.world):
-      target = self.agent.world.getEnemyBases(self.agent.getTeam())[0]
+  def enter(self, oldstate):
+    if printStatus(self.agent):
+      print "Attack"
 
-    # Attack closest tower
-    else:
-      towers = self.agent.world.getEnemyTowers(self.agent.getTeam())
-      closestDistance = INFINITY
-      # Find closest tower
-      for tower in towers:
-        if distance(self.agent.position, tower.position) < closestDistance:
-          closestDistance = distance(self.agent.position, tower.position)
-          target = tower
+    if not gameOver(self.agent):
+      # Towers are dead, attack base
+      if towersDead(self.agent, self.agent.world):
+        self.target = self.agent.world.getEnemyBases(self.agent.getTeam())[0]
 
-    self.agent.changeState(MoveToTarget, self.agent, target, Shoot)
+      # Attack closest tower
+      else:
+        towers = self.agent.world.getEnemyTowers(self.agent.getTeam())
+        closestDistance = INFINITY
+        # Find closest tower
+        for tower in towers:
+          if distance(self.agent.position, tower.position) < closestDistance:
+            closestDistance = distance(self.agent.position, tower.position)
+            self.target = tower
+
+
+  def execute(self, oldstate):
+    if not gameOverHandle(self.agent):
+      self.agent.changeState(MoveToTarget, self.agent, self.target, Shoot)
 
 # Move in range to a target
 class MoveToDefend(State):
   def parseArgs(self, args):
-    if printStates:
+    self.agent = args[0]
+
+  def enter(self, oldstate):
+    if printStatus(self.agent):
       print "Moving to defend"
 
-    self.agent = args[0]
-    towers = self.agent.world.getTowersForTeam(self.agent.getTeam())
+    if not gameOver(self.agent):
+      towers = self.agent.world.getTowersForTeam(self.agent.getTeam())
 
-    # Defend on base, on 1 tower, or between 2 towers
-    if len(towers) == 0:
-      self.target = self.agent.world.getBaseForTeam(self.agent.getTeam()).position
-    elif len(towers) == 1:
-      self.target = towers[0].position
-    elif len(towers) == 2:
-      self.target = midpoint(towers[0].position, towers[1].position)
+      # Defend on base, on 1 tower, or between 2 towers
+      if len(towers) == 0:
+        self.target = self.agent.world.getBaseForTeam(self.agent.getTeam()).position
+      elif len(towers) == 1:
+        self.target = towers[0].position
+      elif len(towers) == 2:
+        self.target = midpoint(towers[0].position, towers[1].position)
 
-    self.agent.navigateTo(self.target)
+      self.agent.navigateTo(self.target)
 
   def execute(self, delta = 0):
-    if distance(self.agent.position, self.target) < 10:
-      self.agent.stopMoving()
-      self.agent.changeState(WaitForEnemey, self.agent)
+    if not gameOverHandle(self.agent):
+      if distance(self.agent.position, self.target) < 20:
+        self.agent.stopMoving()
+        self.agent.changeState(WaitForEnemy, self.agent)
 
-class WaitForEnemey(State):
+class WaitForEnemy(State):
   def parseArgs(self, args):
-    if printStates:
-      print "Waiting for enemey"
     self.agent = args[0]
 
+  def enter(self, oldstate):
+    if printStatus(self.agent):
+      print "Wait for enemy"
+
   def execute(self, delta = 0):
-    enemies = enemiesInRange(self.agent, 300)
-    if len(enemies):
-      self.agent.changeState(MoveToTarget, self.agent, enemies[0], Shoot)
+    if not gameOverHandle(self.agent):
+      enemies = enemiesInRange(self.agent, 300)
+      if len(enemies):
+        self.agent.changeState(MoveToTarget, self.agent, enemies[0], Shoot)
 
 # Move in range to a target
 class MoveToTarget(State):
   def parseArgs(self, args):
-    if printStates:
-      print "Moving to target"
     self.agent = args[0]
     self.target = args[1]
     self.nextState = args[2]
-    self.agent.navigateTo(self.target.position)
+
+  def enter(self, oldstate):
+    if printStatus(self.agent):
+      print "Moving to target"
+
+    if not gameOver(self.agent):
+      self.agent.navigateTo(self.target.position)
 
   def execute(self, delta = 0):
-    if targetInRange(self.agent, self.target.position):
-      self.agent.stopMoving()
-      self.agent.changeState(self.nextState, self.agent, self.target)
+    if not gameOverHandle(self.agent):
+      if targetInRange(self.agent, self.target.position):
+        self.agent.stopMoving()
+        self.agent.changeState(self.nextState, self.agent, self.target)
 
 class SpreadOut(State):
   def parseArgs(self, args):
-    if printStates:
-      print "Spreading out"
     self.agent = args[0]
     self.target = args[1]
-    self.agent.navigateTo(self.target.position)
+
+  def enter(self, oldstate):
+    if printStatus(self.agent):
+      print "Spreading out"
+
+    if not gameOver(self.agent):
+      self.agent.navigateTo(self.target.position)
+
+  def enter(self, oldstate):
+    if gameOver(self.agent):
+      self.agent.squad = "idle"
+      self.agent.changeState(Idle)
 
   def execute(self, delta = 0):
     global minions
-    if targetInRange(self.agent, self.target.position) and not minionOnTopOfOtherMinion(self.agent, minions):
-      self.agent.stopMoving()
-      self.agent.changeState(Shoot, self.agent, self.target)
+    if not gameOverHandle(self.agent):
+      if targetInRange(self.agent, self.target.position) and not minionOnTopOfOtherMinion(self.agent, minions):
+        self.agent.stopMoving()
+        self.agent.changeState(Shoot, self.agent, self.target)
 
 # Shoot until target dead
 class Shoot(State):
   def parseArgs(self, args):
-    if printStates:
-      print "Shooting"
     self.agent = args[0]
     self.target = args[1]
-    self.agent.stopMoving()
-    self.agent.turnToFace(self.target.position)
+
+  def enter(self, oldstate):
+    if printStatus(self.agent):
+      print "Shooting"
+
+    if not gameOver(self.agent):
+      self.agent.stopMoving()
+      self.agent.turnToFace(self.target.position)
 
   def execute(self, delta = 0):
-    if targetInRange(self.agent, self.target.position):
-      # Shoot until target dies
-      if self.target.getHitpoints() > 0:
-        self.agent.turnToFace(self.target.position)
-        self.agent.shoot()
-      else:
-        self.agent.changeState(Idle, self.agent)
+    if not gameOverHandle(self.agent):
+      if targetInRange(self.agent, self.target.position):
+        # Shoot until target dies
+        if self.target.getHitpoints() > 0:
+          self.agent.turnToFace(self.target.position)
+          self.agent.shoot()
+        else:
+          self.agent.changeState(Idle, self.agent)
 
 # Target is in range of shooting
 def targetInRange(agent, target, range=BULLETRANGE):
@@ -273,3 +320,16 @@ def enemiesInRange(agent, range):
     if targetInRange(agent, enemy.position, range=range):
       enemies.append(enemy)
   return enemies
+
+def printStatus(agent):
+  return globalPrintStatus and agent.squad == "defend"
+
+def gameOver(agent):
+  return len(agent.world.getBases()) == 1
+
+def gameOverHandle(agent):
+  if gameOver(agent):
+    agent.squad = "idle"
+    agent.changeState(Idle, agent)
+    return True
+  return False

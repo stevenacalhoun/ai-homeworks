@@ -27,7 +27,7 @@ from astarnavigator import *
 from clonenav import *
 
 
-BUILDRATE = 30
+BUILDRATE = 180
 TOWERFIRERATE = 15
 BASEFIRERATE = 15
 BULLETRANGE = 150
@@ -42,7 +42,7 @@ BASEBULLETDAMAGE = 10
 BASEBULLETSPEED = (10, 10)
 BASEBULLET = "sprites/bullet2.gif"
 SPAWNNUM = 3
-MAXSPAWN = 9
+MAXSPAWN = 20
 
 ######################
 ### MOBABullet
