@@ -40,19 +40,25 @@ class MyMinion(Minion):
     self.states = [Idle]
     ### Add your states to self.states (but don't remove Idle)
     ### YOUR CODE GOES BELOW HERE ###
+
+    # Starting squad states
     self.states.append(Attack)
     self.states.append(Defend)
+
+    # Defend states
+    self.states.append(DefendMoveToLookout)
+    self.states.append(DefendWaitForEnemy)
+
+    # General states
     self.states.append(MoveToTarget)
     self.states.append(SpreadOut)
-    self.states.append(MoveToDefend)
-    self.states.append(WaitForEnemy)
     self.states.append(Shoot)
 
     global minionCount, waveCount, defenderCount
 
     # Defense team wave
     if waveCount % 4 == 2 and defenderCount < 6:
-      defenderCount+=1
+      defenderCount += 1
       self.squad = "defend"
 
     # Otherwise a new attack team
@@ -62,10 +68,11 @@ class MyMinion(Minion):
     # Keep up with minion/wavecount
     minionCount += 1
     if minionCount % 3 == 0:
-      print "Wave " + str(waveCount)
       waveCount += 1
-    print "Minion Count: " + str(minionCount)
+    if globalPrintStatus:
+      print "Minion Count: " + str(minionCount)
 
+    # Update minion array
     updateMinions(self)
 
     ### YOUR CODE GOES ABOVE HERE ###
@@ -126,6 +133,7 @@ class Taunt(State):
 ##############################
 ### YOUR STATES GO HERE:
 
+# Post up to defend
 class Defend(State):
   def parseArgs(self, args):
     self.victim = args[0]
@@ -142,8 +150,9 @@ class Defend(State):
       if len(self.enemies):
         self.agent.changeState(MoveToTarget, self.agent, self.enemies[0], Shoot)
       else:
-        self.agent.changeState(MoveToDefend, self.agent)
+        self.agent.changeState(DefendMoveToLookout, self.agent)
 
+# Attack closest tower or base
 class Attack(State):
   def parseArgs(self, args):
     self.agent = args[0]
@@ -174,7 +183,7 @@ class Attack(State):
       self.agent.changeState(MoveToTarget, self.agent, self.target, Shoot)
 
 # Move in range to a target
-class MoveToDefend(State):
+class DefendMoveToLookout(State):
   def parseArgs(self, args):
     self.agent = args[0]
 
@@ -199,9 +208,10 @@ class MoveToDefend(State):
     if not gameOverHandle(self.agent):
       if distance(self.agent.position, self.target) < 20:
         self.agent.stopMoving()
-        self.agent.changeState(WaitForEnemy, self.agent)
+        self.agent.changeState(DefendWaitForEnemy, self.agent)
 
-class WaitForEnemy(State):
+# Defend wait for an enemy
+class DefendWaitForEnemy(State):
   def parseArgs(self, args):
     self.agent = args[0]
 
@@ -215,7 +225,7 @@ class WaitForEnemy(State):
       if len(enemies):
         self.agent.changeState(MoveToTarget, self.agent, enemies[0], Shoot)
 
-# Move in range to a target
+# Move in shooting range of a target
 class MoveToTarget(State):
   def parseArgs(self, args):
     self.agent = args[0]
@@ -235,6 +245,7 @@ class MoveToTarget(State):
         self.agent.stopMoving()
         self.agent.changeState(self.nextState, self.agent, self.target)
 
+# Make sure agent is on top of others
 class SpreadOut(State):
   def parseArgs(self, args):
     self.agent = args[0]
@@ -249,8 +260,7 @@ class SpreadOut(State):
 
   def enter(self, oldstate):
     if gameOver(self.agent):
-      self.agent.squad = "idle"
-      self.agent.changeState(Idle)
+      return
 
   def execute(self, delta = 0):
     global minions
@@ -294,6 +304,7 @@ def towersDead(agent, world):
       return False
   return True
 
+# Update minion counts and array of alive minions
 def updateMinions(newMinion):
   global minions
   deadMinions = []
@@ -305,15 +316,18 @@ def updateMinions(newMinion):
   for minion in deadMinions:
     minions.remove(minion)
 
+# Check if minion is on top of another minion
 def minionOnTopOfOtherMinion(minion, minions):
   for otherMinion in minions:
     if minion.position == otherMinion.position and minion != otherMinion:
       return True
   return False
 
+# Midpoint of two points
 def midpoint(p1,p2):
   return ((p1[0]+p2[0])/2.0, (p1[1]+p2[1])/2.0)
 
+# Check if any enemies are in range
 def enemiesInRange(agent, range):
   enemies = []
   for enemy in agent.world.getEnemyNPCs(agent.getTeam()):
@@ -321,15 +335,18 @@ def enemiesInRange(agent, range):
       enemies.append(enemy)
   return enemies
 
-def printStatus(agent):
-  return globalPrintStatus and agent.squad == "defend"
-
+# 1 base remaining means the game is over
 def gameOver(agent):
   return len(agent.world.getBases()) == 1
 
+# Game over check and change agent states and squad
 def gameOverHandle(agent):
   if gameOver(agent):
     agent.squad = "idle"
     agent.changeState(Idle, agent)
     return True
   return False
+
+# Helper to print states
+def printStatus(agent):
+  return globalPrintStatus and False
