@@ -26,7 +26,25 @@ from btnode import *
 ### If the first element of a list is a tuple, then the first element in the tuple is the name of the class (subclass of BTNode)
 ###    and the remaining elements are arguments passed into the node's constructor
 ###
-### Example: [(Sequence, 1), [(Sequence, 2), (BTNode, 3), (BTNode, 4)], [(Selector, 5), (BTNode, 6), (BTNode, 7)]] 
+### Example: [
+### (Sequence, 1),
+###   [(Sequence, 2),
+###     (BTNode, 3),
+###     (BTNode, 4)],
+###   [(Selector, 5),
+###     (BTNode, 6),
+###     (BTNode, 7)]
+### ]
+### 'Sequence-1': [
+###   'Sequence-2': [
+###     BTNode-3,
+###     BTNode-4
+###   ],
+###   'Selector-5': [
+###     'BTNode-6',
+###     'BTNode-7'
+###   ]
+### ]
 ###         1
 ###         |
 ###      -------
@@ -34,7 +52,7 @@ from btnode import *
 ###      2     5
 ###      |     |
 ###     ---   ---
-###     | |   | | 
+###     | |   | |
 ###     3 4   6 7
 
 
@@ -51,20 +69,20 @@ class BehaviorTree():
 	def __init__(self):
 		self.tree = None
 		self.running = False
-	
+
 	### Build the behavior tree. Spec is the symbolic specification of the tree contents.
 	def buildTree(self, spec):
 		self.tree = buildTreeAux(spec, self)
-	
+
 	### If the behavior tree was pre-built, set the tree.
 	def setTree(self, root):
 		self.tree = root
-	
+
 	### Recursively print out all the ids of all the nodes in the tree in depth-first order.
 	def printTree(self):
 		if self.tree is not None:
 			self.tree.printTree()
-	
+
 	### Called every tick. Calls tree.execute(), which will return True for successful completion, False for failed execution, or None if execution should continue next tick. If the tree completes execution (i.e., returns True or False), then the tree is reset to begin again in the next tick.
 	def update(self, delta = 0):
 		if self.running and self.tree is not None:
@@ -74,10 +92,10 @@ class BehaviorTree():
 			return res
 		else:
 			return False
-				
+
 	def start(self):
 		self.running = True
-		
+
 	def stop(self):
 		self.running = False
 
@@ -104,7 +122,7 @@ def buildTreeAux(spec, agent):
 			child = buildTreeAux(r, agent)
 			n.addChild(child)
 		return n
-		
+
 ##########################
 ### TESTING
 
@@ -114,17 +132,17 @@ def buildTreeAux(spec, agent):
 ### A BehaviorTree with a testing harness callback function.
 
 class TestBehaviorTree(BehaviorTree):
-	
+
 	### history: a list containing the history of ids of behaviors that have executed.
-	
+
 	def __init__(self):
 		BehaviorTree.__init__(self)
 		self.history = []
-	
+
 	def start(self):
 		BehaviorTree.start(self)
 		self.history = []
-	
+
 	def testCallback(self, x):
 		self.history.append(x)
 
@@ -183,4 +201,3 @@ class DelayTestNode(TestNode):
 			return ret
 		else:
 			return None
-

@@ -30,32 +30,28 @@ from mybehaviors import *
 ### MyHero
 
 class MyHero(Hero, BehaviorTree):
-	
-	def __init__(self, position, orientation, world, image = AGENT, speed = SPEED, viewangle = 360, hitpoints = HEROHITPOINTS, firerate = FIRERATE, bulletclass = BigBullet, dodgerate = DODGERATE, areaeffectrate = AREAEFFECTRATE, areaeffectdamage = AREAEFFECTDAMAGE):
-		Hero.__init__(self, position, orientation, world, image, speed, viewangle, hitpoints, firerate, bulletclass, dodgerate, areaeffectrate, areaeffectdamage)
-		BehaviorTree.__init__(self)
-	
-	
-	def update(self, delta):
-		Hero.update(self, delta)
-		BehaviorTree.update(self, delta)
-	
-	
-	def start(self):
-		# Build the tree
-		spec = treeSpec(self)
-		if spec is not None and (isinstance(spec, list) or isinstance(spec, tuple)):
-			self.buildTree(spec)
-		else:
-			self.setTree(myBuildTree(self))
-		# Start the agent
-		Hero.start(self)
-		BehaviorTree.start(self)
-	
-	
-	def stop(self):
-		Hero.stop(self)
-		BehaviorTree.stop(self)
 
+  def __init__(self, position, orientation, world, image = AGENT, speed = SPEED, viewangle = 360, hitpoints = HEROHITPOINTS, firerate = FIRERATE, bulletclass = BigBullet, dodgerate = DODGERATE, areaeffectrate = AREAEFFECTRATE, areaeffectdamage = AREAEFFECTDAMAGE):
+    Hero.__init__(self, position, orientation, world, image, speed, viewangle, hitpoints, firerate, bulletclass, dodgerate, areaeffectrate, areaeffectdamage)
+    BehaviorTree.__init__(self)
 
+  def update(self, delta):
+    Hero.update(self, delta)
+    BehaviorTree.update(self, delta)
 
+  def start(self):
+    # Build the tree
+    spec = treeSpec(self)
+    if spec is not None and (isinstance(spec, list) or isinstance(spec, tuple)):
+      self.buildTree(spec)
+    else:
+      self.setTree(myBuildTree(self))
+    # Start the agent
+    Hero.start(self)
+    BehaviorTree.start(self)
+
+  def stop(self):
+    Hero.stop(self)
+    BehaviorTree.stop(self)
+
+TREE = [(Sequence, 1), (TestNode, 20)]
