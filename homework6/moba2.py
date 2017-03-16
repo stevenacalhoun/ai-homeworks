@@ -237,6 +237,7 @@ class Hero(MOBAAgent):
 			for x in self.world.getEnemyNPCs(self.getTeam()) + self.world.getEnemyBases(self.getTeam()) + self.world.getEnemyTowers(self.getTeam()):
 				if distance(self.getLocation(), x.getLocation()) < (self.getRadius()*AREAEFFECTRANGE)+(x.getRadius()):
 					x.damage(self.areaEffectDamage + self.level)
+					x.lastDamagedBy = self
 					self.world.damageCaused(self, x, self.areaEffectDamage)
 			return True
 		return False

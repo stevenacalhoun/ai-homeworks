@@ -19,19 +19,6 @@
 
 from behaviortree import *
 
-# 'Sequence-1': [
-#   'Sequence-2': [
-#     'TestNode-20': [],
-#     'TestNode-22': []
-#   ],
-#   'Selector-5': [
-#     'Sequence-9': [
-#       'TestNode-11',
-#       'TestNode-12',
-#       'TestNode-31',
-#       'DelayTestNode-35': [3],
-#       'TestNode-N': [],
-
 
 tree = [(Sequence, 1), [(Sequence, 2), (TestNode, 20), (TestNode, 22)], [(Selector, 5), [(Sequence, 9), (TestNode, 11), (TestNode, 12)], (TestNode, 31), (DelayTestNode, 35, 3), TestNode]]
 

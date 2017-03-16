@@ -30,28 +30,28 @@ from btnode import *
 
 
 def treeSpec(agent):
-	myid = str(agent.getTeam())
-	spec = None
-	### YOUR CODE GOES BELOW HERE ###
+  myid = str(agent.getTeam())
+  spec = None
+  ### YOUR CODE GOES BELOW HERE ###
 
-	### YOUR CODE GOES ABOVE HERE ###
-	return spec
+  ### YOUR CODE GOES ABOVE HERE ###
+  return spec
 
 def myBuildTree(agent):
-	myid = str(agent.getTeam())
-	root = None
-	### YOUR CODE GOES BELOW HERE ###
+  myid = str(agent.getTeam())
+  root = None
+  ### YOUR CODE GOES BELOW HERE ###
 
-	### YOUR CODE GOES ABOVE HERE ###
-	return root
+  ### YOUR CODE GOES ABOVE HERE ###
+  return root
 
 ### Helper function for making BTNodes (and sub-classes of BTNodes).
 ### type: class type (BTNode or a sub-class)
 ### agent: reference to the agent to be controlled
 ### This function takes any number of additional arguments that will be passed to the BTNode and parsed using BTNode.parseArgs()
 def makeNode(type, agent, *args):
-	node = type(agent, args)
-	return node
+  node = type(agent, args)
+  return node
 
 ###############################
 ### BEHAVIOR CLASSES:
@@ -67,23 +67,23 @@ def makeNode(type, agent, *args):
 
 class Taunt(BTNode):
 
-	### target: the enemy agent to taunt
+  ### target: the enemy agent to taunt
 
-	def parseArgs(self, args):
-		BTNode.parseArgs(self, args)
-		self.target = None
-		# First argument is the target
-		if len(args) > 0:
-			self.target = args[0]
-		# Second argument is the node ID
-		if len(args) > 1:
-			self.id = args[1]
+  def parseArgs(self, args):
+    BTNode.parseArgs(self, args)
+    self.target = None
+    # First argument is the target
+    if len(args) > 0:
+      self.target = args[0]
+    # Second argument is the node ID
+    if len(args) > 1:
+      self.id = args[1]
 
-	def execute(self, delta = 0):
-		ret = BTNode.execute(self, delta)
-		if self.target is not None:
-			print "Hey", self.target, "I don't like you!"
-		return ret
+  def execute(self, delta = 0):
+    ret = BTNode.execute(self, delta)
+    if self.target is not None:
+      print "Hey", self.target, "I don't like you!"
+    return ret
 
 ##################
 ### MoveToTarget
@@ -94,37 +94,37 @@ class Taunt(BTNode):
 ###   1: node ID string (optional)
 
 class MoveToTarget(BTNode):
-	
-	### target: a point (x, y)
-	
-	def parseArgs(self, args):
-		BTNode.parseArgs(self, args)
-		self.target = None
-		# First argument is the target
-		if len(args) > 0:
-			self.target = args[0]
-		# Second argument is the node ID
-		if len(args) > 1:
-			self.id = args[1]
 
-	def enter(self):
-		BTNode.enter(self)
-		self.agent.navigateTo(self.target)
+  ### target: a point (x, y)
 
-	def execute(self, delta = 0):
-		ret = BTNode.execute(self, delta)
-		if self.target == None:
-			# failed executability conditions
-			print "exec", self.id, "false"
-			return False
-		elif distance(self.agent.getLocation(), self.target) < self.agent.getRadius():
-			# Execution succeeds
-			print "exec", self.id, "true"
-			return True
-		else:
-			# executing
-			return None
-		return ret
+  def parseArgs(self, args):
+    BTNode.parseArgs(self, args)
+    self.target = None
+    # First argument is the target
+    if len(args) > 0:
+      self.target = args[0]
+    # Second argument is the node ID
+    if len(args) > 1:
+      self.id = args[1]
+
+  def enter(self):
+    BTNode.enter(self)
+    self.agent.navigateTo(self.target)
+
+  def execute(self, delta = 0):
+    ret = BTNode.execute(self, delta)
+    if self.target == None:
+      # failed executability conditions
+      print "exec", self.id, "false"
+      return False
+    elif distance(self.agent.getLocation(), self.target) < self.agent.getRadius():
+      # Execution succeeds
+      print "exec", self.id, "true"
+      return True
+    else:
+      # executing
+      return None
+    return ret
 
 ##################
 ### Retreat
@@ -136,37 +136,37 @@ class MoveToTarget(BTNode):
 
 
 class Retreat(BTNode):
-	
-	### percentage: Percentage of hitpoints that must have been lost
-	
-	def parseArgs(self, args):
-		BTNode.parseArgs(self, args)
-		self.percentage = 0.5
-		# First argument is the factor
-		if len(args) > 0:
-			self.percentage = args[0]
-		# Second argument is the node ID
-		if len(args) > 1:
-			self.id = args[1]
 
-	def enter(self):
-		BTNode.enter(self)
-		self.agent.navigateTo(self.agent.world.getBaseForTeam(self.agent.getTeam()).getLocation())
-	
-	def execute(self, delta = 0):
-		ret = BTNode.execute(self, delta)
-		if self.agent.getHitpoints() > self.agent.getMaxHitpoints() * self.percentage:
-			# fail executability conditions
-			print "exec", self.id, "false"
-			return False
-		elif self.agent.getHitpoints() == self.agent.getMaxHitpoints():
-			# Exection succeeds
-			print "exec", self.id, "true"
-			return True
-		else:
-			# executing
-			return None
-		return ret
+  ### percentage: Percentage of hitpoints that must have been lost
+
+  def parseArgs(self, args):
+    BTNode.parseArgs(self, args)
+    self.percentage = 0.5
+    # First argument is the factor
+    if len(args) > 0:
+      self.percentage = args[0]
+    # Second argument is the node ID
+    if len(args) > 1:
+      self.id = args[1]
+
+  def enter(self):
+    BTNode.enter(self)
+    self.agent.navigateTo(self.agent.world.getBaseForTeam(self.agent.getTeam()).getLocation())
+
+  def execute(self, delta = 0):
+    ret = BTNode.execute(self, delta)
+    if self.agent.getHitpoints() > self.agent.getMaxHitpoints() * self.percentage:
+      # fail executability conditions
+      print "exec", self.id, "false"
+      return False
+    elif self.agent.getHitpoints() == self.agent.getMaxHitpoints():
+      # Exection succeeds
+      print "exec", self.id, "true"
+      return True
+    else:
+      # executing
+      return None
+    return ret
 
 ##################
 ### ChaseMinion
@@ -178,63 +178,63 @@ class Retreat(BTNode):
 
 class ChaseMinion(BTNode):
 
-	### target: the minion to chase
-	### timer: how often to replan
+  ### target: the minion to chase
+  ### timer: how often to replan
 
-	def parseArgs(self, args):
-		BTNode.parseArgs(self, args)
-		self.target = None
-		self.timer = 50
-		# First argument is the node ID
-		if len(args) > 0:
-			self.id = args[0]
+  def parseArgs(self, args):
+    BTNode.parseArgs(self, args)
+    self.target = None
+    self.timer = 50
+    # First argument is the node ID
+    if len(args) > 0:
+      self.id = args[0]
 
-	def enter(self):
-		BTNode.enter(self)
-		self.timer = 50
-		enemies = self.agent.world.getEnemyNPCs(self.agent.getTeam())
-		if len(enemies) > 0:
-			best = None
-			dist = 0
-			for e in enemies:
-				if isinstance(e, Minion):
-					d = distance(self.agent.getLocation(), e.getLocation())
-					if best == None or d < dist:
-						best = e
-						dist = d
-			self.target = best
-		if self.target is not None:
-			navTarget = self.chooseNavigationTarget()
-			if navTarget is not None:
-				self.agent.navigateTo(navTarget)
+  def enter(self):
+    BTNode.enter(self)
+    self.timer = 50
+    enemies = self.agent.world.getEnemyNPCs(self.agent.getTeam())
+    if len(enemies) > 0:
+      best = None
+      dist = 0
+      for e in enemies:
+        if isinstance(e, Minion):
+          d = distance(self.agent.getLocation(), e.getLocation())
+          if best == None or d < dist:
+            best = e
+            dist = d
+      self.target = best
+    if self.target is not None:
+      navTarget = self.chooseNavigationTarget()
+      if navTarget is not None:
+        self.agent.navigateTo(navTarget)
 
 
-	def execute(self, delta = 0):
-		ret = BTNode.execute(self, delta)
-		if self.target == None or self.target.isAlive() == False:
-			# failed execution conditions
-			print "exec", self.id, "false"
-			return False
-		elif distance(self.agent.getLocation(), self.target.getLocation()) < BIGBULLETRANGE:
-			# succeeded
-			print "exec", self.id, "true"
-			return True
-		else:
-			# executing
-			self.timer = self.timer - 1
-			if self.timer <= 0:
-				self.timer = 50
-				navTarget = self.chooseNavigationTarget()
-				if navTarget is not None:
-					self.agent.navigateTo(navTarget)
-			return None
-		return ret
+  def execute(self, delta = 0):
+    ret = BTNode.execute(self, delta)
+    if self.target == None or self.target.isAlive() == False:
+      # failed execution conditions
+      print "exec", self.id, "false"
+      return False
+    elif distance(self.agent.getLocation(), self.target.getLocation()) < BIGBULLETRANGE:
+      # succeeded
+      print "exec", self.id, "true"
+      return True
+    else:
+      # executing
+      self.timer = self.timer - 1
+      if self.timer <= 0:
+        self.timer = 50
+        navTarget = self.chooseNavigationTarget()
+        if navTarget is not None:
+          self.agent.navigateTo(navTarget)
+      return None
+    return ret
 
-	def chooseNavigationTarget(self):
-		if self.target is not None:
-			return self.target.getLocation()
-		else:
-			return None
+  def chooseNavigationTarget(self):
+    if self.target is not None:
+      return self.target.getLocation()
+    else:
+      return None
 
 ##################
 ### KillMinion
@@ -246,51 +246,51 @@ class ChaseMinion(BTNode):
 
 class KillMinion(BTNode):
 
-	### target: the minion to shoot
+  ### target: the minion to shoot
 
-	def parseArgs(self, args):
-		BTNode.parseArgs(self, args)
-		self.target = None
-		# First argument is the node ID
-		if len(args) > 0:
-			self.id = args[0]
+  def parseArgs(self, args):
+    BTNode.parseArgs(self, args)
+    self.target = None
+    # First argument is the node ID
+    if len(args) > 0:
+      self.id = args[0]
 
-	def enter(self):
-		BTNode.enter(self)
-		self.agent.stopMoving()
-		enemies = self.agent.world.getEnemyNPCs(self.agent.getTeam())
-		if len(enemies) > 0:
-			best = None
-			dist = 0
-			for e in enemies:
-				if isinstance(e, Minion):
-					d = distance(self.agent.getLocation(), e.getLocation())
-					if best == None or d < dist:
-						best = e
-						dist = d
-			self.target = best
+  def enter(self):
+    BTNode.enter(self)
+    self.agent.stopMoving()
+    enemies = self.agent.world.getEnemyNPCs(self.agent.getTeam())
+    if len(enemies) > 0:
+      best = None
+      dist = 0
+      for e in enemies:
+        if isinstance(e, Minion):
+          d = distance(self.agent.getLocation(), e.getLocation())
+          if best == None or d < dist:
+            best = e
+            dist = d
+      self.target = best
 
 
-	def execute(self, delta = 0):
-		ret = BTNode.execute(self, delta)
-		if self.target == None or distance(self.agent.getLocation(), self.target.getLocation()) > BIGBULLETRANGE:
-			# failed executability conditions
-			print "exec", self.id, "false"
-			return False
-		elif self.target.isAlive() == False:
-			# succeeded
-			print "exec", self.id, "true"
-			return True
-		else:
-			# executing
-			self.shootAtTarget()
-			return None
-		return ret
+  def execute(self, delta = 0):
+    ret = BTNode.execute(self, delta)
+    if self.target == None or distance(self.agent.getLocation(), self.target.getLocation()) > BIGBULLETRANGE:
+      # failed executability conditions
+      print "exec", self.id, "false"
+      return False
+    elif self.target.isAlive() == False:
+      # succeeded
+      print "exec", self.id, "true"
+      return True
+    else:
+      # executing
+      self.shootAtTarget()
+      return None
+    return ret
 
-	def shootAtTarget(self):
-		if self.agent is not None and self.target is not None:
-			self.agent.turnToFace(self.target.getLocation())
-			self.agent.shoot()
+  def shootAtTarget(self):
+    if self.agent is not None and self.target is not None:
+      self.agent.turnToFace(self.target.getLocation())
+      self.agent.shoot()
 
 
 ##################
@@ -302,55 +302,55 @@ class KillMinion(BTNode):
 
 class ChaseHero(BTNode):
 
-	### target: the hero to chase
-	### timer: how often to replan
+  ### target: the hero to chase
+  ### timer: how often to replan
 
-	def ParseArgs(self, args):
-		BTNode.parseArgs(self, args)
-		self.target = None
-		self.timer = 50
-		# First argument is the node ID
-		if len(args) > 0:
-			self.id = args[0]
+  def ParseArgs(self, args):
+    BTNode.parseArgs(self, args)
+    self.target = None
+    self.timer = 50
+    # First argument is the node ID
+    if len(args) > 0:
+      self.id = args[0]
 
-	def enter(self):
-		BTNode.enter(self)
-		self.timer = 50
-		enemies = self.agent.world.getEnemyNPCs(self.agent.getTeam())
-		for e in enemies:
-			if isinstance(e, Hero):
-				self.target = e
-				navTarget = self.chooseNavigationTarget()
-				if navTarget is not None:
-					self.agent.navigateTo(navTarget)
-				return None
+  def enter(self):
+    BTNode.enter(self)
+    self.timer = 50
+    enemies = self.agent.world.getEnemyNPCs(self.agent.getTeam())
+    for e in enemies:
+      if isinstance(e, Hero):
+        self.target = e
+        navTarget = self.chooseNavigationTarget()
+        if navTarget is not None:
+          self.agent.navigateTo(navTarget)
+        return None
 
 
-	def execute(self, delta = 0):
-		ret = BTNode.execute(self, delta)
-		if self.target == None or self.target.isAlive() == False:
-			# fails executability conditions
-			print "exec", self.id, "false"
-			return False
-		elif distance(self.agent.getLocation(), self.target.getLocation()) < BIGBULLETRANGE:
-			# succeeded
-			print "exec", self.id, "true"
-			return True
-		else:
-			# executing
-			self.timer = self.timer - 1
-			if self.timer <= 0:
-				navTarget = self.chooseNavigationTarget()
-				if navTarget is not None:
-					self.agent.navigateTo(navTarget)
-			return None
-		return ret
+  def execute(self, delta = 0):
+    ret = BTNode.execute(self, delta)
+    if self.target == None or self.target.isAlive() == False:
+      # fails executability conditions
+      print "exec", self.id, "false"
+      return False
+    elif distance(self.agent.getLocation(), self.target.getLocation()) < BIGBULLETRANGE:
+      # succeeded
+      print "exec", self.id, "true"
+      return True
+    else:
+      # executing
+      self.timer = self.timer - 1
+      if self.timer <= 0:
+        navTarget = self.chooseNavigationTarget()
+        if navTarget is not None:
+          self.agent.navigateTo(navTarget)
+      return None
+    return ret
 
-	def chooseNavigationTarget(self):
-		if self.target is not None:
-			return self.target.getLocation()
-		else:
-			return None
+  def chooseNavigationTarget(self):
+    if self.target is not None:
+      return self.target.getLocation()
+    else:
+      return None
 
 ##################
 ### KillHero
@@ -362,48 +362,48 @@ class ChaseHero(BTNode):
 
 class KillHero(BTNode):
 
-	### target: the minion to shoot
+  ### target: the minion to shoot
 
-	def ParseArgs(self, args):
-		BTNode.parseArgs(self, args)
-		self.target = None
-		# First argument is the node ID
-		if len(args) > 0:
-			self.id = args[0]
+  def ParseArgs(self, args):
+    BTNode.parseArgs(self, args)
+    self.target = None
+    # First argument is the node ID
+    if len(args) > 0:
+      self.id = args[0]
 
-	def enter(self):
-		BTNode.enter(self)
-		self.agent.stopMoving()
-		enemies = self.agent.world.getEnemyNPCs(self.agent.getTeam())
-		for e in enemies:
-			if isinstance(e, Hero):
-				self.target = e
-				return None
+  def enter(self):
+    BTNode.enter(self)
+    self.agent.stopMoving()
+    enemies = self.agent.world.getEnemyNPCs(self.agent.getTeam())
+    for e in enemies:
+      if isinstance(e, Hero):
+        self.target = e
+        return None
 
-	def execute(self, delta = 0):
-		ret = BTNode.execute(self, delta)
-		if self.target == None or distance(self.agent.getLocation(), self.target.getLocation()) > BIGBULLETRANGE:
-			# failed executability conditions
-			if self.target == None:
-				print "foo none"
-			else:
-				print "foo dist", distance(self.agent.getLocation(), self.target.getLocation())
-			print "exec", self.id, "false"
-			return False
-		elif self.target.isAlive() == False:
-			# succeeded
-			print "exec", self.id, "true"
-			return True
-		else:
-			#executing
-			self.shootAtTarget()
-			return None
-		return ret
+  def execute(self, delta = 0):
+    ret = BTNode.execute(self, delta)
+    if self.target == None or distance(self.agent.getLocation(), self.target.getLocation()) > BIGBULLETRANGE:
+      # failed executability conditions
+      if self.target == None:
+        print "foo none"
+      else:
+        print "foo dist", distance(self.agent.getLocation(), self.target.getLocation())
+      print "exec", self.id, "false"
+      return False
+    elif self.target.isAlive() == False:
+      # succeeded
+      print "exec", self.id, "true"
+      return True
+    else:
+      #executing
+      self.shootAtTarget()
+      return None
+    return ret
 
-	def shootAtTarget(self):
-		if self.agent is not None and self.target is not None:
-			self.agent.turnToFace(self.target.getLocation())
-			self.agent.shoot()
+  def shootAtTarget(self):
+    if self.agent is not None and self.target is not None:
+      self.agent.turnToFace(self.target.getLocation())
+      self.agent.shoot()
 
 
 ##################
@@ -416,29 +416,29 @@ class KillHero(BTNode):
 
 
 class HitpointDaemon(BTNode):
-	
-	### percentage: percentage of hitpoints that must have been lost to fail the daemon check
-	
-	def parseArgs(self, args):
-		BTNode.parseArgs(self, args)
-		self.percentage = 0.5
-		# First argument is the factor
-		if len(args) > 0:
-			self.percentage = args[0]
-		# Second argument is the node ID
-		if len(args) > 1:
-			self.id = args[1]
 
-	def execute(self, delta = 0):
-		ret = BTNode.execute(self, delta)
-		if self.agent.getHitpoints() < self.agent.getMaxHitpoints() * self.percentage:
-			# Check failed
-			print "exec", self.id, "fail"
-			return False
-		else:
-			# Check didn't fail, return child's status
-			return self.getChild(0).execute(delta)
-		return ret
+  ### percentage: percentage of hitpoints that must have been lost to fail the daemon check
+
+  def parseArgs(self, args):
+    BTNode.parseArgs(self, args)
+    self.percentage = 0.5
+    # First argument is the factor
+    if len(args) > 0:
+      self.percentage = args[0]
+    # Second argument is the node ID
+    if len(args) > 1:
+      self.id = args[1]
+
+  def execute(self, delta = 0):
+    ret = BTNode.execute(self, delta)
+    if self.agent.getHitpoints() < self.agent.getMaxHitpoints() * self.percentage:
+      # Check failed
+      print "exec", self.id, "fail"
+      return False
+    else:
+      # Check didn't fail, return child's status
+      return self.getChild(0).execute(delta)
+    return ret
 
 ##################
 ### BuffDaemon
@@ -450,35 +450,35 @@ class HitpointDaemon(BTNode):
 
 class BuffDaemon(BTNode):
 
-	### advantage: Number of levels above enemy level necessary to not fail the check
+  ### advantage: Number of levels above enemy level necessary to not fail the check
 
-	def parseArgs(self, args):
-		BTNode.parseArgs(self, args)
-		self.advantage = 0
-		# First argument is the advantage
-		if len(args) > 0:
-			self.advantage = args[0]
-		# Second argument is the node ID
-		if len(args) > 1:
-			self.id = args[1]
+  def parseArgs(self, args):
+    BTNode.parseArgs(self, args)
+    self.advantage = 0
+    # First argument is the advantage
+    if len(args) > 0:
+      self.advantage = args[0]
+    # Second argument is the node ID
+    if len(args) > 1:
+      self.id = args[1]
 
-	def execute(self, delta = 0):
-		ret = BTNode.execute(self, delta)
-		hero = None
-		# Get a reference to the enemy hero
-		enemies = self.agent.world.getEnemyNPCs(self.agent.getTeam())
-		for e in enemies:
-			if isinstance(e, Hero):
-				hero = e
-				break
-		if hero == None or self.agent.level <= hero.level + self.advantage:
-			# fail check
-			print "exec", self.id, "fail"
-			return False
-		else:
-			# Check didn't fail, return child's status
-			return self.getChild(0).execute(delta)
-		return ret
+  def execute(self, delta = 0):
+    ret = BTNode.execute(self, delta)
+    hero = None
+    # Get a reference to the enemy hero
+    enemies = self.agent.world.getEnemyNPCs(self.agent.getTeam())
+    for e in enemies:
+      if isinstance(e, Hero):
+        hero = e
+        break
+    if hero == None or self.agent.level <= hero.level + self.advantage:
+      # fail check
+      print "exec", self.id, "fail"
+      return False
+    else:
+      # Check didn't fail, return child's status
+      return self.getChild(0).execute(delta)
+    return ret
 
 
 
@@ -486,4 +486,3 @@ class BuffDaemon(BTNode):
 
 #################################
 ### MY CUSTOM BEHAVIOR CLASSES
-

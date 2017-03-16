@@ -219,7 +219,7 @@ class Agent(Mover):
 
 	### moveTarget: where to move to. Setting this to non-None value activates movement (update fn)
 	### moveOrigin: where moving from.
-	### navigator: model that does pathplanning
+	### navigator: model that does path planning
 	### firerate: how often agent can fire
 	### firetimer: how long since last firing
 	### canfire: can the agent fire?
@@ -304,7 +304,7 @@ class Agent(Mover):
 		self.turnToFace(pos)
 	
 
-	### Set the pathplanning module
+	### Set the path planning module
 	def setNavigator(self, navigator):
 		navigator.setAgent(self)
 		self.navigator = navigator
@@ -506,7 +506,7 @@ class Navigator():
 	def collision(self, thing):
 		print "Collision"
 	
-	### This function gets called by the agent to figure out if some shortcutes can be taken when traversing the path.
+	### This function gets called by the agent to figure out if some shortcuts can be taken when traversing the path.
 	### This function should update the path and return True if the path was updated
 	def smooth(self):
 		return False
@@ -576,7 +576,7 @@ class NavMeshNavigator(PathNetworkNavigator):
 		self.drawNavMesh(self.world.debug)
 		self.drawPathNetwork(self.world.debug)
 	
-	### Create the pathnode network and pre-compute all shortest paths along the network
+	### Create the path node network and pre-compute all shortest paths along the network
 	### self: the navigator object
 	### world: the world object
 	def createPathNetwork(self, world):
@@ -693,7 +693,7 @@ class RandomObstacle(Obstacle):
 				dist = radius
 #			print "dist", dist
 			sphericals.append((rad, dist))
-		# Convert to cartesian coordinates
+		# Convert to Cartesian coordinates
 		for (rad, dist) in sphericals:
 			points.append(((int(math.cos(rad)*dist)+radius), int((math.sin(rad)*dist)+radius)))
 		# Create surface
@@ -813,7 +813,7 @@ class GameWorld():
 		self.time = time.time()
 		corerandom.seed(seed or self.time)
 		random.seed(self.time)
-		#initialize pygame and set up screen and background surface
+		#initialize Pygame and set up screen and background surface
 		pygame.init()
 		screen = pygame.display.set_mode(screendimensions)
 		# Background surface that will hold everything
