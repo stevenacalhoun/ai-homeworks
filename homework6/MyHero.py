@@ -53,5 +53,3 @@ class MyHero(Hero, BehaviorTree):
   def stop(self):
     Hero.stop(self)
     BehaviorTree.stop(self)
-
-TREE = [(Sequence, 1), (TestNode, 20)]

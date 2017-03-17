@@ -34,6 +34,8 @@ def treeSpec(agent):
   spec = None
   ### YOUR CODE GOES BELOW HERE ###
 
+  return TREE
+
   ### YOUR CODE GOES ABOVE HERE ###
   return spec
 
@@ -155,14 +157,14 @@ class Retreat(BTNode):
 
   def execute(self, delta = 0):
     ret = BTNode.execute(self, delta)
-    if self.agent.getHitpoints() > self.agent.getMaxHitpoints() * self.percentage:
-      # fail executability conditions
-      print "exec", self.id, "false"
-      return False
-    elif self.agent.getHitpoints() == self.agent.getMaxHitpoints():
+    if self.agent.getHitpoints() == self.agent.getMaxHitpoints():
       # Exection succeeds
       print "exec", self.id, "true"
       return True
+    elif self.agent.getHitpoints() > self.agent.getMaxHitpoints() * self.percentage:
+      # fail executability conditions
+      print "exec", self.id, "false"
+      return False
     else:
       # executing
       return None
@@ -481,8 +483,15 @@ class BuffDaemon(BTNode):
     return ret
 
 
+class Idle(BTNode):
 
+  ### advantage: Number of levels above enemy level necessary to not fail the check
 
+  def parseArgs(self, args):
+    return
 
-#################################
-### MY CUSTOM BEHAVIOR CLASSES
+  def execute(self, delta = 0):
+    print "exec", self.id, "fail"
+    return True
+
+TREE = [(Selector, 'Sel1'), [(HitpointDaemon, 0.5, 'HP1'), [(Selector, 'Sel2'), [(BuffDaemon, 2, 'BD1'), [(Sequence, 'Seq1'), (ChaseHero, 'CH1'), (KillHero, 'KH1')]], [(Sequence, 'Seq2'), (ChaseMinion, 'CM1'), (KillMinion, 'KM1')]]], (Retreat, 'R1')]

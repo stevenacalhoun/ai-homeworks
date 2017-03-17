@@ -9,7 +9,7 @@ def testTree(filename):
   print parseJsonBTFile(filename)
 
 def constructHeroTree():
-  destination = "MyHero.py"
+  destination = "mybehaviors.py"
 
   # Read lines
   with open(destination, 'r') as readfile:
@@ -21,8 +21,9 @@ def constructHeroTree():
       if i < len(fileLines) - 1:
         writefile.write(line)
 
-    writefile.write("")
+    # writefile.write("\n")
     writefile.write("TREE = " + parseJsonBTFile("BTs/HeroTree.json"))
+    writefile.write("\n")
     writefile.close()
 
 def parseJsonBTFile(filename):
@@ -38,7 +39,7 @@ def parseJsonBT(rootKey, rootData):
 
   # Sequence or selector
   listStr = ""
-  listStr += parseParent(rootKey)
+  listStr += parseLeaf(rootKey, [])
   leavesStringsList = []
 
   # Parse all nodes under
@@ -58,38 +59,26 @@ def allChildrenAreLeaves(data):
       result = False
   return result
 
-def parseParent(key):
-  # Create key
-  keyParts = key.split("-")
-  keyClass = keyParts[0]
-  keyId = keyParts[1]
-
-  return "(" + keyClass + ", " + str(keyId) + ")"
-
 def parseLeaf(key, data):
   # Create key
   keyParts = key.split("-")
-  keyClass = keyParts[0]
-  keyId = keyParts[1]
+  leafString = ""
+  if keyParts[1] != "N":
+    leafString += "("
+  leafString += keyParts[0]
 
   # Gather args
-  args = []
-  if keyId != "N":
-    args.append(keyId)
-  for arg in data:
-    args.append(arg)
+  arguments = []
+  if keyParts[1] != "N":
 
-  # Create string
-  leafString = ""
-  if keyId != "N":
-    leafString += "("
-  leafString += keyClass
+    for arg in keyParts[1:]:
+      leafString += ", "
+      try:
+        float(arg)
+        leafString += "" + str(arg) + ""
+      except ValueError:
+        leafString += "'" + str(arg) + "'"
 
-  for arg in args:
-    leafString += ", "
-    leafString += str(arg)
-
-  if keyId != "N":
     leafString += ")"
 
   return leafString

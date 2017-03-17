@@ -63,7 +63,10 @@ class BTNode(object):
   ### Perform a behavior, should be called every tick
   ### Returns True if the behavior succeeds, False if the behavior fails, or None if the behavior should continue to execute during the next tick.
   def execute(self, delta = 0):
-    print "execute", self.id
+
+    print str(self.agent.getTeam()) + ": execute", self.id
+    # print "execute", self.id
+
     if self.first:
       self.enter()
       self.first = False
@@ -129,17 +132,20 @@ class Sequence(BTNode):
     BTNode.execute(self, delta)
     ### YOUR CODE GOES BELOW HERE ###
     if len(self.getChildren()) == 0:
+      self.currentChildIndex = 0
       return True
 
     currentChild = self.getChildren()[self.currentChildIndex]
     childResult = currentChild.execute()
 
     if childResult == False:
+      self.currentChildIndex = 0
       return False
 
     if childResult == True:
       self.currentChildIndex += 1
       if self.currentChildIndex == len(self.getChildren()):
+        self.currentChildIndex = 0
         return True
       else:
         return None
@@ -164,14 +170,13 @@ class Selector(BTNode):
   ### IF the child fails, the selector goes on to the next child in the next tick. If the selector gets to the end of the list and all children have failed, the selector fails and returns False.
   ### If a child requires several ticks to complete execution, then the child will return None. If a child returns none, the sequence also returns None.
   ### IF a sequence node has no children, it succeeds fails.
-  def execute(self, delta = 0):
-    BTNode.execute(self, delta)
-    ### YOUR CODE GOES BELOW HERE ###
 
   def execute(self, delta = 0):
     BTNode.execute(self, delta)
     ### YOUR CODE GOES BELOW HERE ###
+
     if len(self.getChildren()) == 0:
+      self.currentChildIndex = 0
       return False
 
     currentChild = self.getChildren()[self.currentChildIndex]
@@ -180,11 +185,13 @@ class Selector(BTNode):
     if childResult == False:
       self.currentChildIndex += 1
       if self.currentChildIndex == len(self.getChildren()):
+        self.currentChildIndex = 0
         return False
       else:
         return None
 
     if childResult == True:
+      self.currentChildIndex = 0
       return True
 
     if childResult == None:
