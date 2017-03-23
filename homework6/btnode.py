@@ -64,7 +64,7 @@ class BTNode(object):
   ### Returns True if the behavior succeeds, False if the behavior fails, or None if the behavior should continue to execute during the next tick.
   def execute(self, delta = 0):
 
-    print str(self.agent.getTeam()) + ": execute", self.id
+    # print str(self.agent.getTeam()) + ": execute", self.id
     # print "execute", self.id
 
     if self.first:

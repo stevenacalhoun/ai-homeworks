@@ -195,6 +195,7 @@ class ChaseMinion(BTNode):
     BTNode.enter(self)
     self.timer = 50
     enemies = self.agent.world.getEnemyNPCs(self.agent.getTeam())
+
     if len(enemies) > 0:
       best = None
       dist = 0
@@ -208,16 +209,24 @@ class ChaseMinion(BTNode):
     if self.target is not None:
       navTarget = self.chooseNavigationTarget()
       if navTarget is not None:
-        self.agent.navigateTo(navTarget)
+        if not self.targetInRange():
+          self.agent.navigateTo(navTarget)
 
 
   def execute(self, delta = 0):
+    # shootWhileRunning(self.agent)
+    # handleBullet(self.agent)
+
+    if enemyBulletNear(self.agent):
+      print "BULLET IS NEAR"
+      return False
+
     ret = BTNode.execute(self, delta)
     if self.target == None or self.target.isAlive() == False:
       # failed execution conditions
       print "exec", self.id, "false"
       return False
-    elif distance(self.agent.getLocation(), self.target.getLocation()) < BIGBULLETRANGE:
+    elif self.targetInRange():
       # succeeded
       print "exec", self.id, "true"
       return True
@@ -231,6 +240,9 @@ class ChaseMinion(BTNode):
           self.agent.navigateTo(navTarget)
       return None
     return ret
+
+  def targetInRange(self):
+    return distance(self.agent.getLocation(), self.target.getLocation()) < BIGBULLETRANGE
 
   def chooseNavigationTarget(self):
     if self.target is not None:
@@ -274,6 +286,13 @@ class KillMinion(BTNode):
 
 
   def execute(self, delta = 0):
+    # shootWhileRunning(self.agent)
+    # handleBullet(self.agent)
+
+    if enemyBulletNear(self.agent):
+      print "BULLET IS NEAR"
+      return False
+
     ret = BTNode.execute(self, delta)
     if self.target == None or distance(self.agent.getLocation(), self.target.getLocation()) > BIGBULLETRANGE:
       # failed executability conditions
@@ -329,6 +348,9 @@ class ChaseHero(BTNode):
 
 
   def execute(self, delta = 0):
+    # shootWhileRunning(self.agent)
+    # handleBullet(self.agent)
+
     ret = BTNode.execute(self, delta)
     if self.target == None or self.target.isAlive() == False:
       # fails executability conditions
@@ -383,6 +405,9 @@ class KillHero(BTNode):
         return None
 
   def execute(self, delta = 0):
+    # shootWhileRunning(self.agent)
+    # handleBullet(self.agent)
+
     ret = BTNode.execute(self, delta)
     if self.target == None or distance(self.agent.getLocation(), self.target.getLocation()) > BIGBULLETRANGE:
       # failed executability conditions
@@ -482,11 +507,84 @@ class BuffDaemon(BTNode):
       return self.getChild(0).execute(delta)
     return ret
 
+##################
+### BuffDaemon
+###
+### Only execute children if agent's AOE is recharged and enemies are near
+### Parameters:
+###   9: node ID string (optional)
+
+class AOEDaemon(BTNode):
+  def parseArgs(self, args):
+    BTNode.parseArgs(self, args)
+    # First argument is the id
+    if len(args) > 0:
+      self.id = args[0]
+
+  def execute(self, delta = 0):
+    ret = BTNode.execute(self, delta)
+
+    if not self.agent.canareaeffect:
+      return False
+
+    # Get reference to all enemies
+    enemies = self.agent.world.getEnemyNPCs(self.agent.getTeam())
+    for e in enemies:
+      # Check if any enemy is close
+      if distance(e.position, self.agent.position) < AREAEFFECTRANGE*0.9:
+        return True
+
+    print "exec", self.id, "fail"
+    return False
+
+class AOEFire(BTNode):
+  def parseArgs(self, args):
+    BTNode.parseArgs(self, args)
+    # First argument is the id
+    if len(args) > 0:
+      self.id = args[0]
+
+  def execute(self, delta = 0):
+    ret = BTNode.execute(self, delta)
+    self.agent.areaEffect()
+
+    return True
+
+
+class DodgeDaemon(BTNode):
+  def parseArgs(self, args):
+    BTNode.parseArgs(self, args)
+    # First argument is the id
+    if len(args) > 0:
+      self.id = args[0]
+
+  def execute(self, delta = 0):
+    ret = BTNode.execute(self, delta)
+
+    ret = enemyBulletNear(self.agent)
+    if not self.agent.candodge:
+      ret = False
+
+    if not ret:
+      print "exec", self.id, "fail"
+    return ret
+
+class DodgeFire(BTNode):
+  def parseArgs(self, args):
+    BTNode.parseArgs(self, args)
+    # First argument is the id
+    if len(args) > 0:
+      self.id = args[0]
+
+  def execute(self, delta = 0):
+    ret = BTNode.execute(self, delta)
+    print "exec", self.id
+
+    self.agent.dodge()
+
+    return True
 
 class Idle(BTNode):
-
-  ### advantage: Number of levels above enemy level necessary to not fail the check
-
   def parseArgs(self, args):
     return
 
@@ -494,4 +592,42 @@ class Idle(BTNode):
     print "exec", self.id, "fail"
     return True
 
-TREE = [(Selector, 'Sel1'), [(HitpointDaemon, 0.5, 'HP1'), [(Selector, 'Sel2'), [(BuffDaemon, 2, 'BD1'), [(Sequence, 'Seq1'), (ChaseHero, 'CH1'), (KillHero, 'KH1')]], [(Sequence, 'Seq2'), (ChaseMinion, 'CM1'), (KillMinion, 'KM1')]]], (Retreat, 'R1')]
+def shouldDodge(agent):
+  return agent.candodge && enemyBulletNear(agent)
+
+def enemyBulletNear(agent):
+  visbleBullets = agent.getVisibleType(Bullet)
+  bulletNear = False
+
+  for bullet in visbleBullets:
+    if bullet.owner.getTeam() != agent.getTeam() and distance(agent.getLocation(), bullet.getLocation()) < 100:
+      return True
+
+  return False
+
+def handleBullet(agent):
+  if shouldDodge(agent):
+    agent.dodge()
+    return True
+
+  return False
+
+def shootWhileRunning(agent):
+  visbleAgents = agent.getVisibleType(Minion)
+  visbleAgents.extend(agent.getVisibleType(Hero))
+
+  target = None
+  for visbleAgent in visbleAgents:
+    if visbleAgent.getTeam() != agent.getTeam() and distance(agent.getLocation(), visbleAgent.getLocation()) < BIGBULLETRANGE - 2:
+      target = visbleAgent
+      break
+
+    if target is not None:
+      if distance(agent.getLocation(), target.getLocation()) <= AREAEFFECTRANGE + target.getRadius():
+        agent.areaEffect()
+      else:
+        agent.turnToFace(target.getLocation())
+        agent.shoot()
+  return
+
+TREE = [(Selector, 'Sel1'), [(DodgeDaemon, 'DD1'), (DodgeFire, 'DF1')], [(AOEDaemon, 'AOED1'), (AOEFire, 'AOEF1')], [(HitpointDaemon, 0.5, 'HP1'), [(Selector, 'Sel2'), [(BuffDaemon, 2, 'BD1'), [(Sequence, 'Seq1'), (ChaseHero, 'CH1'), (KillHero, 'KH1')]], [(Sequence, 'Seq2'), (ChaseMinion, 'CM1'), (KillMinion, 'KM1')]]], (Retreat, 0.5, 'R1')]

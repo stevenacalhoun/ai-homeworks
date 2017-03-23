@@ -38,6 +38,8 @@ class MyHero(Hero, BehaviorTree):
   def update(self, delta):
     Hero.update(self, delta)
     BehaviorTree.update(self, delta)
+    # writeText(self)
+    setText(self)
 
   def start(self):
     # Build the tree
@@ -53,3 +55,37 @@ class MyHero(Hero, BehaviorTree):
   def stop(self):
     Hero.stop(self)
     BehaviorTree.stop(self)
+
+def initLabels(hero):
+  labels = {
+    "Health": hero.world.myfont.render("line", 0, (0,0,0)),
+    "Level": hero.world.myfont.render("line", 0, (0,0,0)),
+    "S1": hero.world.myfont.render("line", 0, (0,0,0)),
+    "S2": hero.world.myfont.render("line", 0, (0,0,0))
+  }
+
+def setText(hero):
+  hero.world.textLines = []
+  hero.world.textLines.append(hero.world.myfont.render("Health: " + str(hero.hitpoints), 0, (0,0,0)))
+  hero.world.textLines.append(hero.world.myfont.render("Level: " + str(hero.level), 0, (0,0,0)))
+  hero.world.textLines.append(hero.world.myfont.render("Team 1 score: " + str(), 0, (0,0,0)))
+  hero.world.textLines.append(hero.world.myfont.render("Team 2 score: " + str(), 0, (0,0,0)))
+
+def writeText(hero):
+  # lines["Health"].text = "Health: " + str(hero.hitpoints)
+  # lines["Level"].text = "Level: " + str(hero.level)
+  # lines["S1"].text = "Team 1 score: " + str()
+  # lines["S2"].text = "Team 2 score: " + str()
+
+  lines = []
+  lines.append(hero.world.myfont.render("line", 0, (0,0,0)))
+  lines.append(hero.world.myfont.render("line", 0, (0,0,0)))
+  lines.append(hero.world.myfont.render("line", 0, (0,0,0)))
+  lines.append(hero.world.myfont.render("line", 0, (0,0,0)))
+
+
+  multiLineWrite(lines, hero, 10, 400)
+
+def multiLineWrite(lines, hero, x, y):
+  for i, line in enumerate(lines):
+    hero.world.screen.blit(line, (x, y+(i*25)))

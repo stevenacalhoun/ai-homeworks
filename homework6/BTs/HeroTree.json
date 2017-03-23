@@ -1,5 +1,11 @@
 {
   "Selector-Sel1": {
+    "DodgeDaemon-DD1": {
+      "DodgeFire-DF1": []
+    },
+    "AOEDaemon-AOED1": {
+      "AOEFire-AOEF1": []
+    },
     "HitpointDaemon-0.5-HP1": {
       "Selector-Sel2": {
         "BuffDaemon-2-BD1": {
@@ -14,6 +20,6 @@
         }
       }
     },
-    "Retreat-R1": []
+    "Retreat-0.5-R1": []
   }
 }
