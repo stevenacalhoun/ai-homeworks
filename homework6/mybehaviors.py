@@ -396,26 +396,55 @@ class BuffDaemon(BTNode):
       return self.getChild(0).execute(delta)
     return ret
 
-def enemyBulletNear(agent):
+def nearbyBullet(agent):
   visbleBullets = agent.getVisibleType(Bullet)
   bulletNear = False
 
   for bullet in visbleBullets:
     if bullet.owner.getTeam() != agent.getTeam() and distance(agent.getLocation(), bullet.getLocation()) < 100:
-      return True
+      return bullet
 
-  return False
+  return None
 
 def shouldDodge(agent):
-  return agent.candodge and enemyBulletNear(agent)
+  if not agent.candodge:
+    return None
+  return nearbyBullet(agent)
 
 def handleBullet(agent):
-  if shouldDodge(agent):
-    agent.dodge()
+  bullet = shouldDodge(agent)
+  if bullet:
+    smartDodge(agent, bullet)
     return True
 
   return False
 
+def smartDodge(agent, bullet):
+  bulletVector = normalize((agent.getLocation()[0] - bullet.position[0], agent.getLocation()[1] - bullet.position[1]))
+
+  leftDodge = (-bulletVector[1], bulletVector[0])
+  rightDodge = (bulletVector[1], -bulletVector[0])
+
+  if checkDodgeVector(agent, leftDodge):
+    agent.dodge(angle=getAngleVector(leftDodge))
+  elif checkDodgeVector(agent, rightDodge):
+    agent.dodge(angle=getAngleVector(rightDodge))
+  else:
+    return
+    # print "Can't dodge"
+
+def checkDodgeVector(agent, vector):
+  angle = getAngleVector(vector)
+  producedVector = (math.cos(math.radians(angle)), -math.sin(math.radians(angle)))
+  potentialSpot = (agent.getLocation()[0] + (producedVector[0]*agent.getRadius()*1.5), agent.getLocation()[1] + (producedVector[1]*agent.getRadius()*1.5))
+
+  return collisionFree(agent, potentialSpot)
+
+def collisionFree(agent,position):
+  for line in agent.world.getLines():
+    if minimumDistance(line, position) < AGENT_WIDTH:
+      return False
+  return True
 
 def enemeyInAOERadius(agent):
   visbleBullets = agent.getVisibleType(Minion)
@@ -467,16 +496,23 @@ def leadShootTarget(agent, target):
 
 def getTargetOffset(start, end):
   leadFactor = 5
-  vec = (end[0]-start[0],end[1]-start[1])
-  theta = math.atan(vec[1]/vec[0])
+  vector = (end[0]-start[0],end[1]-start[1])
+  normalizedDirection = normalize(vector)
 
-  if theta < 0:
-    theta = theta + 360.0
-
-  rad = math.radians(theta)
-  normalizedDirection = (math.cos(rad), -math.sin(rad))
   offset = (normalizedDirection[0]*leadFactor,normalizedDirection[1]*leadFactor)
 
   return offset
+
+def normalize(vector):
+  theta = getAngleVector(vector)
+  rad = math.radians(theta)
+  normalizedDirection = (math.cos(rad), -math.sin(rad))
+  return normalizedDirection
+
+def getAngleVector(vector):
+  theta = math.atan(vector[1]/vector[0])
+  if theta < 0:
+    theta = theta + 360.0
+  return theta
 
 TREE = [(Selector, 'Sel1'), [(HitpointDaemon, 0.5, 'HealthCheck'), [(Selector, 'Sel2'), [(BuffDaemon, 2, 'BuffCheck'), [(Sequence, 'Seq1'), (Chase, 'Hero', 'ChaseHero'), (Kill, 'Hero', 'KillHero')]], [(Sequence, 'Seq2'), (Chase, 'Minion', 'ChaseMinion'), (Kill, 'Minion', 'KillMinion')]]], (Retreat, 0.5, 'Retreat')]
