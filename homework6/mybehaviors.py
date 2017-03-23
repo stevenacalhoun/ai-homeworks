@@ -170,15 +170,8 @@ class Retreat(BTNode):
       return None
     return ret
 
-##################
-### ChaseMinion
-###
-### Find the closest minion and move to intercept it.
-### Parameters:
-###   0: node ID string (optional)
 
-
-class ChaseMinion(BTNode):
+class Chase(BTNode):
 
   ### target: the minion to chase
   ### timer: how often to replan
@@ -187,9 +180,14 @@ class ChaseMinion(BTNode):
     BTNode.parseArgs(self, args)
     self.target = None
     self.timer = 50
-    # First argument is the node ID
+
+    # First argument is the target type
     if len(args) > 0:
-      self.id = args[0]
+      self.targetType = args[0]
+
+    # Second argument is the node ID
+    if len(args) > 1:
+      self.id = args[1]
 
   def enter(self):
     BTNode.enter(self)
@@ -200,11 +198,18 @@ class ChaseMinion(BTNode):
       best = None
       dist = 0
       for e in enemies:
-        if isinstance(e, Minion):
-          d = distance(self.agent.getLocation(), e.getLocation())
-          if best == None or d < dist:
-            best = e
-            dist = d
+        if self.targetType == "Hero":
+          if isinstance(e, Hero):
+            d = distance(self.agent.getLocation(), e.getLocation())
+            if best == None or d < dist:
+              best = e
+              dist = d
+        else:
+          if isinstance(e, Minion):
+            d = distance(self.agent.getLocation(), e.getLocation())
+            if best == None or d < dist:
+              best = e
+              dist = d
       self.target = best
     if self.target is not None:
       navTarget = self.chooseNavigationTarget()
@@ -214,12 +219,9 @@ class ChaseMinion(BTNode):
 
 
   def execute(self, delta = 0):
-    # shootWhileRunning(self.agent)
-    # handleBullet(self.agent)
-
-    if enemyBulletNear(self.agent):
-      print "BULLET IS NEAR"
-      return False
+    shootWhileRunning(self.agent)
+    handleBullet(self.agent)
+    handleAOEFire(self.agent)
 
     ret = BTNode.execute(self, delta)
     if self.target == None or self.target.isAlive() == False:
@@ -258,16 +260,20 @@ class ChaseMinion(BTNode):
 ###   0: node ID string (optional)
 
 
-class KillMinion(BTNode):
+class Kill(BTNode):
 
   ### target: the minion to shoot
 
   def parseArgs(self, args):
     BTNode.parseArgs(self, args)
     self.target = None
-    # First argument is the node ID
+    # First argument is the target type
     if len(args) > 0:
-      self.id = args[0]
+      self.targetType = args[0]
+
+    # Second argument is the node ID
+    if len(args) > 1:
+      self.id = args[1]
 
   def enter(self):
     BTNode.enter(self)
@@ -277,21 +283,24 @@ class KillMinion(BTNode):
       best = None
       dist = 0
       for e in enemies:
-        if isinstance(e, Minion):
-          d = distance(self.agent.getLocation(), e.getLocation())
-          if best == None or d < dist:
-            best = e
-            dist = d
+        if self.targetType == "Hero":
+          if isinstance(e, Hero):
+            d = distance(self.agent.getLocation(), e.getLocation())
+            if best == None or d < dist:
+              best = e
+              dist = d
+        else:
+          if isinstance(e, Minion):
+            d = distance(self.agent.getLocation(), e.getLocation())
+            if best == None or d < dist:
+              best = e
+              dist = d
       self.target = best
 
-
   def execute(self, delta = 0):
-    # shootWhileRunning(self.agent)
-    # handleBullet(self.agent)
-
-    if enemyBulletNear(self.agent):
-      print "BULLET IS NEAR"
-      return False
+    shootWhileRunning(self.agent)
+    handleBullet(self.agent)
+    handleAOEFire(self.agent)
 
     ret = BTNode.execute(self, delta)
     if self.target == None or distance(self.agent.getLocation(), self.target.getLocation()) > BIGBULLETRANGE:
@@ -304,125 +313,6 @@ class KillMinion(BTNode):
       return True
     else:
       # executing
-      self.shootAtTarget()
-      return None
-    return ret
-
-  def shootAtTarget(self):
-    if self.agent is not None and self.target is not None:
-      self.agent.turnToFace(self.target.getLocation())
-      self.agent.shoot()
-
-
-##################
-### ChaseHero
-###
-### Move to intercept the enemy Hero.
-### Parameters:
-###   0: node ID string (optional)
-
-class ChaseHero(BTNode):
-
-  ### target: the hero to chase
-  ### timer: how often to replan
-
-  def ParseArgs(self, args):
-    BTNode.parseArgs(self, args)
-    self.target = None
-    self.timer = 50
-    # First argument is the node ID
-    if len(args) > 0:
-      self.id = args[0]
-
-  def enter(self):
-    BTNode.enter(self)
-    self.timer = 50
-    enemies = self.agent.world.getEnemyNPCs(self.agent.getTeam())
-    for e in enemies:
-      if isinstance(e, Hero):
-        self.target = e
-        navTarget = self.chooseNavigationTarget()
-        if navTarget is not None:
-          self.agent.navigateTo(navTarget)
-        return None
-
-
-  def execute(self, delta = 0):
-    # shootWhileRunning(self.agent)
-    # handleBullet(self.agent)
-
-    ret = BTNode.execute(self, delta)
-    if self.target == None or self.target.isAlive() == False:
-      # fails executability conditions
-      print "exec", self.id, "false"
-      return False
-    elif distance(self.agent.getLocation(), self.target.getLocation()) < BIGBULLETRANGE:
-      # succeeded
-      print "exec", self.id, "true"
-      return True
-    else:
-      # executing
-      self.timer = self.timer - 1
-      if self.timer <= 0:
-        navTarget = self.chooseNavigationTarget()
-        if navTarget is not None:
-          self.agent.navigateTo(navTarget)
-      return None
-    return ret
-
-  def chooseNavigationTarget(self):
-    if self.target is not None:
-      return self.target.getLocation()
-    else:
-      return None
-
-##################
-### KillHero
-###
-### Kill the enemy hero. Assumes it is already in range.
-### Parameters:
-###   0: node ID string (optional)
-
-
-class KillHero(BTNode):
-
-  ### target: the minion to shoot
-
-  def ParseArgs(self, args):
-    BTNode.parseArgs(self, args)
-    self.target = None
-    # First argument is the node ID
-    if len(args) > 0:
-      self.id = args[0]
-
-  def enter(self):
-    BTNode.enter(self)
-    self.agent.stopMoving()
-    enemies = self.agent.world.getEnemyNPCs(self.agent.getTeam())
-    for e in enemies:
-      if isinstance(e, Hero):
-        self.target = e
-        return None
-
-  def execute(self, delta = 0):
-    # shootWhileRunning(self.agent)
-    # handleBullet(self.agent)
-
-    ret = BTNode.execute(self, delta)
-    if self.target == None or distance(self.agent.getLocation(), self.target.getLocation()) > BIGBULLETRANGE:
-      # failed executability conditions
-      if self.target == None:
-        print "foo none"
-      else:
-        print "foo dist", distance(self.agent.getLocation(), self.target.getLocation())
-      print "exec", self.id, "false"
-      return False
-    elif self.target.isAlive() == False:
-      # succeeded
-      print "exec", self.id, "true"
-      return True
-    else:
-      #executing
       self.shootAtTarget()
       return None
     return ret
@@ -507,94 +397,6 @@ class BuffDaemon(BTNode):
       return self.getChild(0).execute(delta)
     return ret
 
-##################
-### BuffDaemon
-###
-### Only execute children if agent's AOE is recharged and enemies are near
-### Parameters:
-###   9: node ID string (optional)
-
-class AOEDaemon(BTNode):
-  def parseArgs(self, args):
-    BTNode.parseArgs(self, args)
-    # First argument is the id
-    if len(args) > 0:
-      self.id = args[0]
-
-  def execute(self, delta = 0):
-    ret = BTNode.execute(self, delta)
-
-    if not self.agent.canareaeffect:
-      return False
-
-    # Get reference to all enemies
-    enemies = self.agent.world.getEnemyNPCs(self.agent.getTeam())
-    for e in enemies:
-      # Check if any enemy is close
-      if distance(e.position, self.agent.position) < AREAEFFECTRANGE*0.9:
-        return True
-
-    print "exec", self.id, "fail"
-    return False
-
-class AOEFire(BTNode):
-  def parseArgs(self, args):
-    BTNode.parseArgs(self, args)
-    # First argument is the id
-    if len(args) > 0:
-      self.id = args[0]
-
-  def execute(self, delta = 0):
-    ret = BTNode.execute(self, delta)
-    self.agent.areaEffect()
-
-    return True
-
-
-class DodgeDaemon(BTNode):
-  def parseArgs(self, args):
-    BTNode.parseArgs(self, args)
-    # First argument is the id
-    if len(args) > 0:
-      self.id = args[0]
-
-  def execute(self, delta = 0):
-    ret = BTNode.execute(self, delta)
-
-    ret = enemyBulletNear(self.agent)
-    if not self.agent.candodge:
-      ret = False
-
-    if not ret:
-      print "exec", self.id, "fail"
-    return ret
-
-class DodgeFire(BTNode):
-  def parseArgs(self, args):
-    BTNode.parseArgs(self, args)
-    # First argument is the id
-    if len(args) > 0:
-      self.id = args[0]
-
-  def execute(self, delta = 0):
-    ret = BTNode.execute(self, delta)
-    print "exec", self.id
-
-    self.agent.dodge()
-
-    return True
-
-class Idle(BTNode):
-  def parseArgs(self, args):
-    return
-
-  def execute(self, delta = 0):
-    print "exec", self.id, "fail"
-    return True
-
-def shouldDodge(agent):
-  return agent.candodge && enemyBulletNear(agent)
-
 def enemyBulletNear(agent):
   visbleBullets = agent.getVisibleType(Bullet)
   bulletNear = False
@@ -605,9 +407,34 @@ def enemyBulletNear(agent):
 
   return False
 
+def shouldDodge(agent):
+  return agent.candodge and enemyBulletNear(agent)
+
 def handleBullet(agent):
   if shouldDodge(agent):
     agent.dodge()
+    return True
+
+  return False
+
+
+def enemeyInAOERadius(agent):
+  visbleBullets = agent.getVisibleType(Minion)
+  visbleBullets.extend(agent.getVisibleType(Hero))
+
+  for enemy in visbleBullets:
+    if enemy.getTeam() != agent.getTeam() and distance(agent.getLocation(), enemy.getLocation()) < AREAEFFECTRANGE+20:
+      return True
+
+  return False
+
+def shouldFireAOE(agent):
+  return agent.canareaeffect and enemeyInAOERadius(agent)
+
+def handleAOEFire(agent):
+  if shouldFireAOE(agent):
+    print "AOE-ing"
+    agent.areaEffect()
     return True
 
   return False
@@ -622,12 +449,12 @@ def shootWhileRunning(agent):
       target = visbleAgent
       break
 
-    if target is not None:
-      if distance(agent.getLocation(), target.getLocation()) <= AREAEFFECTRANGE + target.getRadius():
-        agent.areaEffect()
-      else:
-        agent.turnToFace(target.getLocation())
-        agent.shoot()
+  if target is not None:
+    if distance(agent.getLocation(), target.getLocation()) <= AREAEFFECTRANGE + target.getRadius():
+      agent.areaEffect()
+    else:
+      agent.turnToFace(target.getLocation())
+      agent.shoot()
   return
 
-TREE = [(Selector, 'Sel1'), [(DodgeDaemon, 'DD1'), (DodgeFire, 'DF1')], [(AOEDaemon, 'AOED1'), (AOEFire, 'AOEF1')], [(HitpointDaemon, 0.5, 'HP1'), [(Selector, 'Sel2'), [(BuffDaemon, 2, 'BD1'), [(Sequence, 'Seq1'), (ChaseHero, 'CH1'), (KillHero, 'KH1')]], [(Sequence, 'Seq2'), (ChaseMinion, 'CM1'), (KillMinion, 'KM1')]]], (Retreat, 0.5, 'R1')]
+TREE = [(Selector, 'Sel1'), [(HitpointDaemon, 0.5, 'HealthCheck'), [(Selector, 'Sel2'), [(BuffDaemon, 2, 'BuffCheck'), [(Sequence, 'Seq1'), (Chase, 'Hero', 'ChaseHero'), (Kill, 'Hero', 'KillHero')]], [(Sequence, 'Seq2'), (Chase, 'Minion', 'ChaseMinion'), (Kill, 'Minion', 'KillMinion')]]], (Retreat, 0.5, 'Retreat')]

@@ -264,7 +264,7 @@ def clearShot(p1, p2, worldLines, worldPoints, agent):
   pathLine = Line(lineTuple=(p1,p2))
 
   # Check if clear
-  return pathLine.agentCanFollow(worldPointObjects, worldLineObjects, agentWidth=agent.getMaxRadius())
+  return pathLine.agentCanFollow(worldPointObjects, worldLineObjects, agentWidth=agent.getMaxRadius()+2)
 
 
 ################################################################################################
@@ -464,7 +464,7 @@ class Line(object):
     return False
 
   # Check if agent can follow line
-  def agentCanFollow(self, worldPoints, worldLines, agentWidth=AGENT_WIDTH):
+  def agentCanFollow(self, worldPoints, worldLines, agentWidth=AGENT_WIDTH+2):
     # Intersection with any world line is obviously unfollowable
     if self.intersectsAny(worldLines):
       return False

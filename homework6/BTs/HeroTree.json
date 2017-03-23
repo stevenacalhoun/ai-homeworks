@@ -1,25 +1,19 @@
 {
   "Selector-Sel1": {
-    "DodgeDaemon-DD1": {
-      "DodgeFire-DF1": []
-    },
-    "AOEDaemon-AOED1": {
-      "AOEFire-AOEF1": []
-    },
-    "HitpointDaemon-0.5-HP1": {
+    "HitpointDaemon-0.5-HealthCheck": {
       "Selector-Sel2": {
-        "BuffDaemon-2-BD1": {
+        "BuffDaemon-2-BuffCheck": {
           "Sequence-Seq1": {
-            "ChaseHero-CH1": [],
-            "KillHero-KH1": []
+            "Chase-Hero-ChaseHero": [],
+            "Kill-Hero-KillHero": []
           }
         },
         "Sequence-Seq2": {
-          "ChaseMinion-CM1": [],
-          "KillMinion-KM1": []
+          "Chase-Minion-ChaseMinion": [],
+          "Kill-Minion-KillMinion": []
         }
       }
     },
-    "Retreat-0.5-R1": []
+    "Retreat-0.5-Retreat": []
   }
 }
