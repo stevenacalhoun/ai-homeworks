@@ -38,8 +38,6 @@ class MyHero(Hero, BehaviorTree):
   def update(self, delta):
     Hero.update(self, delta)
     BehaviorTree.update(self, delta)
-    # writeText(self)
-    setText(self)
 
   def start(self):
     # Build the tree
@@ -55,17 +53,3 @@ class MyHero(Hero, BehaviorTree):
   def stop(self):
     Hero.stop(self)
     BehaviorTree.stop(self)
-
-def setText(hero):
-  hero.world.textLines = []
-  hero.world.textLines.append(hero.world.myfont.render("Health: " + str(hero.hitpoints), 0, (0,0,0)))
-  hero.world.textLines.append(hero.world.myfont.render("Level: " + str(hero.level), 0, (0,0,0)))
-  if '1' in hero.world.score:
-    hero.world.textLines.append(hero.world.myfont.render("Team 1 score: " + str(hero.world.score['1']), 0, (0,0,0)))
-  else:
-    hero.world.textLines.append(hero.world.myfont.render("Team 1 score: 0", 0, (0,0,0)))
-
-  if '2' in hero.world.score:
-    hero.world.textLines.append(hero.world.myfont.render("Team 2 score: " + str(hero.world.score['2']), 0, (0,0,0)))
-  else:
-    hero.world.textLines.append(hero.world.myfont.render("Team 2 score: 0", 0, (0,0,0)))

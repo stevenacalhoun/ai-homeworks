@@ -319,8 +319,7 @@ class Kill(BTNode):
 
   def shootAtTarget(self):
     if self.agent is not None and self.target is not None:
-      self.agent.turnToFace(self.target.getLocation())
-      self.agent.shoot()
+      leadShootTarget(self.agent, self.target)
 
 
 ##################
@@ -453,8 +452,31 @@ def shootWhileRunning(agent):
     if distance(agent.getLocation(), target.getLocation()) <= AREAEFFECTRANGE + target.getRadius():
       agent.areaEffect()
     else:
-      agent.turnToFace(target.getLocation())
-      agent.shoot()
+      leadShootTarget(agent, target)
   return
+
+def leadShootTarget(agent, target):
+  if target.moveTarget == None:
+    shootTarget = target.getLocation()
+  else:
+    offset = getTargetOffset(target.getLocation(), target.moveTarget)
+    shootTarget = (target.getLocation()[0]+offset[0], target.getLocation()[1]+offset[1])
+
+  agent.turnToFace(shootTarget)
+  agent.shoot()
+
+def getTargetOffset(start, end):
+  leadFactor = 5
+  vec = (end[0]-start[0],end[1]-start[1])
+  theta = math.atan(vec[1]/vec[0])
+
+  if theta < 0:
+    theta = theta + 360.0
+
+  rad = math.radians(theta)
+  normalizedDirection = (math.cos(rad), -math.sin(rad))
+  offset = (normalizedDirection[0]*leadFactor,normalizedDirection[1]*leadFactor)
+
+  return offset
 
 TREE = [(Selector, 'Sel1'), [(HitpointDaemon, 0.5, 'HealthCheck'), [(Selector, 'Sel2'), [(BuffDaemon, 2, 'BuffCheck'), [(Sequence, 'Seq1'), (Chase, 'Hero', 'ChaseHero'), (Kill, 'Hero', 'KillHero')]], [(Sequence, 'Seq2'), (Chase, 'Minion', 'ChaseMinion'), (Kill, 'Minion', 'KillMinion')]]], (Retreat, 0.5, 'Retreat')]

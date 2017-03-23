@@ -851,7 +851,8 @@ class GameWorld():
     self.camera = [0, 0]
     # unobstructed places
     self.destinations = {}
-    self.textLines = []
+    self.rightTextLines = []
+    self.leftTextLines = []
 
   def getPoints(self):
     return self.points
@@ -985,7 +986,8 @@ class GameWorld():
     for o in self.obstacles:
       o.draw(self.background)
     #pygame.display.flip()
-    multiLineWrite(self.textLines, self.screen, 10, 400)
+    multiLineWrite(self.leftTextLines, self.screen, 10, 400)
+    multiLineWrite(self.rightTextLines, self.screen, 800, 400)
 
   def handleEvents(self):
     events = pygame.event.get()

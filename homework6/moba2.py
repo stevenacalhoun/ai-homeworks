@@ -62,56 +62,56 @@ AREAEFFECTRANGE = 2
 
 class MOBABullet(Bullet):
 
-	### range: how far the bullet will travel before expiring
+  ### range: how far the bullet will travel before expiring
 
-	def __init__(self, position, orientation, world, image = SMALLBULLET, speed = SMALLBULLETSPEED, damage = SMALLBULLETDAMAGE, range = BULLETRANGE):
-		Bullet.__init__(self, position, orientation, world, image, speed, damage)
-		self.range = range
+  def __init__(self, position, orientation, world, image = SMALLBULLET, speed = SMALLBULLETSPEED, damage = SMALLBULLETDAMAGE, range = BULLETRANGE):
+    Bullet.__init__(self, position, orientation, world, image, speed, damage)
+    self.range = range
 
-	def update(self, delta):
-		Bullet.update(self, delta)
-		if self.distanceTraveled > self.range:
-			self.speed = (0, 0)
-			self.world.deleteBullet(self)
+  def update(self, delta):
+    Bullet.update(self, delta)
+    if self.distanceTraveled > self.range:
+      self.speed = (0, 0)
+      self.world.deleteBullet(self)
 
-	def collision(self, thing):
-		Bullet.collision(self, thing)
-		if isinstance(thing, Base) and (thing.getTeam() == None or thing.getTeam() != self.owner.getTeam()):
-			self.hit(thing)
-		elif isinstance(thing, Tower) and (thing.getTeam() == None or thing.getTeam() != self.owner.getTeam()):
-			self.hit(thing)
+  def collision(self, thing):
+    Bullet.collision(self, thing)
+    if isinstance(thing, Base) and (thing.getTeam() == None or thing.getTeam() != self.owner.getTeam()):
+      self.hit(thing)
+    elif isinstance(thing, Tower) and (thing.getTeam() == None or thing.getTeam() != self.owner.getTeam()):
+      self.hit(thing)
 
-	def hit(self, thing):
-		ret = Bullet.hit(self, thing)
-		if isinstance(thing, MOBAAgent) and (thing.getTeam() == None or thing.getTeam() != self.owner.getTeam()):
-			#Already dished damage to another agent, so just keep track of who did the damage
-			thing.lastDamagedBy = self.owner
-			ret = True
-			# Should the agent get some score? Heros score by shooting Heros
-			self.world.damageCaused(self.owner, thing, self.damage)
-		elif isinstance(thing, Base) and (thing.getTeam() == None or thing.getTeam() != self.owner.getTeam()):
-			thing.damage(self.damage)
-			ret = True
-		elif isinstance(thing, Tower) and (thing.getTeam() == None or thing.getTeam() != self.owner.getTeam()):
-			thing.damage(self.damage)
-			ret = True
-		return ret
+  def hit(self, thing):
+    ret = Bullet.hit(self, thing)
+    if isinstance(thing, MOBAAgent) and (thing.getTeam() == None or thing.getTeam() != self.owner.getTeam()):
+      #Already dished damage to another agent, so just keep track of who did the damage
+      thing.lastDamagedBy = self.owner
+      ret = True
+      # Should the agent get some score? Heros score by shooting Heros
+      self.world.damageCaused(self.owner, thing, self.damage)
+    elif isinstance(thing, Base) and (thing.getTeam() == None or thing.getTeam() != self.owner.getTeam()):
+      thing.damage(self.damage)
+      ret = True
+    elif isinstance(thing, Tower) and (thing.getTeam() == None or thing.getTeam() != self.owner.getTeam()):
+      thing.damage(self.damage)
+      ret = True
+    return ret
 
 ######################
 ### BigBullet
 
 class BigBullet(MOBABullet):
 
-	def __init__(self, position, orientation, world):
-		MOBABullet.__init__(self, position, orientation, world, BIGBULLET, BIGBULLETSPEED, BIGBULLETDAMAGE, BIGBULLETRANGE)
+  def __init__(self, position, orientation, world):
+    MOBABullet.__init__(self, position, orientation, world, BIGBULLET, BIGBULLETSPEED, BIGBULLETDAMAGE, BIGBULLETRANGE)
 
 ###########################
 ### SmallBullet
 
 class SmallBullet(MOBABullet):
 
-	def __init__(self, position, orientation, world):
-		MOBABullet.__init__(self, position, orientation, world, SMALLBULLET, SMALLBULLETSPEED, SMALLBULLETDAMAGE, BIGBULLETRANGE)
+  def __init__(self, position, orientation, world):
+    MOBABullet.__init__(self, position, orientation, world, SMALLBULLET, SMALLBULLETSPEED, SMALLBULLETDAMAGE, BIGBULLETRANGE)
 
 
 ###########################
@@ -119,16 +119,16 @@ class SmallBullet(MOBABullet):
 
 class TowerBullet(MOBABullet):
 
-	def __init__(self, position, orientation, world):
-		MOBABullet.__init__(self, position, orientation, world, TOWERBULLET, TOWERBULLETSPEED, TOWERBULLETDAMAGE, TOWERBULLETRANGE)
+  def __init__(self, position, orientation, world):
+    MOBABullet.__init__(self, position, orientation, world, TOWERBULLET, TOWERBULLETSPEED, TOWERBULLETDAMAGE, TOWERBULLETRANGE)
 
 ###########################
 ### BaseBullet
 
 class BaseBullet(MOBABullet):
 
-	def __init__(self, position, orientation, world):
-		MOBABullet.__init__(self, position, orientation, world, BASEBULLET, BASEBULLETSPEED, BASEBULLETDAMAGE, BASEBULLETRANGE)
+  def __init__(self, position, orientation, world):
+    MOBABullet.__init__(self, position, orientation, world, BASEBULLET, BASEBULLETSPEED, BASEBULLETDAMAGE, BASEBULLETRANGE)
 
 
 
@@ -140,120 +140,135 @@ class BaseBullet(MOBABullet):
 
 class MOBAAgent(VisionAgent):
 
-	### maxHitpoints: the maximum hitpoints the agent is allowed to have
-	### lastDamagedBy: the agent that last did damage to me.
-	### level: the level obtained by this agent. Level starts at 0.
+  ### maxHitpoints: the maximum hitpoints the agent is allowed to have
+  ### lastDamagedBy: the agent that last did damage to me.
+  ### level: the level obtained by this agent. Level starts at 0.
 
-	def __init__(self, position, orientation, world, image = NPC, speed = SPEED, viewangle = 360, hitpoints = HITPOINTS, firerate = FIRERATE, bulletclass = MOBABullet):
-		VisionAgent.__init__(self, image, position, orientation, speed, viewangle, world, hitpoints, firerate, bulletclass)
-		self.maxHitpoints = hitpoints
-		self.lastDamagedBy = None
-		self.level = 0
+  def __init__(self, position, orientation, world, image = NPC, speed = SPEED, viewangle = 360, hitpoints = HITPOINTS, firerate = FIRERATE, bulletclass = MOBABullet):
+    VisionAgent.__init__(self, image, position, orientation, speed, viewangle, world, hitpoints, firerate, bulletclass)
+    self.maxHitpoints = hitpoints
+    self.lastDamagedBy = None
+    self.level = 0
 
-	def start(self):
-		StateAgent.start(self)
-		self.world.computeFreeLocations(self)
+  def start(self):
+    StateAgent.start(self)
+    self.world.computeFreeLocations(self)
 
-	def collision(self, thing):
-		StateAgent.collision(self, thing)
-		# Agent dies if it hits an obstacle
-		if isinstance(thing, Obstacle):
-			self.die()
+  def collision(self, thing):
+    StateAgent.collision(self, thing)
+    # Agent dies if it hits an obstacle
+    if isinstance(thing, Obstacle):
+      self.die()
 
-	def getMaxHitpoints(self):
-		return self.maxHitpoints
+  def getMaxHitpoints(self):
+    return self.maxHitpoints
 
-	def getPossibleDestinations(self):
-		return self.world.getFreeLocations(self)
+  def getPossibleDestinations(self):
+    return self.world.getFreeLocations(self)
 
-	def die(self):
-		VisionAgent.die(self)
-		# Give a damage modifier
-		if self.lastDamagedBy is not None and isinstance(self.lastDamagedBy, MOBAAgent):
-			self.lastDamagedBy.creditKill(self)
+  def die(self):
+    VisionAgent.die(self)
+    # Give a damage modifier
+    if self.lastDamagedBy is not None and isinstance(self.lastDamagedBy, MOBAAgent):
+      self.lastDamagedBy.creditKill(self)
 
-	def creditKill(self, killed):
-		return None
+  def creditKill(self, killed):
+    return None
 
-	def getLevel(self):
-		return self.level
+  def getLevel(self):
+    return self.level
 
-	def shoot(self):
-		bullet = VisionAgent.shoot(self)
-		# If a bullet is spawned, increase its damage by agent's level
-		if bullet is not None:
-			bullet.damage = bullet.damage + self.level
-		return bullet
+  def shoot(self):
+    bullet = VisionAgent.shoot(self)
+    # If a bullet is spawned, increase its damage by agent's level
+    if bullet is not None:
+      bullet.damage = bullet.damage + self.level
+    return bullet
 
 #######################
 ### Hero
 
 class Hero(MOBAAgent):
 
-	### dodgeRate: how often the agent can dodge
-	### candodge: the agent can dodge now
-	### dodgeTimer: counting up until the agent can dodge again
-	### areaEffectDamage: how much damage the area effect attack does
-	### canareaeffect: the agent can use area effect attack now
-	### areaEffectRate: how often the agent can use area effect attack
-	### areaEffectTimer: counting up until the agent can use area effect attack
+  ### dodgeRate: how often the agent can dodge
+  ### candodge: the agent can dodge now
+  ### dodgeTimer: counting up until the agent can dodge again
+  ### areaEffectDamage: how much damage the area effect attack does
+  ### canareaeffect: the agent can use area effect attack now
+  ### areaEffectRate: how often the agent can use area effect attack
+  ### areaEffectTimer: counting up until the agent can use area effect attack
 
-	def __init__(self, position, orientation, world, image = AGENT, speed = SPEED, viewangle = 360, hitpoints = HEROHITPOINTS, firerate = FIRERATE, bulletclass = BigBullet, dodgerate = DODGERATE, areaeffectrate = AREAEFFECTRATE, areaeffectdamage = AREAEFFECTDAMAGE):
-		MOBAAgent.__init__(self, position, orientation, world, image, speed, viewangle, hitpoints, firerate, bulletclass)
-		self.dodgeRate = dodgerate
-		self.dodgeTimer = 0
-		self.candodge = True
-		self.canareaeffect = True
-		self.areaEffectRate = areaeffectrate
-		self.areaEffectDamage = areaeffectdamage
-		self.areaEffectTimer = 0
+  def __init__(self, position, orientation, world, image = AGENT, speed = SPEED, viewangle = 360, hitpoints = HEROHITPOINTS, firerate = FIRERATE, bulletclass = BigBullet, dodgerate = DODGERATE, areaeffectrate = AREAEFFECTRATE, areaeffectdamage = AREAEFFECTDAMAGE):
+    MOBAAgent.__init__(self, position, orientation, world, image, speed, viewangle, hitpoints, firerate, bulletclass)
+    self.dodgeRate = dodgerate
+    self.dodgeTimer = 0
+    self.candodge = True
+    self.canareaeffect = True
+    self.areaEffectRate = areaeffectrate
+    self.areaEffectDamage = areaeffectdamage
+    self.areaEffectTimer = 0
 
-	def update(self, delta = 0):
-		MOBAAgent.update(self, delta)
-		if self.candodge == False:
-			self.dodgeTimer = self.dodgeTimer + 1
-			if self.dodgeTimer >= self.dodgeRate:
-				self.candodge = True
-				self.dodgeTimer = 0
-		if self.canareaeffect == False:
-			self.areaEffectTimer = self.areaEffectTimer + 1
-			if self.areaEffectTimer >= self.areaEffectRate:
-				self.canareaeffect = True
-				self.areaEffectTimer = 0
+  def update(self, delta = 0):
+    setText(self)
+    MOBAAgent.update(self, delta)
+    if self.candodge == False:
+      self.dodgeTimer = self.dodgeTimer + 1
+      if self.dodgeTimer >= self.dodgeRate:
+        self.candodge = True
+        self.dodgeTimer = 0
+    if self.canareaeffect == False:
+      self.areaEffectTimer = self.areaEffectTimer + 1
+      if self.areaEffectTimer >= self.areaEffectRate:
+        self.canareaeffect = True
+        self.areaEffectTimer = 0
 
-	def dodge(self, angle = None):
-		if self.candodge:
-			if angle == None:
-				angle = corerandom.uniform(0, 360)
-			vector = (math.cos(math.radians(angle)), -math.sin(math.radians(angle)))
-			#self.rect = self.rect.move(vector[0]*self.getRadius()*1.5, vector[1]*self.getRadius()*1.5)
-			self.move((vector[0]*self.getRadius()*1.5, vector[1]*self.getRadius()*1.5))
-			self.candodge = False
+  def dodge(self, angle = None):
+    if self.candodge:
+      if angle == None:
+        angle = corerandom.uniform(0, 360)
+      vector = (math.cos(math.radians(angle)), -math.sin(math.radians(angle)))
+      #self.rect = self.rect.move(vector[0]*self.getRadius()*1.5, vector[1]*self.getRadius()*1.5)
+      self.move((vector[0]*self.getRadius()*1.5, vector[1]*self.getRadius()*1.5))
+      self.candodge = False
 
-	def areaEffect(self):
-		if self.canareaeffect:
-			self.canareaeffect = False
-			pygame.draw.circle(self.world.background, (255, 0, 0), (int(self.getLocation()[0]), int(self.getLocation()[1])), int(self.getRadius()*2), 1)
-			for x in self.world.getEnemyNPCs(self.getTeam()) + self.world.getEnemyBases(self.getTeam()) + self.world.getEnemyTowers(self.getTeam()):
-				if distance(self.getLocation(), x.getLocation()) < (self.getRadius()*AREAEFFECTRANGE)+(x.getRadius()):
-					x.damage(self.areaEffectDamage + self.level)
-					x.lastDamagedBy = self
-					self.world.damageCaused(self, x, self.areaEffectDamage)
-			return True
-		return False
+  def areaEffect(self):
+    if self.canareaeffect:
+      self.canareaeffect = False
+      pygame.draw.circle(self.world.background, (255, 0, 0), (int(self.getLocation()[0]), int(self.getLocation()[1])), int(self.getRadius()*2), 1)
+      for x in self.world.getEnemyNPCs(self.getTeam()) + self.world.getEnemyBases(self.getTeam()) + self.world.getEnemyTowers(self.getTeam()):
+        if distance(self.getLocation(), x.getLocation()) < (self.getRadius()*AREAEFFECTRANGE)+(x.getRadius()):
+          x.damage(self.areaEffectDamage + self.level)
+          x.lastDamagedBy = self
+          self.world.damageCaused(self, x, self.areaEffectDamage)
+      return True
+    return False
 
-	def creditKill(self, killed):
-		MOBAAgent.creditKill(self, killed)
-		self.level = self.level + 1
-		self.maxHitpoints = self.maxHitpoints + 1
-		return None
+  def creditKill(self, killed):
+    MOBAAgent.creditKill(self, killed)
+    self.level = self.level + 1
+    self.maxHitpoints = self.maxHitpoints + 1
+    return None
 
 
-	def canDodge(self):
-		return self.candodge
+  def canDodge(self):
+    return self.candodge
 
-	def canAreaEffect(self):
-		return self.canareaeffect
+  def canAreaEffect(self):
+    return self.canareaeffect
+
+def setText(hero):
+  lines = []
+  lines.append(hero.world.myfont.render("Health: " + str(hero.hitpoints), 0, (0,0,0)))
+  lines.append(hero.world.myfont.render("Level: " + str(hero.level), 0, (0,0,0)))
+  if hero.getTeam() in hero.world.score:
+    lines.append(hero.world.myfont.render("Team " + str(hero.getTeam()) + " score: " + str(hero.world.score[hero.getTeam()]), 0, (0,0,0)))
+  else:
+    lines.append(hero.world.myfont.render("Team " + str(hero.getTeam()) + " score: 0", 0, (0,0,0)))
+
+  if hero.getTeam() == 1:
+    hero.world.leftTextLines = lines
+  else:
+    hero.world.rightTextLines = lines
 
 ######################
 ### Minion
@@ -263,8 +278,8 @@ class Hero(MOBAAgent):
 class Minion(MOBAAgent):
 
 
-	def __init__(self, position, orientation, world, image = NPC, speed = SPEED, viewangle = 360, hitpoints = HITPOINTS, firerate = FIRERATE, bulletclass = MOBABullet):
-		MOBAAgent.__init__(self, position, orientation, world, image, speed, viewangle, hitpoints, firerate, bulletclass)
+  def __init__(self, position, orientation, world, image = NPC, speed = SPEED, viewangle = 360, hitpoints = HITPOINTS, firerate = FIRERATE, bulletclass = MOBABullet):
+    MOBAAgent.__init__(self, position, orientation, world, image, speed, viewangle, hitpoints, firerate, bulletclass)
 
 
 
@@ -282,136 +297,136 @@ class Minion(MOBAAgent):
 
 class Base(Mover):
 
-	### team: the name of the team owning the base
-	### hitpoints: how much damage the base can withstand
-	### nav: a Navigator that will be cloned and given to any NPCs spawned.
-	### buildTimer: timer for how often a minion can be built
-	### buildRate: how often a minion can be built
-	### minionType: type of minion to build
-	### heroType: type of hero to build
-	### bulletclass: type of bullet used
-	### firerate: how often the tower can fire
-	### firetimer: time lapsed since last fire
+  ### team: the name of the team owning the base
+  ### hitpoints: how much damage the base can withstand
+  ### nav: a Navigator that will be cloned and given to any NPCs spawned.
+  ### buildTimer: timer for how often a minion can be built
+  ### buildRate: how often a minion can be built
+  ### minionType: type of minion to build
+  ### heroType: type of hero to build
+  ### bulletclass: type of bullet used
+  ### firerate: how often the tower can fire
+  ### firetimer: time lapsed since last fire
 
-	def __init__(self, image, position, world, team = None, minionType = Minion, heroType = Hero, buildrate = BUILDRATE, hitpoints = BASEHITPOINTS, firerate = BASEFIRERATE, bulletclass = BaseBullet):
-		Mover.__init__(self, image, position, 0, 0, world)
-		self.team = team
-		self.hitpoints = hitpoints
-		self.buildTimer = buildrate
-		self.buildRate = buildrate
-		self.nav = None
-		self.minionType = minionType
-		self.firerate = firerate
-		self.firetimer = 0
-		self.canfire = True
-		self.bulletclass = bulletclass
-		self.heroType = heroType
+  def __init__(self, image, position, world, team = None, minionType = Minion, heroType = Hero, buildrate = BUILDRATE, hitpoints = BASEHITPOINTS, firerate = BASEFIRERATE, bulletclass = BaseBullet):
+    Mover.__init__(self, image, position, 0, 0, world)
+    self.team = team
+    self.hitpoints = hitpoints
+    self.buildTimer = buildrate
+    self.buildRate = buildrate
+    self.nav = None
+    self.minionType = minionType
+    self.firerate = firerate
+    self.firetimer = 0
+    self.canfire = True
+    self.bulletclass = bulletclass
+    self.heroType = heroType
 
-	def setNavigator(self, nav):
-		self.nav = nav
+  def setNavigator(self, nav):
+    self.nav = nav
 
-	def getTeam(self):
-		return self.team
+  def getTeam(self):
+    return self.team
 
-	def setTeam(self, team):
-		self.team = team
+  def setTeam(self, team):
+    self.team = team
 
-	### Spawn an agent.
-	### type: name of agent class. Must be RTSAgent or subclass thereof
-	### angle: specifies where around the base the agent will be spawned
-	def spawnNPC(self, type, angle = 0.0):
-		agent = None
-		n = len(self.world.getNPCsForTeam(self.getTeam()))
-		if n < MAXSPAWN:
-			vector = (math.cos(math.radians(angle)), -math.sin(math.radians(angle)))
-			agent = type(self.getLocation(), 0, self.world)
-			pos = (vector[0]*(self.getRadius()+agent.getRadius())/2.0,vector[1]*(self.getRadius()+agent.getRadius())/2.0)
-			#agent.rect = agent.rect.move(pos)
-			agent.move(pos)
-			if self.nav is not None:
-				newnav = cloneAStarNavigator(self.nav)
-				agent.setNavigator(newnav)
-			agent.setTeam(self.team)
-			agent.setOwner(self)
-			self.world.addNPC(agent)
-			agent.start()
-		return agent
+  ### Spawn an agent.
+  ### type: name of agent class. Must be RTSAgent or subclass thereof
+  ### angle: specifies where around the base the agent will be spawned
+  def spawnNPC(self, type, angle = 0.0):
+    agent = None
+    n = len(self.world.getNPCsForTeam(self.getTeam()))
+    if n < MAXSPAWN:
+      vector = (math.cos(math.radians(angle)), -math.sin(math.radians(angle)))
+      agent = type(self.getLocation(), 0, self.world)
+      pos = (vector[0]*(self.getRadius()+agent.getRadius())/2.0,vector[1]*(self.getRadius()+agent.getRadius())/2.0)
+      #agent.rect = agent.rect.move(pos)
+      agent.move(pos)
+      if self.nav is not None:
+        newnav = cloneAStarNavigator(self.nav)
+        agent.setNavigator(newnav)
+      agent.setTeam(self.team)
+      agent.setOwner(self)
+      self.world.addNPC(agent)
+      agent.start()
+    return agent
 
-	def update(self, delta):
-		Mover.update(self, delta)
-		self.buildTimer = self.buildTimer + 1
-		if self.buildTimer >= self.buildRate:
-			for x in range(SPAWNNUM):
-				angle = corerandom.randint(0, 360)
-				self.spawnNPC(self.minionType, angle)
-			self.buildTimer = 0
-		if self.canfire == False:
-			self.firetimer = self.firetimer + 1
-			if self.firetimer >= self.firerate:
-				self.canfire = True
-				self.firetimer = 0
-		if self.canfire and len(self.world.getTowersForTeam(self.getTeam())) == 0:
-			targets = []
-			minions = []
-			heros = []
-			for npc in self.world.npcs + [self.world.agent]:
-				if npc.getTeam() == None or npc.getTeam() != self.getTeam() and distance(self.getLocation(), npc.getLocation()) < BASEBULLETRANGE:
-					hit = rayTraceWorld(self.getLocation(), npc.getLocation(), self.world.getLines())
-					if hit == None:
-						if isinstance(npc, Minion):
-							minions.append(npc)
-						elif isinstance(npc, Hero):
-							heros.append(npc)
-			minions = sorted(minions, key=lambda x: distance(self.getLocation(), x.getLocation()))
-			heros = sorted(heros, key=lambda x: distance(self.getLocation(), x.getLocation()))
-			targets = minions + heros
-			if len(targets) > 0:
-				self.turnToFace(targets[0].getLocation())
-				self.shoot()
-		friends = self.world.getNPCsForTeam(self.getTeam())
-		# Look for my hero
-		hero = None
-		for a in friends:
-			if isinstance(a, Hero):
-				hero = a
-				break
-		if hero == None:
-			# spawn new hero
-			self.spawnNPC(self.heroType)
+  def update(self, delta):
+    Mover.update(self, delta)
+    self.buildTimer = self.buildTimer + 1
+    if self.buildTimer >= self.buildRate:
+      for x in range(SPAWNNUM):
+        angle = corerandom.randint(0, 360)
+        self.spawnNPC(self.minionType, angle)
+      self.buildTimer = 0
+    if self.canfire == False:
+      self.firetimer = self.firetimer + 1
+      if self.firetimer >= self.firerate:
+        self.canfire = True
+        self.firetimer = 0
+    if self.canfire and len(self.world.getTowersForTeam(self.getTeam())) == 0:
+      targets = []
+      minions = []
+      heros = []
+      for npc in self.world.npcs + [self.world.agent]:
+        if npc.getTeam() == None or npc.getTeam() != self.getTeam() and distance(self.getLocation(), npc.getLocation()) < BASEBULLETRANGE:
+          hit = rayTraceWorld(self.getLocation(), npc.getLocation(), self.world.getLines())
+          if hit == None:
+            if isinstance(npc, Minion):
+              minions.append(npc)
+            elif isinstance(npc, Hero):
+              heros.append(npc)
+      minions = sorted(minions, key=lambda x: distance(self.getLocation(), x.getLocation()))
+      heros = sorted(heros, key=lambda x: distance(self.getLocation(), x.getLocation()))
+      targets = minions + heros
+      if len(targets) > 0:
+        self.turnToFace(targets[0].getLocation())
+        self.shoot()
+    friends = self.world.getNPCsForTeam(self.getTeam())
+    # Look for my hero
+    hero = None
+    for a in friends:
+      if isinstance(a, Hero):
+        hero = a
+        break
+    if hero == None:
+      # spawn new hero
+      self.spawnNPC(self.heroType)
 
-	def damage(self, amount):
-		if len(self.world.getTowersForTeam(self.getTeam())) == 0:
-			self.hitpoints = self.hitpoints - amount
-			if self.hitpoints <= 0:
-				self.die()
-
-
-	def die(self):
-		Mover.die(self)
-		print "base dies", self
-		self.world.deleteBase(self)
-
-	def shoot(self):
-		if self.canfire:
-			bullet = self.bulletclass(self.rect.center, self.orientation, self.world)
-			bullet.setOwner(self)
-			self.world.addBullet(bullet)
-			self.canfire = False
-			return bullet
-		else:
-			return None
-
-	def collision(self, thing):
-		Mover.collision(self, thing)
-		if isinstance(thing, Hero):
-			agent = thing
-			if agent.getTeam() == self.getTeam():
-				# Heal
-				agent.hitpoints = agent.maxHitpoints
+  def damage(self, amount):
+    if len(self.world.getTowersForTeam(self.getTeam())) == 0:
+      self.hitpoints = self.hitpoints - amount
+      if self.hitpoints <= 0:
+        self.die()
 
 
-	def getHitpoints(self):
-		return self.hitpoints
+  def die(self):
+    Mover.die(self)
+    print "base dies", self
+    self.world.deleteBase(self)
+
+  def shoot(self):
+    if self.canfire:
+      bullet = self.bulletclass(self.rect.center, self.orientation, self.world)
+      bullet.setOwner(self)
+      self.world.addBullet(bullet)
+      self.canfire = False
+      return bullet
+    else:
+      return None
+
+  def collision(self, thing):
+    Mover.collision(self, thing)
+    if isinstance(thing, Hero):
+      agent = thing
+      if agent.getTeam() == self.getTeam():
+        # Heal
+        agent.hitpoints = agent.maxHitpoints
+
+
+  def getHitpoints(self):
+    return self.hitpoints
 
 
 #####################
@@ -421,75 +436,75 @@ class Base(Mover):
 
 class Tower(Mover):
 
-	### team: team that the tower is on
-	### bulletclass: type of bullet used
-	### firerate: how often the tower can fire
-	### firetimer: time lapsed since last fire
+  ### team: team that the tower is on
+  ### bulletclass: type of bullet used
+  ### firerate: how often the tower can fire
+  ### firetimer: time lapsed since last fire
 
-	def __init__(self, image, position, world, team = None, hitpoints = TOWERHITPOINTS, firerate = TOWERFIRERATE, bulletclass = TowerBullet):
-		Mover.__init__(self, image, position, 0, 0, world)
-		self.team = team
-		self.hitpoints = hitpoints
-		self.firerate = firerate
-		self.firetimer = 0
-		self.canfire = True
-		self.bulletclass = bulletclass
+  def __init__(self, image, position, world, team = None, hitpoints = TOWERHITPOINTS, firerate = TOWERFIRERATE, bulletclass = TowerBullet):
+    Mover.__init__(self, image, position, 0, 0, world)
+    self.team = team
+    self.hitpoints = hitpoints
+    self.firerate = firerate
+    self.firetimer = 0
+    self.canfire = True
+    self.bulletclass = bulletclass
 
-	def getTeam(self):
-		return self.team
+  def getTeam(self):
+    return self.team
 
-	def setTeam(self, team):
-		self.team = team
+  def setTeam(self, team):
+    self.team = team
 
 
-	def damage(self, amount):
-		self.hitpoints = self.hitpoints - amount
-		if self.hitpoints <= 0:
-			self.die()
+  def damage(self, amount):
+    self.hitpoints = self.hitpoints - amount
+    if self.hitpoints <= 0:
+      self.die()
 
-	def die(self):
-		Mover.die(self)
-		print "tower dies", self
-		self.world.deleteTower(self)
+  def die(self):
+    Mover.die(self)
+    print "tower dies", self
+    self.world.deleteTower(self)
 
-	def update(self, delta):
-		Mover.update(self, delta)
-		if self.canfire == False:
-			self.firetimer = self.firetimer + 1
-			if self.firetimer >= self.firerate:
-				self.canfire = True
-				self.firetimer = 0
-		if self.canfire:
-			targets = []
-			minions = []
-			heros = []
-			for npc in self.world.npcs + [self.world.agent]:
-				if npc.getTeam() == None or npc.getTeam() != self.getTeam() and distance(self.getLocation(), npc.getLocation()) < TOWERBULLETRANGE:
-					hit = rayTraceWorld(self.getLocation(), npc.getLocation(), self.world.getLines())
-					if hit == None:
-						if isinstance(npc, Minion):
-							minions.append(npc)
-						elif isinstance(npc, Hero):
-							heros.append(npc)
-			minions = sorted(minions, key=lambda x: distance(self.getLocation(), x.getLocation()))
-			heros = sorted(heros, key=lambda x: distance(self.getLocation(), x.getLocation()))
-			targets = minions + heros
-			if len(targets) > 0:
-				self.turnToFace(targets[0].getLocation())
-				self.shoot()
+  def update(self, delta):
+    Mover.update(self, delta)
+    if self.canfire == False:
+      self.firetimer = self.firetimer + 1
+      if self.firetimer >= self.firerate:
+        self.canfire = True
+        self.firetimer = 0
+    if self.canfire:
+      targets = []
+      minions = []
+      heros = []
+      for npc in self.world.npcs + [self.world.agent]:
+        if npc.getTeam() == None or npc.getTeam() != self.getTeam() and distance(self.getLocation(), npc.getLocation()) < TOWERBULLETRANGE:
+          hit = rayTraceWorld(self.getLocation(), npc.getLocation(), self.world.getLines())
+          if hit == None:
+            if isinstance(npc, Minion):
+              minions.append(npc)
+            elif isinstance(npc, Hero):
+              heros.append(npc)
+      minions = sorted(minions, key=lambda x: distance(self.getLocation(), x.getLocation()))
+      heros = sorted(heros, key=lambda x: distance(self.getLocation(), x.getLocation()))
+      targets = minions + heros
+      if len(targets) > 0:
+        self.turnToFace(targets[0].getLocation())
+        self.shoot()
 
-	def shoot(self):
-		if self.canfire:
-			bullet = self.bulletclass(self.rect.center, self.orientation, self.world)
-			bullet.setOwner(self)
-			self.world.addBullet(bullet)
-			self.canfire = False
-			return bullet
-		else:
-			return None
+  def shoot(self):
+    if self.canfire:
+      bullet = self.bulletclass(self.rect.center, self.orientation, self.world)
+      bullet.setOwner(self)
+      self.world.addBullet(bullet)
+      self.canfire = False
+      return bullet
+    else:
+      return None
 
-	def getHitpoints(self):
-		return self.hitpoints
+  def getHitpoints(self):
+    return self.hitpoints
 
 
 ##############################################
@@ -497,115 +512,115 @@ class Tower(Mover):
 
 class MOBAWorld(GatedWorld):
 
-	### bases: the bases (one per team)
-	### towers: the towers (many per team)
-	### score: dictionary with team symbol as key and team score as value. Score is amount of damage done to the hero.
+  ### bases: the bases (one per team)
+  ### towers: the towers (many per team)
+  ### score: dictionary with team symbol as key and team score as value. Score is amount of damage done to the hero.
 
-	def __init__(self, seed, worlddimensions, screendimensions, numgates, alarm):
-		GatedWorld.__init__(self, seed, worlddimensions, screendimensions, numgates, alarm)
-		self.bases = []
-		self.towers = []
-		self.score = {}
+  def __init__(self, seed, worlddimensions, screendimensions, numgates, alarm):
+    GatedWorld.__init__(self, seed, worlddimensions, screendimensions, numgates, alarm)
+    self.bases = []
+    self.towers = []
+    self.score = {}
 
-	def addBase(self, base):
-		self.bases.append(base)
-		if self.sprites is not None:
-			self.sprites.add(base)
-		self.movers.append(base)
+  def addBase(self, base):
+    self.bases.append(base)
+    if self.sprites is not None:
+      self.sprites.add(base)
+    self.movers.append(base)
 
-	def deleteBase(self, base):
-		if base in self.bases:
-			self.bases.remove(base)
-			if self.sprites is not None:
-				self.sprites.remove(base)
-			self.movers.remove(base)
-
-
-	def addTower(self, tower):
-		self.towers.append(tower)
-		if self.sprites is not None:
-			self.sprites.add(tower)
-		self.movers.append(tower)
-
-	def deleteTower(self, tower):
-		if tower in self.towers:
-			self.towers.remove(tower)
-			if self.sprites is not None:
-				self.sprites.remove(tower)
-			self.movers.remove(tower)
-
-	def getBases(self):
-		return list(self.bases)
-
-	def getBaseForTeam(self, team):
-		for b in self.bases:
-			if b.getTeam() == team:
-				return b
-		return None
-
-	def getEnemyBases(self, myteam):
-		bases = []
-		for b in self.bases:
-			if b.getTeam() != myteam:
-				bases.append(b)
-		return bases
-
-	def getTowers(self):
-		return list(self.towers)
-
-	def getTowersForTeam(self, team):
-		towers = []
-		for t in self.towers:
-			if t.getTeam() == team:
-				towers.append(t)
-		return towers
-
-	def getEnemyTowers(self, myteam):
-		towers = []
-		for t in self.towers:
-			if t.getTeam() != myteam:
-				towers.append(t)
-		return towers
-
-	def getNPCsForTeam(self, team):
-		npcs = []
-		for x in self.getNPCs():
-			if x.getTeam() == team:
-				npcs.append(x)
-		return npcs
-
-	def getEnemyNPCs(self, myteam):
-		npcs = []
-		for x in self.getNPCs():
-			if x.getTeam() != myteam:
-				npcs.append(x)
-		return npcs
+  def deleteBase(self, base):
+    if base in self.bases:
+      self.bases.remove(base)
+      if self.sprites is not None:
+        self.sprites.remove(base)
+      self.movers.remove(base)
 
 
-	def doKeyDown(self, key):
-		GatedWorld.doKeyDown(self, key)
-		if key == 106: #'j'
-			if isinstance(self.agent, Hero):
-				self.agent.dodge()
-		elif key == 97: #'a'
-			if isinstance(self.agent, Hero):
-				self.agent.areaEffect()
+  def addTower(self, tower):
+    self.towers.append(tower)
+    if self.sprites is not None:
+      self.sprites.add(tower)
+    self.movers.append(tower)
 
-	def damageCaused(self, damager, damagee, amount):
-		if isinstance(damager, Hero) and isinstance(damagee, Hero):
-			self.addToScore(damager.getTeam(), amount)
+  def deleteTower(self, tower):
+    if tower in self.towers:
+      self.towers.remove(tower)
+      if self.sprites is not None:
+        self.sprites.remove(tower)
+      self.movers.remove(tower)
+
+  def getBases(self):
+    return list(self.bases)
+
+  def getBaseForTeam(self, team):
+    for b in self.bases:
+      if b.getTeam() == team:
+        return b
+    return None
+
+  def getEnemyBases(self, myteam):
+    bases = []
+    for b in self.bases:
+      if b.getTeam() != myteam:
+        bases.append(b)
+    return bases
+
+  def getTowers(self):
+    return list(self.towers)
+
+  def getTowersForTeam(self, team):
+    towers = []
+    for t in self.towers:
+      if t.getTeam() == team:
+        towers.append(t)
+    return towers
+
+  def getEnemyTowers(self, myteam):
+    towers = []
+    for t in self.towers:
+      if t.getTeam() != myteam:
+        towers.append(t)
+    return towers
+
+  def getNPCsForTeam(self, team):
+    npcs = []
+    for x in self.getNPCs():
+      if x.getTeam() == team:
+        npcs.append(x)
+    return npcs
+
+  def getEnemyNPCs(self, myteam):
+    npcs = []
+    for x in self.getNPCs():
+      if x.getTeam() != myteam:
+        npcs.append(x)
+    return npcs
 
 
-	def addToScore(self, team, amount):
-		if team is not None:
-			if team not in self.score.keys():
-				self.score[team] = 0
-			self.score[team] = self.score[team] + amount
-			print "Score", self.score
+  def doKeyDown(self, key):
+    GatedWorld.doKeyDown(self, key)
+    if key == 106: #'j'
+      if isinstance(self.agent, Hero):
+        self.agent.dodge()
+    elif key == 97: #'a'
+      if isinstance(self.agent, Hero):
+        self.agent.areaEffect()
 
-	def getScore(self, team):
-		if team is not None:
-			if team not in self.score.keys():
-				self.score[team] = 0
-			return self.score[team]
-		return 0
+  def damageCaused(self, damager, damagee, amount):
+    if isinstance(damager, Hero) and isinstance(damagee, Hero):
+      self.addToScore(damager.getTeam(), amount)
+
+
+  def addToScore(self, team, amount):
+    if team is not None:
+      if team not in self.score.keys():
+        self.score[team] = 0
+      self.score[team] = self.score[team] + amount
+      print "Score", self.score
+
+  def getScore(self, team):
+    if team is not None:
+      if team not in self.score.keys():
+        self.score[team] = 0
+      return self.score[team]
+    return 0
