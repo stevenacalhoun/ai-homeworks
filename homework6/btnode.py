@@ -65,7 +65,7 @@ class BTNode(object):
   def execute(self, delta = 0):
 
     # print str(self.agent.getTeam()) + ": execute", self.id
-    # print "execute", self.id
+    print "execute", self.id
 
     if self.first:
       self.enter()

@@ -227,7 +227,7 @@ class Chase(BTNode):
     drawDodgePositions(self.agent, [dodgeLocationLeft, dodgeLocationRight])
 
     # Have an advantage
-    if levelAdvantage(self.agent, 2):
+    if levelAdvantage(self.agent, 2) and self.targetType != "Hero":
       print "exec", self.id, "fail"
       self.reset()
       return False
@@ -451,7 +451,6 @@ def shouldDodge(agent):
 def handleBullet(agent):
   bullet = shouldDodge(agent)
   if bullet:
-    print "Need to dodge"
     smartDodge(agent, bullet)
     return True
 
@@ -460,8 +459,11 @@ def handleBullet(agent):
 def smartDodge(agent, bullet):
   bulletVector = (agent.getLocation()[0] - bullet.position[0], agent.getLocation()[1] - bullet.position[1])
 
-  leftDodgeAngle, rightDodgeAngle = getDodgeAngle(agent, inComingVector=bulletVector)
-  dodgeLocationLeft, dodgeLocationRight = getDodgePositions(agent, inComingVector=bulletVector)
+  # leftDodgeAngle, rightDodgeAngle = getDodgeAngle(agent, inComingVector=bulletVector)
+  # dodgeLocationLeft, dodgeLocationRight = getDodgePositions(agent, inComingVector=bulletVector)
+
+  leftDodgeAngle, rightDodgeAngle = getDodgeAngle(agent)
+  dodgeLocationLeft, dodgeLocationRight = getDodgePositions(agent)
 
   drawDodgePositions(agent, [dodgeLocationLeft,dodgeLocationRight])
   # a = None
@@ -530,9 +532,8 @@ def getDodgeAngle(agent, inComingVector=None):
 def collisionFree(agent,position):
   # Check each obstacle line
   for line in agent.world.getLines():
-
     # If any line is too close to the agent, then we can't jump to this position
-    if minimumDistance(line, position) < (AGENT_WIDTH/2):
+    if minimumDistance(line, position) < (agent.getRadius()*2):
       return False
 
   return True
