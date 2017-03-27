@@ -156,6 +156,10 @@ class Retreat(BTNode):
     self.agent.navigateTo(self.agent.world.getBaseForTeam(self.agent.getTeam()).getLocation())
 
   def execute(self, delta = 0):
+    shootWhileRunning(self.agent)
+    handleBullet(self.agent)
+    handleAOEFire(self.agent)
+
     ret = BTNode.execute(self, delta)
     if self.agent.getHitpoints() == self.agent.getMaxHitpoints():
       # Exection succeeds
@@ -222,6 +226,14 @@ class Chase(BTNode):
     shootWhileRunning(self.agent)
     handleBullet(self.agent)
     handleAOEFire(self.agent)
+
+    dodgeLocationLeft, dodgeLocationRight = getDodgePositions(self.agent)
+    drawDodgePositions(self.agent, [dodgeLocationLeft, dodgeLocationRight])
+
+    # Have an advantage
+    if levelAdvantage(self.agent, 2):
+      print "exec", self.id, "fail"
+      return False
 
     ret = BTNode.execute(self, delta)
     if self.target == None or self.target.isAlive() == False:
@@ -298,9 +310,12 @@ class Kill(BTNode):
       self.target = best
 
   def execute(self, delta = 0):
-    shootWhileRunning(self.agent)
+    # shootWhileRunning(self.agent)
     handleBullet(self.agent)
     handleAOEFire(self.agent)
+
+    dodgeLocationLeft, dodgeLocationRight = getDodgePositions(self.agent)
+    drawDodgePositions(self.agent, [dodgeLocationLeft, dodgeLocationRight])
 
     ret = BTNode.execute(self, delta)
     if self.target == None or distance(self.agent.getLocation(), self.target.getLocation()) > BIGBULLETRANGE:
@@ -382,12 +397,7 @@ class BuffDaemon(BTNode):
     ret = BTNode.execute(self, delta)
     hero = None
     # Get a reference to the enemy hero
-    enemies = self.agent.world.getEnemyNPCs(self.agent.getTeam())
-    for e in enemies:
-      if isinstance(e, Hero):
-        hero = e
-        break
-    if hero == None or self.agent.level <= hero.level + self.advantage:
+    if levelAdvantage(self.agent, self.advantage):
       # fail check
       print "exec", self.id, "fail"
       return False
@@ -396,12 +406,25 @@ class BuffDaemon(BTNode):
       return self.getChild(0).execute(delta)
     return ret
 
+def levelAdvantage(agent, advantage):
+  hero = None
+  # Get a reference to the enemy hero
+  enemies = agent.world.getEnemyNPCs(agent.getTeam())
+  for e in enemies:
+    if isinstance(e, Hero):
+      hero = e
+      break
+    return hero != None and agent.level > hero.level + advantage
+
+# Bullet is nearby
 def nearbyBullet(agent):
+  # Get all visible bullets
   visbleBullets = agent.getVisibleType(Bullet)
   bulletNear = False
 
+  # Check all visible bullets
   for bullet in visbleBullets:
-    if bullet.owner.getTeam() != agent.getTeam() and distance(agent.getLocation(), bullet.getLocation()) < 100:
+    if bullet.owner.getTeam() != agent.getTeam() and distance(agent.getLocation(), bullet.getLocation()) < 40:
       return bullet
 
   return None
@@ -414,44 +437,103 @@ def shouldDodge(agent):
 def handleBullet(agent):
   bullet = shouldDodge(agent)
   if bullet:
+    print "Need to dodge"
     smartDodge(agent, bullet)
     return True
 
   return False
 
 def smartDodge(agent, bullet):
-  bulletVector = normalize((agent.getLocation()[0] - bullet.position[0], agent.getLocation()[1] - bullet.position[1]))
+  bulletVector = (agent.getLocation()[0] - bullet.position[0], agent.getLocation()[1] - bullet.position[1])
 
-  leftDodge = (-bulletVector[1], bulletVector[0])
-  rightDodge = (bulletVector[1], -bulletVector[0])
+  leftDodgeAngle, rightDodgeAngle = getDodgeAngle(agent, inComingVector=bulletVector)
+  dodgeLocationLeft, dodgeLocationRight = getDodgePositions(agent, inComingVector=bulletVector)
 
-  if checkDodgeVector(agent, leftDodge):
-    agent.dodge(angle=getAngleVector(leftDodge))
-  elif checkDodgeVector(agent, rightDodge):
-    agent.dodge(angle=getAngleVector(rightDodge))
+  drawDodgePositions(agent, [dodgeLocationLeft,dodgeLocationRight])
+  # a = None
+  # while a == None:
+  #   a = raw_input("Pausing: ")
+
+  bestPosition = dodgeLocationLeft
+  bestAngle = leftDodgeAngle
+
+  secondaryPosition = dodgeLocationRight
+  secondaryAngle = rightDodgeAngle
+
+  if agent.moveTarget != None:
+    moveVector = (agent.moveTarget[0] - agent.getLocation()[0], agent.moveTarget[1] - agent.getLocation()[1])
+    currentMoveAngle = getAngleVector(moveVector)
+
+    bestAngle = closestAngle(currentMoveAngle, leftDodgeAngle, rightDodgeAngle)
+
+    if bestAngle == 0:
+      bestPosition = dodgeLocationLeft
+      bestAngle = leftDodgeAngle
+
+      secondaryPosition = dodgeLocationRight
+      secondaryAngle = rightDodgeAngle
+    else:
+      bestPosition = dodgeLocationRight
+      bestAngle = rightDodgeAngle
+
+      secondaryPosition = dodgeLocationLeft
+      secondaryAngle = lefttDodgeAngle
+
+  if collisionFree(agent, bestPosition):
+    agent.dodge(angle=bestAngle)
+  elif collisionFree(agent, secondaryPosition):
+    agent.dodge(angle=secondaryAngle)
   else:
     return
-    # print "Can't dodge"
 
-def checkDodgeVector(agent, vector):
-  angle = getAngleVector(vector)
-  producedVector = (math.cos(math.radians(angle)), -math.sin(math.radians(angle)))
-  potentialSpot = (agent.getLocation()[0] + (producedVector[0]*agent.getRadius()*1.5), agent.getLocation()[1] + (producedVector[1]*agent.getRadius()*1.5))
+def closestAngle(angle, a, b):
+  aDifference = angle - a
+  bDifference = angle - b
 
-  return collisionFree(agent, potentialSpot)
+  if abs(aDifference) < abs(bDifference):
+    return 0
+  else:
+    return 1
+
+# Get two postions to jump
+def getDodgePositions(agent, inComingVector=None):
+  leftAngle, rightAngle = getDodgeAngle(agent, inComingVector=inComingVector)
+
+  dodgeLocation = ((math.cos(math.radians(leftAngle))) * agent.getRadius() * 1.5, (-math.sin(math.radians(leftAngle))) * agent.getRadius() * 1.5)
+  dodgeLocationRight = (agent.getLocation()[0] + dodgeLocation[0], agent.getLocation()[1] + dodgeLocation[1])
+  dodgeLocationLeft = (agent.getLocation()[0] - dodgeLocation[0], agent.getLocation()[1] - dodgeLocation[1])
+
+  return dodgeLocationLeft, dodgeLocationRight
+
+def getDodgeAngle(agent, inComingVector=None):
+  if inComingVector != None:
+    angle = getAngleVector((-inComingVector[1], inComingVector[0]))
+  else:
+    angle = agent.orientation - 90
+
+  return angle - 180, angle
 
 def collisionFree(agent,position):
+  # Check each obstacle line
   for line in agent.world.getLines():
-    if minimumDistance(line, position) < AGENT_WIDTH:
+
+    # If any line is too close to the agent, then we can't jump to this position
+    if minimumDistance(line, position) < (AGENT_WIDTH/2):
       return False
+
   return True
 
+def drawDodgePositions(agent, positions):
+  for position in positions:
+    agent.world.crosses.append(position)
+
+## AOE Stuff
 def enemeyInAOERadius(agent):
   visbleBullets = agent.getVisibleType(Minion)
   visbleBullets.extend(agent.getVisibleType(Hero))
 
   for enemy in visbleBullets:
-    if enemy.getTeam() != agent.getTeam() and distance(agent.getLocation(), enemy.getLocation()) < AREAEFFECTRANGE+20:
+    if enemy.getTeam() != agent.getTeam() and distance(agent.getLocation(), enemy.getLocation()) < (AREAEFFECTRANGE*agent.getRadius()):
       return True
 
   return False
@@ -461,7 +543,6 @@ def shouldFireAOE(agent):
 
 def handleAOEFire(agent):
   if shouldFireAOE(agent):
-    print "AOE-ing"
     agent.areaEffect()
     return True
 
@@ -485,28 +566,41 @@ def shootWhileRunning(agent):
   return
 
 def leadShootTarget(agent, target):
+  # Target not moving
   if target.moveTarget == None:
     shootTarget = target.getLocation()
+
+  # Target moving
   else:
-    offset = getTargetOffset(target.getLocation(), target.moveTarget)
+    offset = getTargetOffset(target.getLocation(), target.moveTarget, agent.getLocation())
     shootTarget = (target.getLocation()[0]+offset[0], target.getLocation()[1]+offset[1])
 
   agent.turnToFace(shootTarget)
   agent.shoot()
 
-def getTargetOffset(start, end):
-  leadFactor = 5
-  vector = (end[0]-start[0],end[1]-start[1])
+def getTargetOffset(target, moveTarget, playerPos):
+  # Calculate lead factor
+  distanceToTarget = distance(playerPos, moveTarget)
+  timeToTarget = distanceToTarget/BIGBULLETSPEED[0]
+  leadFactor = timeToTarget*SPEED[0]
+
+  # Create vector from start/end and normalize
+  vector = (moveTarget[0]-target[0],moveTarget[1]-target[1])
   normalizedDirection = normalize(vector)
 
+  # Calculate offset
   offset = (normalizedDirection[0]*leadFactor,normalizedDirection[1]*leadFactor)
 
   return offset
 
 def normalize(vector):
-  theta = getAngleVector(vector)
-  rad = math.radians(theta)
-  normalizedDirection = (math.cos(rad), -math.sin(rad))
+  # theta = getAngleVector(vector)
+  # rad = math.radians(theta)
+  # normalizedDirection = (math.cos(rad), -math.sin(rad))
+
+  vectorMag = getVectorMag(vector)
+  normalizedDirection = (vector[0]/vectorMag, vector[1]/vectorMag)
+
   return normalizedDirection
 
 def getAngleVector(vector):
@@ -514,5 +608,8 @@ def getAngleVector(vector):
   if theta < 0:
     theta = theta + 360.0
   return theta
+
+def getVectorMag(vector):
+  return math.sqrt((vector[0]*vector[0])+(vector[1]*vector[1]))
 
 TREE = [(Selector, 'Sel1'), [(HitpointDaemon, 0.5, 'HealthCheck'), [(Selector, 'Sel2'), [(BuffDaemon, 2, 'BuffCheck'), [(Sequence, 'Seq1'), (Chase, 'Hero', 'ChaseHero'), (Kill, 'Hero', 'KillHero')]], [(Sequence, 'Seq2'), (Chase, 'Minion', 'ChaseMinion'), (Kill, 'Minion', 'KillMinion')]]], (Retreat, 0.5, 'Retreat')]

@@ -853,6 +853,7 @@ class GameWorld():
     self.destinations = {}
     self.rightTextLines = []
     self.leftTextLines = []
+    self.crosses = []
 
   def getPoints(self):
     return self.points
@@ -986,8 +987,19 @@ class GameWorld():
     for o in self.obstacles:
       o.draw(self.background)
     #pygame.display.flip()
+    self.drawText()
+    self.drawCrosses()
+
+  def drawText(self):
     multiLineWrite(self.leftTextLines, self.screen, 10, 400)
     multiLineWrite(self.rightTextLines, self.screen, 800, 400)
+    self.leftTextLines = []
+    self.rightTextLines = []
+
+  def drawCrosses(self):
+    for cross in self.crosses:
+      drawCross(self.background, cross, (0, 0, 0), 5)
+    self.crosses = []
 
   def handleEvents(self):
     events = pygame.event.get()

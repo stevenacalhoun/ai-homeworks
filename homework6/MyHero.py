@@ -34,6 +34,7 @@ class MyHero(Hero, BehaviorTree):
   def __init__(self, position, orientation, world, image = AGENT, speed = SPEED, viewangle = 360, hitpoints = HEROHITPOINTS, firerate = FIRERATE, bulletclass = BigBullet, dodgerate = DODGERATE, areaeffectrate = AREAEFFECTRATE, areaeffectdamage = AREAEFFECTDAMAGE):
     Hero.__init__(self, position, orientation, world, image, speed, viewangle, hitpoints, firerate, bulletclass, dodgerate, areaeffectrate, areaeffectdamage)
     BehaviorTree.__init__(self)
+    self.points = []
 
   def update(self, delta):
     Hero.update(self, delta)
@@ -53,3 +54,8 @@ class MyHero(Hero, BehaviorTree):
   def stop(self):
     Hero.stop(self)
     BehaviorTree.stop(self)
+
+def addCrosses(agent, points):
+  self.world.crosses = []
+  for point in points:
+    self.world.crosses.append(point)
