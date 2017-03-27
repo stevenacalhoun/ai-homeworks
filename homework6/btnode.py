@@ -133,6 +133,7 @@ class Sequence(BTNode):
     ### YOUR CODE GOES BELOW HERE ###
     if len(self.getChildren()) == 0:
       self.currentChildIndex = 0
+      currentChild.reset()
       return True
 
     currentChild = self.getChildren()[self.currentChildIndex]
@@ -140,19 +141,20 @@ class Sequence(BTNode):
 
     if childResult == False:
       self.currentChildIndex = 0
+      currentChild.reset()
       return False
 
     if childResult == True:
       self.currentChildIndex += 1
       if self.currentChildIndex == len(self.getChildren()):
         self.currentChildIndex = 0
+        currentChild.reset()
         return True
       else:
         return None
 
     if childResult == None:
       return None
-
 
     ### YOUR CODE GOES ABOVE HERE ###
 
@@ -177,6 +179,7 @@ class Selector(BTNode):
 
     if len(self.getChildren()) == 0:
       self.currentChildIndex = 0
+      currentChild.reset()
       return False
 
     currentChild = self.getChildren()[self.currentChildIndex]
@@ -186,12 +189,14 @@ class Selector(BTNode):
       self.currentChildIndex += 1
       if self.currentChildIndex == len(self.getChildren()):
         self.currentChildIndex = 0
+        currentChild.reset()
         return False
       else:
         return None
 
     if childResult == True:
       self.currentChildIndex = 0
+      currentChild.reset()
       return True
 
     if childResult == None:

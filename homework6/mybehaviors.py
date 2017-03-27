@@ -199,28 +199,24 @@ class Chase(BTNode):
     enemies = self.agent.world.getEnemyNPCs(self.agent.getTeam())
 
     if len(enemies) > 0:
-      best = None
-      dist = 0
-      for e in enemies:
-        if self.targetType == "Hero":
-          if isinstance(e, Hero):
-            d = distance(self.agent.getLocation(), e.getLocation())
-            if best == None or d < dist:
-              best = e
-              dist = d
-        else:
+      if self.targetType == "Hero":
+        self.target = getEnemyHero(self.agent)
+      else:
+        for e in enemies:
+          best = None
+          dist = 0
           if isinstance(e, Minion):
             d = distance(self.agent.getLocation(), e.getLocation())
             if best == None or d < dist:
               best = e
               dist = d
-      self.target = best
+        self.target = best
+
     if self.target is not None:
       navTarget = self.chooseNavigationTarget()
       if navTarget is not None:
         if not self.targetInRange():
           self.agent.navigateTo(navTarget)
-
 
   def execute(self, delta = 0):
     shootWhileRunning(self.agent)
@@ -233,16 +229,19 @@ class Chase(BTNode):
     # Have an advantage
     if levelAdvantage(self.agent, 2):
       print "exec", self.id, "fail"
+      self.reset()
       return False
 
     ret = BTNode.execute(self, delta)
     if self.target == None or self.target.isAlive() == False:
       # failed execution conditions
       print "exec", self.id, "false"
+      self.reset()
       return False
     elif self.targetInRange():
       # succeeded
       print "exec", self.id, "true"
+      self.reset()
       return True
     else:
       # executing
@@ -264,6 +263,14 @@ class Chase(BTNode):
     else:
       return None
 
+def getEnemyHero(agent):
+  enemies = agent.world.getEnemyNPCs(agent.getTeam())
+
+  for e in enemies:
+    if isinstance(e, Hero):
+      return e
+  return None
+
 ##################
 ### KillMinion
 ###
@@ -275,6 +282,7 @@ class Chase(BTNode):
 class Kill(BTNode):
 
   ### target: the minion to shoot
+  killCount = 0
 
   def parseArgs(self, args):
     BTNode.parseArgs(self, args)
@@ -288,6 +296,7 @@ class Kill(BTNode):
       self.id = args[1]
 
   def enter(self):
+    self.killCount = 0
     BTNode.enter(self)
     self.agent.stopMoving()
     enemies = self.agent.world.getEnemyNPCs(self.agent.getTeam())
@@ -314,6 +323,11 @@ class Kill(BTNode):
     handleBullet(self.agent)
     handleAOEFire(self.agent)
 
+    self.killCount += 1
+    if self.killCount > 1000:
+      self.reset()
+      return False
+
     dodgeLocationLeft, dodgeLocationRight = getDodgePositions(self.agent)
     drawDodgePositions(self.agent, [dodgeLocationLeft, dodgeLocationRight])
 
@@ -321,10 +335,12 @@ class Kill(BTNode):
     if self.target == None or distance(self.agent.getLocation(), self.target.getLocation()) > BIGBULLETRANGE:
       # failed executability conditions
       print "exec", self.id, "false"
+      self.reset()
       return False
     elif self.target.isAlive() == False:
       # succeeded
       print "exec", self.id, "true"
+      self.reset()
       return True
     else:
       # executing
@@ -398,12 +414,10 @@ class BuffDaemon(BTNode):
     hero = None
     # Get a reference to the enemy hero
     if levelAdvantage(self.agent, self.advantage):
-      # fail check
+      return self.getChild(0).execute(delta)
+    else:
       print "exec", self.id, "fail"
       return False
-    else:
-      # Check didn't fail, return child's status
-      return self.getChild(0).execute(delta)
     return ret
 
 def levelAdvantage(agent, advantage):
@@ -414,7 +428,7 @@ def levelAdvantage(agent, advantage):
     if isinstance(e, Hero):
       hero = e
       break
-    return hero != None and agent.level > hero.level + advantage
+  return hero != None and agent.level >= (hero.level + advantage)
 
 # Bullet is nearby
 def nearbyBullet(agent):
