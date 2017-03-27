@@ -477,7 +477,7 @@ def smartDodge(agent, bullet):
       bestAngle = rightDodgeAngle
 
       secondaryPosition = dodgeLocationLeft
-      secondaryAngle = lefttDodgeAngle
+      secondaryAngle = leftDodgeAngle
 
   if collisionFree(agent, bestPosition):
     agent.dodge(angle=bestAngle)
@@ -524,8 +524,10 @@ def collisionFree(agent,position):
   return True
 
 def drawDodgePositions(agent, positions):
+  crosses = []
   for position in positions:
-    agent.world.crosses.append(position)
+    crosses.append(position)
+  agent.world.crosses = crosses
 
 ## AOE Stuff
 def enemeyInAOERadius(agent):
