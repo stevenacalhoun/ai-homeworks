@@ -19,10 +19,10 @@ class FitnessComparator implements Comparator<MyDNA> {
   @Override
   public int compare(MyDNA o1, MyDNA o2) {
     if (o1.getFitness() > o2.getFitness()) {
-      return 1;
+      return -1;
     }
     else {
-      return -1;
+      return 1;
     }
   }
 }
