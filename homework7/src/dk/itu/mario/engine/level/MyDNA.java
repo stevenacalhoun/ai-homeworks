@@ -15,8 +15,7 @@ public class MyDNA extends DNA
 
   // Return a new DNA that differs from this one in a small way.
   // Do not change this DNA by side effect; copy it, change the copy, and return the copy.
-  public MyDNA mutate ()
-  {
+  public MyDNA mutate () {
     MyDNA copy = new MyDNA();
     //YOUR CODE GOES BELOW HERE
 
@@ -27,8 +26,7 @@ public class MyDNA extends DNA
   }
 
   // Do not change this DNA by side effect
-  public ArrayList<MyDNA> crossover (MyDNA mate)
-  {
+  public ArrayList<MyDNA> crossover (MyDNA mate) {
     ArrayList<MyDNA> offspring = new ArrayList<MyDNA>();
     //YOUR CODE GOES BELOW HERE
 
@@ -55,8 +53,7 @@ public class MyDNA extends DNA
   // Return 0 if this object has the same fitness as other.
   // Return -1 if this object has lower fitness than other.
   // Return +1 if this objet has greater fitness than other.
-  public int compareTo(MyDNA other)
-  {
+  public int compareTo(MyDNA other) {
     int result = super.compareTo(other);
     //YOUR CODE GOES BELOW HEREa
 
@@ -76,8 +73,7 @@ public class MyDNA extends DNA
 
 
   // For debugging purposes (optional)
-  public String toString ()
-  {
+  public String toString () {
     String s = super.toString();
     //YOUR CODE GOES BELOW HERE
 
@@ -85,8 +81,7 @@ public class MyDNA extends DNA
     return s;
   }
 
-  public void setNumGenes (int n)
-  {
+  public void setNumGenes (int n) {
     this.numGenes = n;
   }
 

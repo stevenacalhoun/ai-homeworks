@@ -15,7 +15,19 @@ import dk.itu.mario.engine.PlayerProfile;
 import dk.itu.mario.engine.sprites.SpriteTemplate;
 import dk.itu.mario.engine.sprites.Enemy;
 
-public class MyLevelGenerator{
+class FitnessComparator implements Comparator<MyDNA> {
+  @Override
+  public int compare(MyDNA o1, MyDNA o2) {
+    if (o1.getFitness() > o2.getFitness()) {
+      return 1;
+    }
+    else {
+      return -1;
+    }
+  }
+}
+
+public class MyLevelGenerator {
 
   public boolean verbose = true; //print debugging info
 
@@ -23,8 +35,7 @@ public class MyLevelGenerator{
 
   // Called by the game engine.
   // Returns the level to be played.
-  public Level generateLevel(PlayerProfile playerProfile)
-  {
+  public Level generateLevel(PlayerProfile playerProfile) {
     // Call genetic algorithm to optimize to the player profile
     MyDNA dna = this.geneticAlgorithm(playerProfile);
 
@@ -38,8 +49,7 @@ public class MyLevelGenerator{
   }
 
   // Genetic Algorithm implementation
-  private MyDNA geneticAlgorithm (PlayerProfile playerProfile)
-  {
+  private MyDNA geneticAlgorithm (PlayerProfile playerProfile) {
     // Set the population size
     int populationSize = getPopulationSize();
 
@@ -147,50 +157,72 @@ public class MyLevelGenerator{
   }
 
   // Create a random individual.
-  private MyDNA generateRandomIndividual ()
-  {
+  private MyDNA generateRandomIndividual () {
     MyDNA individual = new MyDNA();
     // YOUR CODE GOES BELOW HERE
+
+    int defaultChromLength = 10;
+
+    ArrayList<String> chromOptions = new ArrayList<String>();
+    chromOptions.add("a");
+    chromOptions.add("b");
+    chromOptions.add("c");
+    chromOptions.add("d");
+
+    String chrom = new String("");
+    for (int i=0;i<defaultChromLength;i++) {
+      chrom += chromOptions.get((int)(Math.random() * chromOptions.size()));
+    }
+    individual.setChromosome(chrom);
 
     // YOUR CODE GOES ABOVE HERE
     return individual;
   }
 
   // Returns true if the genetic algorithm should terminate.
-  private boolean terminate (ArrayList<MyDNA> population, int count)
-  {
+  private boolean terminate (ArrayList<MyDNA> population, int count) {
     boolean decision = false;
     // YOUR CODE GOES BELOW HERE
+
+    if (count > 100) {
+      decision = true;
+    }
 
     // YOUR CODE GOES ABOVE HERE
     return decision;
   }
 
   // Return a list of individuals that should be copied and mutated.
-  private ArrayList<MyDNA> selectIndividualsForMutation (ArrayList<MyDNA> population)
-  {
+  private ArrayList<MyDNA> selectIndividualsForMutation (ArrayList<MyDNA> population) {
     ArrayList<MyDNA> selected = new ArrayList<MyDNA>();
     // YOUR CODE GOES BELOW HERE
+    int numMutators = 5;
+
+    for (int i=0;i<numMutators;i++) {
+      selected.add(population.get((int)(Math.random() * population.size())));
+    }
 
     // YOUR CODE GOES ABOVE HERE
     return selected;
   }
 
   // Returns the size of the population.
-  private int getPopulationSize ()
-  {
+  private int getPopulationSize () {
     int num = 1; // Default needs to be changed
     // YOUR CODE GOES BELOW HERE
+
+    num = 10;
 
     // YOUR CODE GOES ABOVE HERE
     return num;
   }
 
   // Returns the number of times crossover should happen per iteration.
-  private int numberOfCrossovers ()
-  {
+  private int numberOfCrossovers () {
     int num = 0; // Default is no crossovers
     // YOUR CODE GOES BELOW HERE
+
+    num = 4;
 
     // YOUR CODE GOES ABOVE HERE
     return num;
@@ -198,10 +230,14 @@ public class MyLevelGenerator{
   }
 
   // Pick one of the members of the population that is not the same as excludeMe
-  private MyDNA pickIndividualForCrossover (ArrayList<MyDNA> population, MyDNA excludeMe)
-  {
+  private MyDNA pickIndividualForCrossover (ArrayList<MyDNA> population, MyDNA excludeMe) {
     MyDNA picked = null;
     // YOUR CODE GOES BELOW HERE
+
+
+    while((picked == excludeMe) || (picked == null)) {
+      picked = population.get((int)(Math.random() * population.size()));
+    }
 
     // YOUR CODE GOES ABOVE HERE
     if (picked == excludeMe) {
@@ -214,8 +250,7 @@ public class MyLevelGenerator{
 
   // Returns true if children compete to replace parents.
   // Retursn false if the the global population competes.
-  private boolean competeWithParentsOnly ()
-  {
+  private boolean competeWithParentsOnly () {
     boolean doit = false;
     // YOUR CODE GOES BELOW HERE
 
@@ -224,41 +259,51 @@ public class MyLevelGenerator{
   }
 
   // Determine if children are fitter than parents and keep the fitter ones.
-  private ArrayList<MyDNA> competeWithParents (ArrayList<MyDNA> oldPopulation, ArrayList<MyDNA> newPopulation, Hashtable parents)
-  {
+  private ArrayList<MyDNA> competeWithParents (ArrayList<MyDNA> oldPopulation, ArrayList<MyDNA> newPopulation, Hashtable parents) {
     ArrayList<MyDNA> finalPopulation = new ArrayList<MyDNA>();
     // YOUR CODE GOES BELOW HERE
 
     // YOUR CODE GOES ABOVE HERE
     if (finalPopulation.size() != this.getPopulationSize()) {
       System.err.println("Population not the correct size.");
-      System.err.println("" + this.getPopulationSize());
-      System.err.println("" + finalPopulation.size());
       System.exit(1);
     }
     return finalPopulation;
   }
 
   // Combine the old population and the new population and return the top fittest individuals.
-  private ArrayList<MyDNA> globalCompetition (ArrayList<MyDNA> oldPopulation, ArrayList<MyDNA> newPopulation)
-  {
+  private ArrayList<MyDNA> globalCompetition (ArrayList<MyDNA> oldPopulation, ArrayList<MyDNA> newPopulation) {
     ArrayList<MyDNA> finalPopulation = new ArrayList<MyDNA>();
     // YOUR CODE GOES BELOW HERE
+
+    ArrayList<MyDNA> tempPopulation = new ArrayList<MyDNA>();
+
+    // Combine populations
+    tempPopulation.addAll(oldPopulation);
+    tempPopulation.addAll(newPopulation);
+
+    // Sort population
+    Collections.sort(tempPopulation, new FitnessComparator());
+
+    // Chose fittest
+    int count = 0;
+    for (MyDNA selDNA : tempPopulation) {
+      if (count < this.getPopulationSize()) {
+        finalPopulation.add(selDNA);
+      }
+      count++;
+    }
 
     // YOUR CODE GOES ABOVE HERE
     if (finalPopulation.size() != this.getPopulationSize()) {
       System.err.println("Population not the correct size.");
-      System.err.println("Population not the correct size.");
-      System.err.println("" + this.getPopulationSize());
-      System.err.println("" + finalPopulation.size());
       System.exit(1);
     }
     return finalPopulation;
   }
 
   // Return the fittest individual in the population.
-  private MyDNA getBestIndividual (ArrayList<MyDNA> population)
-  {
+  private MyDNA getBestIndividual (ArrayList<MyDNA> population) {
     MyDNA best = population.get(0);
     double bestFitness = Double.NEGATIVE_INFINITY;
     for (int i=0; i < population.size(); i++) {
@@ -273,8 +318,7 @@ public class MyLevelGenerator{
   }
 
   // Changing this function is optional.
-  private double evaluateFitness (MyDNA dna, PlayerProfile playerProfile)
-  {
+  private double evaluateFitness (MyDNA dna, PlayerProfile playerProfile) {
     double fitness = 0.0;
     // YOUR CODE GOES BELOW HERE
     MyLevel level = new MyLevel(dna, LevelInterface.TYPE_OVERGROUND);
@@ -283,8 +327,7 @@ public class MyLevelGenerator{
     return fitness;
   }
 
-  private MyDNA postProcess (MyDNA dna)
-  {
+  private MyDNA postProcess (MyDNA dna) {
     // YOUR CODE GOES BELOW HERE
 
     // YOUR CODE GOES ABOVE HERE
@@ -292,8 +335,7 @@ public class MyLevelGenerator{
   }
 
   //for this to work, you must implement MyDNA.toString()
-  private void printPopulation (ArrayList<MyDNA> population)
-  {
+  private void printPopulation (ArrayList<MyDNA> population) {
     for (int i=0; i < population.size(); i++) {
       MyDNA dna = population.get(i);
       System.out.println("Individual " + i + ": " + dna + " fitness: " + dna.getFitness());
