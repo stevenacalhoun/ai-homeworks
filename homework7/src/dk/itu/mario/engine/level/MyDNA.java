@@ -19,7 +19,9 @@ public class MyDNA extends DNA
     MyDNA copy = new MyDNA();
     //YOUR CODE GOES BELOW HERE
 
-    String oldChrom = this.chromosome;
+    int idxToChange = (int)(Math.random() * this.length);
+    String newChrom = this.chromosome.substring(0,idxToChange)+this.pickRandomChrom()+this.chromosome.substring(idxToChange+1);
+    copy.setChromosome(newChrom);
 
     //YOUR CODE GOES ABOVE HERE
     return copy;
@@ -30,20 +32,17 @@ public class MyDNA extends DNA
     ArrayList<MyDNA> offspring = new ArrayList<MyDNA>();
     //YOUR CODE GOES BELOW HERE
 
-    String newChromosome = new String("");
-    for(int i=0;i < this.chromosome.length(); i++) {
-      if (i % 2 == 0) {
-        newChromosome += this.chromosome.charAt(i);
-      }
-      else {
-        newChromosome += mate.chromosome.charAt(i);
-      }
-    }
+    String newChrom1 = this.chromosome.substring(0,(this.length/2)-1)+mate.chromosome.substring((this.length/2)-1);
+    String newChrom2 = mate.chromosome.substring(0,(this.length/2)-1)+this.chromosome.substring((this.length/2)-1);
 
-    MyDNA newDNA = new MyDNA();
-    newDNA.setChromosome(newChromosome);
+    MyDNA newDNA1 = new MyDNA();
+    newDNA1.setChromosome(newChrom1);
+    offspring.add(newDNA1);
 
-    offspring.add(newDNA);
+    MyDNA newDNA2 = new MyDNA();
+    newDNA2.setChromosome(newChrom2);
+    offspring.add(newDNA2);
+
 
     //YOUR CODE GOES ABOVE HERE
     return offspring;
@@ -77,6 +76,8 @@ public class MyDNA extends DNA
     String s = super.toString();
     //YOUR CODE GOES BELOW HERE
 
+    s = this.chromosome;
+
     //YOUR CODE GOES ABOVE HERE
     return s;
   }
@@ -85,4 +86,31 @@ public class MyDNA extends DNA
     this.numGenes = n;
   }
 
+
+  public ArrayList<String> getChromOptions() {
+    ArrayList<String> chromOptions = new ArrayList<String>();
+
+    chromOptions.add("a");
+    chromOptions.add("b");
+    chromOptions.add("c");
+    chromOptions.add("d");
+
+    return chromOptions;
+  }
+
+  public String pickRandomChrom() {
+    ArrayList<String> chromOptions = this.getChromOptions();
+    return chromOptions.get((int)(Math.random() * chromOptions.size()));
+  }
+
+  public void randomizeChrom() {
+    int defaultChromLength = 10;
+    String chrom = new String("");
+
+    for (int i=0;i<defaultChromLength;i++) {
+      chrom += this.pickRandomChrom();
+    }
+
+    this.setChromosome(chrom);
+  }
 }

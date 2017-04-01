@@ -29,7 +29,7 @@ class FitnessComparator implements Comparator<MyDNA> {
 
 public class MyLevelGenerator {
 
-  public boolean verbose = true; //print debugging info
+  public boolean verbose = false; //print debugging info
 
   // MAKE ANY NEW MEMBER VARIABLES HERE
 
@@ -161,19 +161,7 @@ public class MyLevelGenerator {
     MyDNA individual = new MyDNA();
     // YOUR CODE GOES BELOW HERE
 
-    int defaultChromLength = 10;
-
-    ArrayList<String> chromOptions = new ArrayList<String>();
-    chromOptions.add("a");
-    chromOptions.add("b");
-    chromOptions.add("c");
-    chromOptions.add("d");
-
-    String chrom = new String("");
-    for (int i=0;i<defaultChromLength;i++) {
-      chrom += chromOptions.get((int)(Math.random() * chromOptions.size()));
-    }
-    individual.setChromosome(chrom);
+    individual.randomizeChrom();
 
     // YOUR CODE GOES ABOVE HERE
     return individual;
@@ -184,7 +172,7 @@ public class MyLevelGenerator {
     boolean decision = false;
     // YOUR CODE GOES BELOW HERE
 
-    if (count > 100) {
+    if (count > 2) {
       decision = true;
     }
 
@@ -198,8 +186,10 @@ public class MyLevelGenerator {
     // YOUR CODE GOES BELOW HERE
     int numMutators = 5;
 
+
     for (int i=0;i<numMutators;i++) {
-      selected.add(population.get((int)(Math.random() * population.size())));
+      int idx = (int)(Math.random() * population.size());
+      selected.add(population.get(idx));
     }
 
     // YOUR CODE GOES ABOVE HERE
@@ -236,7 +226,10 @@ public class MyLevelGenerator {
 
 
     while((picked == excludeMe) || (picked == null)) {
-      picked = population.get((int)(Math.random() * population.size()));
+      int idx = (int)(Math.random() * population.size());
+      // System.out.println("Picking:" + idx + " dna:" + population.get(idx));
+
+      picked = population.get(idx);
     }
 
     // YOUR CODE GOES ABOVE HERE
