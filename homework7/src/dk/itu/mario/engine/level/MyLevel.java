@@ -9,69 +9,69 @@ import dk.itu.mario.engine.level.MyDNA;
 
 //To Run: java -cp bin dk.itu.mario.engine.PlayCustomized [PLAYER_TYPE]
 public class MyLevel extends Level{
-	//Store information about the level
-	public   int ENEMIES = 0; //the number of enemies the level contains
-	public   int BLOCKS_EMPTY = 0; // the number of empty blocks
-	public   int BLOCKS_COINS = 0; // the number of coin blocks
-	public   int BLOCKS_POWER = 0; // the number of power blocks
-	public   int COINS = 0; //These are the coins in boxes that Mario collect
- 
-	private Random random;
-	
-	private static final int STARTOFFSET = 5;
-	private static final int EXITOFFSET = 5;
-	private static final int EXITPOSITION = 3; // number of blocks from the end
-	private static final int DEFAULTHEIGHT = 15;
-	
-	public MyLevel(int width, int height)
+  //Store information about the level
+  public   int ENEMIES = 0; //the number of enemies the level contains
+  public   int BLOCKS_EMPTY = 0; // the number of empty blocks
+  public   int BLOCKS_COINS = 0; // the number of coin blocks
+  public   int BLOCKS_POWER = 0; // the number of power blocks
+  public   int COINS = 0; //These are the coins in boxes that Mario collect
+
+  private Random random;
+
+  private static final int STARTOFFSET = 5;
+  private static final int EXITOFFSET = 5;
+  private static final int EXITPOSITION = 3; // number of blocks from the end
+  private static final int DEFAULTHEIGHT = 15;
+
+  public MyLevel(int width, int height)
     {
-		super(width, height);
+    super(width, height);
     }
 
-	public MyLevel(MyDNA dna, int type)
-	{
-		// Add 10 units for the beginning platform and exit platform
-		this(205, 15);
-		create(dna, type);
-	}
-	
-	public void create(MyDNA dna, int type)
-	{
-		//Initial starting platform is 3 blocks wide and flat ground.
-		for (int x = 0; x < STARTOFFSET; x++)
-		{
-			this.setBlock(x, DEFAULTHEIGHT-2, HILL_TOP);
-			this.setBlock(x, DEFAULTHEIGHT-1, GROUND);
-		}
+  public MyLevel(MyDNA dna, int type)
+  {
+    // Add 10 units for the beginning platform and exit platform
+    this(205, 15);
+    create(dna, type);
+  }
 
-		// Start your level at block index STARTOFFSET.
-		//// YOUR CODE GOES BELOW HERE ////
-		
-		
-		//// YOUR CODE GOES ABOVE HERE ////
+  public void create(MyDNA dna, int type)
+  {
+    //Initial starting platform is 3 blocks wide and flat ground.
+    for (int x = 0; x < STARTOFFSET; x++)
+    {
+      this.setBlock(x, DEFAULTHEIGHT-2, HILL_TOP);
+      this.setBlock(x, DEFAULTHEIGHT-1, GROUND);
+    }
 
-		// Final exit is on flat ground in the last 3 blocks.
-		for (int x = width-EXITOFFSET; x < width; x++)
-		{
-			this.setBlock(x, DEFAULTHEIGHT-2, HILL_TOP);
-			this.setBlock(x, DEFAULTHEIGHT-1, GROUND);
-		}
-
-		xExit = width-EXITPOSITION;
-		yExit = DEFAULTHEIGHT-2;
-
-	}
-	
+    // Start your level at block index STARTOFFSET.
+    //// YOUR CODE GOES BELOW HERE ////
 
 
-	/* BELOW HERE ARE EXAMPLE FUNCTIONS FOR HOW TO CREATE SOME INTERESTING STRUCTURES */
+    //// YOUR CODE GOES ABOVE HERE ////
+
+    // Final exit is on flat ground in the last 3 blocks.
+    for (int x = width-EXITOFFSET; x < width; x++)
+    {
+      this.setBlock(x, DEFAULTHEIGHT-2, HILL_TOP);
+      this.setBlock(x, DEFAULTHEIGHT-1, GROUND);
+    }
+
+    xExit = width-EXITPOSITION;
+    yExit = DEFAULTHEIGHT-2;
+
+  }
+
+
+
+  /* BELOW HERE ARE EXAMPLE FUNCTIONS FOR HOW TO CREATE SOME INTERESTING STRUCTURES */
 
 
     //A built in function for helping to build a jump
     public int buildJump(int xo, int maxLength)
-    {	
-    	//jl: jump length
-    	//js: the number of blocks that are available at either side for free
+    {
+      //jl: jump length
+      //js: the number of blocks that are available at either side for free
         int js = random.nextInt(4) + 2;
         int jl = random.nextInt(2) + 2;
         int length = js * 2 + jl;
@@ -79,21 +79,21 @@ public class MyLevel extends Level{
         boolean hasStairs = random.nextInt(3) == 0;
 
         int floor = height - 1 - random.nextInt(4);
-		//run from the start x position, for the whole length
+    //run from the start x position, for the whole length
         for (int x = xo; x < xo + length; x++)
         {
             if (x < xo + js || x > xo + length - js - 1)
             {
-            	//run for all y's since we need to paint blocks upward
+              //run for all y's since we need to paint blocks upward
                 for (int y = 0; y < height; y++)
-                {	//paint ground up until the floor
+                {  //paint ground up until the floor
                     if (y >= floor)
                     {
                         setBlock(x, y, GROUND);
                     }
                   //if it is above ground, start making stairs of rocks
                     else if (hasStairs)
-                    {	//LEFT SIDE
+                    {  //LEFT SIDE
                         if (x < xo + js)
                         { //we need to max it out and level because it wont
                           //paint ground correctly unless two bricks are side by side
@@ -117,7 +117,7 @@ public class MyLevel extends Level{
         return length;
     }
 
-   	//A built in function for helping to build a cannon
+     //A built in function for helping to build a cannon
     public int buildCannons(int xo, int maxLength)
     {
         int length = random.nextInt(10) + 2;
@@ -307,12 +307,12 @@ public class MyLevel extends Level{
 
                         if (y == tubeHeight)
                         {
-                        	//tube top
+                          //tube top
                             setBlock(x, y, (byte) (xPic + 0 * 16));
                         }
                         else
                         {
-                        	//tube side
+                          //tube side
                             setBlock(x, y, (byte) (xPic + 1 * 16));
                         }
                     }
@@ -322,7 +322,7 @@ public class MyLevel extends Level{
 
         return length;
     }
-	
+
 
     //A built in function for building a straight path
     public int buildStraight(int xo, int maxLength, boolean safe, int difficulty)
@@ -330,10 +330,10 @@ public class MyLevel extends Level{
         int length = random.nextInt(10) + 2;
 
         if (safe)
-        	length = 10 + random.nextInt(5);
+          length = 10 + random.nextInt(5);
 
         if (length > maxLength)
-        	length = maxLength;
+          length = maxLength;
 
         int floor = height - 1 - random.nextInt(4);
 
@@ -363,9 +363,9 @@ public class MyLevel extends Level{
     //A built in function to add "decoration"
     public void decorate(int xStart, int xLength, int floor, int difficulty)
     {
-    	//if its at the very top, just return
+      //if its at the very top, just return
         if (floor < 1)
-        	return;
+          return;
 
         //        boolean coins = random.nextInt(3) == 0;
         boolean rocks = true;
@@ -387,7 +387,7 @@ public class MyLevel extends Level{
 
         s = random.nextInt(4);
         e = random.nextInt(4);
-        
+
         //this fills the set of blocks and the hidden objects inside them
         if (floor - 4 > 0)
         {
@@ -405,7 +405,7 @@ public class MyLevel extends Level{
                                 BLOCKS_POWER++;
                             }
                             else
-                            {	//the fills a block with a hidden coin
+                            {  //the fills a block with a hidden coin
                                 setBlock(x, floor - 4, BLOCK_COIN);
                                 BLOCKS_COINS++;
                             }
@@ -447,7 +447,7 @@ public class MyLevel extends Level{
                     for (int yy = y - 1; yy < y + 1; yy++)
                     {
                         if (getBlockCapped(xx, yy) == GROUND){
-                        	blocks++;
+                          blocks++;
                         }
                     }
                 }
@@ -498,12 +498,12 @@ public class MyLevel extends Level{
                     {
                         if (b[0][0])
                         {
-                        	//down grass top?
+                          //down grass top?
                             level.setBlock(x, y, (byte) (1 + 10 * 16 + to));
                         }
                         else
                         {
-                        	//up grass top
+                          //up grass top
                             level.setBlock(x, y, (byte) (1 + 8 * 16 + to));
                         }
                     }
@@ -512,12 +512,12 @@ public class MyLevel extends Level{
                 {
                     if (b[0][0])
                     {
-                    	//right grass top
+                      //right grass top
                         level.setBlock(x, y, (byte) (2 + 9 * 16 + to));
                     }
                     else
                     {
-                    	//left grass top
+                      //left grass top
                         level.setBlock(x, y, (byte) (0 + 9 * 16 + to));
                     }
                 }
@@ -542,12 +542,12 @@ public class MyLevel extends Level{
                     {
                         if (b[0][1])
                         {
-                        	//right up grass top
+                          //right up grass top
                             level.setBlock(x, y, (byte) (2 + 8 * 16 + to));
                         }
                         else
                         {
-                        	//left up grass top
+                          //left up grass top
                             level.setBlock(x, y, (byte) (0 + 8 * 16 + to));
                         }
                     }
@@ -558,12 +558,12 @@ public class MyLevel extends Level{
                     {
                         if (b[0][0])
                         {
-                        	//left pocket grass
+                          //left pocket grass
                             level.setBlock(x, y, (byte) (3 + 9 * 16 + to));
                         }
                         else
                         {
-                        	//right pocket grass
+                          //right pocket grass
                             level.setBlock(x, y, (byte) (3 + 8 * 16 + to));
                         }
                     }
@@ -586,28 +586,28 @@ public class MyLevel extends Level{
             }
         }
     }
-    
+
     //Clones this level
     public MyLevel clone(){
 
-    	MyLevel clone=new MyLevel(width, height);
+      MyLevel clone=new MyLevel(width, height);
 
-    	clone.xExit = xExit;
-    	clone.yExit = yExit;
-    	byte[][] map = getMap();
-    	SpriteTemplate[][] st = getSpriteTemplate();
-    	
-    	for (int i = 0; i < map.length; i++)
-    		for (int j = 0; j < map[i].length; j++) {
-    			clone.setBlock(i, j, map[i][j]);
-    			clone.setSpriteTemplate(i, j, st[i][j]);
-    	}
-    	clone.BLOCKS_COINS = BLOCKS_COINS;
-    	clone.BLOCKS_EMPTY = BLOCKS_EMPTY;
-    	clone.BLOCKS_POWER = BLOCKS_POWER;
-    	clone.ENEMIES = ENEMIES;
-    	clone.COINS = COINS;
-    	
+      clone.xExit = xExit;
+      clone.yExit = yExit;
+      byte[][] map = getMap();
+      SpriteTemplate[][] st = getSpriteTemplate();
+
+      for (int i = 0; i < map.length; i++)
+        for (int j = 0; j < map[i].length; j++) {
+          clone.setBlock(i, j, map[i][j]);
+          clone.setSpriteTemplate(i, j, st[i][j]);
+      }
+      clone.BLOCKS_COINS = BLOCKS_COINS;
+      clone.BLOCKS_EMPTY = BLOCKS_EMPTY;
+      clone.BLOCKS_POWER = BLOCKS_POWER;
+      clone.ENEMIES = ENEMIES;
+      clone.COINS = COINS;
+
         return clone;
 
     }
