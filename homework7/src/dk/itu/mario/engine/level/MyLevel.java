@@ -25,6 +25,7 @@ public class MyLevel extends Level{
 
   public MyLevel(int width, int height) {
     super(width, height);
+    random = new Random();
   }
 
   public MyLevel(MyDNA dna, int type) {
@@ -43,6 +44,24 @@ public class MyLevel extends Level{
     // Start your level at block index STARTOFFSET.
     //// YOUR CODE GOES BELOW HERE ////
 
+    int currentWorldLoc = DEFAULTHEIGHT;
+
+    for (int i=0;i<dna.length;i++) {
+      switch (dna.chromosome.charAt(i)) {
+        case 'a':
+          currentWorldLoc += this.buildCannons(i, 10);
+          break;
+        case 'b':
+          currentWorldLoc += this.buildHillStraight(i, 10, 1);
+          break;
+        case 'c':
+          currentWorldLoc += this.buildHillStraight(i,10, 1);
+          break;
+        case 'd':
+          currentWorldLoc += this.buildJump(i, 10);
+          break;
+      }
+    }
 
     //// YOUR CODE GOES ABOVE HERE ////
 
@@ -56,10 +75,7 @@ public class MyLevel extends Level{
     yExit = DEFAULTHEIGHT-2;
   }
 
-
-
   /* BELOW HERE ARE EXAMPLE FUNCTIONS FOR HOW TO CREATE SOME INTERESTING STRUCTURES */
-
 
   //A built in function for helping to build a jump
   public int buildJump(int xo, int maxLength) {
@@ -137,7 +153,6 @@ public class MyLevel extends Level{
         }
       }
     }
-
     return length;
   }
 
@@ -207,8 +222,7 @@ public class MyLevel extends Level{
   }
 
   //A built in function for adding a line of enemies at a given height (y) and difficulty
-  public void addEnemyLine(int x0, int x1, int y, int difficulty)
-  {
+  public void addEnemyLine(int x0, int x1, int y, int difficulty) {
     for (int x = x0; x < x1; x++) {
       if (random.nextInt(35) < difficulty + 1) {
         int type = random.nextInt(4);
@@ -268,7 +282,6 @@ public class MyLevel extends Level{
     }
     return length;
   }
-
 
   //A built in function for building a straight path
   public int buildStraight(int xo, int maxLength, boolean safe, int difficulty) {

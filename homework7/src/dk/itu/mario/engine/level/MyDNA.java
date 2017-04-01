@@ -104,7 +104,7 @@ public class MyDNA extends DNA
   }
 
   public void randomizeChrom() {
-    int defaultChromLength = 10;
+    int defaultChromLength = 100;
     String chrom = new String("");
 
     for (int i=0;i<defaultChromLength;i++) {

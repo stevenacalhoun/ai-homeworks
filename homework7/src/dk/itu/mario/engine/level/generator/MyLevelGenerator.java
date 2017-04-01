@@ -137,9 +137,9 @@ public class MyLevelGenerator {
     // Get the winner
     solution = this.getBestIndividual(population);
 
-    if (this.verbose) {
-      System.out.println("Solution: " + solution + " fitnes: " + solution.getFitness());
-    }
+    // if (this.verbose) {
+    System.out.println("Solution: " + solution + " fitnes: " + solution.getFitness());
+    // }
 
     return solution;
   }
@@ -160,7 +160,15 @@ public class MyLevelGenerator {
     boolean decision = false;
     // YOUR CODE GOES BELOW HERE
 
-    if (count > 2) {
+    // Check if we have a fit enough candidate
+    MyDNA best = getBestIndividual(population);
+    if (best.getFitness() > 0.8) {
+      decision = true;
+    }
+
+    // Hard stop after a certain number of generations
+    if (count > 100) {
+      System.out.println("Couldn't reach desired fitness");
       decision = true;
     }
 
@@ -187,7 +195,7 @@ public class MyLevelGenerator {
     int num = 1; // Default needs to be changed
     // YOUR CODE GOES BELOW HERE
 
-    num = 10;
+    num = 100;
 
     // YOUR CODE GOES ABOVE HERE
     return num;
@@ -198,7 +206,7 @@ public class MyLevelGenerator {
     int num = 0; // Default is no crossovers
     // YOUR CODE GOES BELOW HERE
 
-    num = 4;
+    num = 50;
 
     // YOUR CODE GOES ABOVE HERE
     return num;
@@ -206,7 +214,7 @@ public class MyLevelGenerator {
   }
 
   private int numberOfMutations () {
-    int num = 5;
+    int num = 50;
     return num;
   }
 
@@ -305,7 +313,6 @@ public class MyLevelGenerator {
     MyLevel level = new MyLevel(dna, LevelInterface.TYPE_OVERGROUND);
     fitness = playerProfile.evaluateLevel(level);
     // YOUR CODE GOES ABOVE HERE
-    fitness = Math.random()*100;
     return fitness;
   }
 
