@@ -172,10 +172,8 @@ public class MyLevelGenerator {
   private ArrayList<MyDNA> selectIndividualsForMutation (ArrayList<MyDNA> population) {
     ArrayList<MyDNA> selected = new ArrayList<MyDNA>();
     // YOUR CODE GOES BELOW HERE
-    int numMutators = 5;
 
-
-    for (int i=0;i<numMutators;i++) {
+    for (int i=0;i<this.numberOfMutations();i++) {
       int idx = (int)(Math.random() * population.size());
       selected.add(population.get(idx));
     }
@@ -207,17 +205,18 @@ public class MyLevelGenerator {
 
   }
 
+  private int numberOfMutations () {
+    int num = 5;
+    return num;
+  }
+
   // Pick one of the members of the population that is not the same as excludeMe
   private MyDNA pickIndividualForCrossover (ArrayList<MyDNA> population, MyDNA excludeMe) {
     MyDNA picked = null;
     // YOUR CODE GOES BELOW HERE
 
-
     while((picked == excludeMe) || (picked == null)) {
-      int idx = (int)(Math.random() * population.size());
-      // System.out.println("Picking:" + idx + " dna:" + population.get(idx));
-
-      picked = population.get(idx);
+      picked = population.get((int)(Math.random() * population.size()));
     }
 
     // YOUR CODE GOES ABOVE HERE
