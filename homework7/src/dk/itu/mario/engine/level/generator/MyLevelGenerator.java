@@ -15,18 +15,6 @@ import dk.itu.mario.engine.PlayerProfile;
 import dk.itu.mario.engine.sprites.SpriteTemplate;
 import dk.itu.mario.engine.sprites.Enemy;
 
-class FitnessComparator implements Comparator<MyDNA> {
-  @Override
-  public int compare(MyDNA o1, MyDNA o2) {
-    if (o1.getFitness() > o2.getFitness()) {
-      return -1;
-    }
-    else {
-      return 1;
-    }
-  }
-}
-
 public class MyLevelGenerator {
 
   public boolean verbose = false; //print debugging info
@@ -275,8 +263,9 @@ public class MyLevelGenerator {
     tempPopulation.addAll(oldPopulation);
     tempPopulation.addAll(newPopulation);
 
-    // Sort population
-    Collections.sort(tempPopulation, new FitnessComparator());
+    // Sort population in decreasing fitness order
+    Collections.sort(tempPopulation);
+    Collections.reverse(tempPopulation);
 
     // Chose fittest
     int count = 0;
@@ -317,6 +306,7 @@ public class MyLevelGenerator {
     MyLevel level = new MyLevel(dna, LevelInterface.TYPE_OVERGROUND);
     fitness = playerProfile.evaluateLevel(level);
     // YOUR CODE GOES ABOVE HERE
+    fitness = Math.random()*100;
     return fitness;
   }
 
