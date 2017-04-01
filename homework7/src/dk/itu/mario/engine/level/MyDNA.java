@@ -20,6 +20,8 @@ public class MyDNA extends DNA
     MyDNA copy = new MyDNA();
     //YOUR CODE GOES BELOW HERE
 
+    String oldChrom = this.chromosome;
+
     //YOUR CODE GOES ABOVE HERE
     return copy;
   }
@@ -29,6 +31,21 @@ public class MyDNA extends DNA
   {
     ArrayList<MyDNA> offspring = new ArrayList<MyDNA>();
     //YOUR CODE GOES BELOW HERE
+
+    String newChromosome = new String("");
+    for(int i=0;i < this.chromosome.length(); i++) {
+      if (i % 2 == 0) {
+        newChromosome += this.chromosome.charAt(i);
+      }
+      else {
+        newChromosome += mate.chromosome.charAt(i);
+      }
+    }
+
+    MyDNA newDNA = new MyDNA();
+    newDNA.setChromosome(newChromosome);
+
+    offspring.add(newDNA);
 
     //YOUR CODE GOES ABOVE HERE
     return offspring;
@@ -41,7 +58,17 @@ public class MyDNA extends DNA
   public int compareTo(MyDNA other)
   {
     int result = super.compareTo(other);
-    //YOUR CODE GOES BELOW HERE
+    //YOUR CODE GOES BELOW HEREa
+
+    if (this.getFitness() == other.getFitness()) {
+      result = 0;
+    }
+    else if (this.getFitness() < other.getFitness()) {
+      result = -1;
+    }
+    else {
+      result = 1;
+    }
 
     //YOUR CODE GOES ABOVE HERE
     return result;

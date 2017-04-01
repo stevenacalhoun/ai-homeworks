@@ -232,6 +232,8 @@ public class MyLevelGenerator{
     // YOUR CODE GOES ABOVE HERE
     if (finalPopulation.size() != this.getPopulationSize()) {
       System.err.println("Population not the correct size.");
+      System.err.println("" + this.getPopulationSize());
+      System.err.println("" + finalPopulation.size());
       System.exit(1);
     }
     return finalPopulation;
@@ -246,6 +248,9 @@ public class MyLevelGenerator{
     // YOUR CODE GOES ABOVE HERE
     if (finalPopulation.size() != this.getPopulationSize()) {
       System.err.println("Population not the correct size.");
+      System.err.println("Population not the correct size.");
+      System.err.println("" + this.getPopulationSize());
+      System.err.println("" + finalPopulation.size());
       System.exit(1);
     }
     return finalPopulation;
