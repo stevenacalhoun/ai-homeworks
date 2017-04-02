@@ -44,21 +44,21 @@ public class MyLevel extends Level{
     // Start your level at block index STARTOFFSET.
     //// YOUR CODE GOES BELOW HERE ////
 
-    int currentWorldLoc = DEFAULTHEIGHT;
+    int currentWorldLoc = STARTOFFSET;
 
     for (int i=0;i<dna.length;i++) {
       switch (dna.chromosome.charAt(i)) {
         case 'a':
-          currentWorldLoc += this.buildCannons(i, 10);
+          currentWorldLoc += this.buildJump(currentWorldLoc, 20);
           break;
         case 'b':
-          currentWorldLoc += this.buildHillStraight(i, 10, 1);
+          currentWorldLoc += this.buildHillStraight(currentWorldLoc, 10, 1);
           break;
         case 'c':
-          currentWorldLoc += this.buildHillStraight(i,10, 1);
+          currentWorldLoc += this.buildHillStraight(currentWorldLoc,10, 1);
           break;
         case 'd':
-          currentWorldLoc += this.buildJump(i, 10);
+          currentWorldLoc += this.buildJump(currentWorldLoc, 10);
           break;
       }
     }
@@ -88,14 +88,54 @@ public class MyLevel extends Level{
     boolean hasStairs = random.nextInt(3) == 0;
 
     int floor = height - 1 - random.nextInt(4);
-    //run from the start x position, for the whole length
+    // Run from the start x position, for the whole length
     for (int x = xo; x < xo + length; x++) {
+
+      // Paint left and right sides
       if (x < xo + js || x > xo + length - js - 1) {
-        //run for all y's since we need to paint blocks upward
+
+        // Paint all blocks beneath hilltop
         for (int y = 0; y < height; y++) {
-          //paint ground up until the floor
+          // We've reached the start
           if (y >= floor) {
-            setBlock(x, y, GROUND);
+            // Hill top
+            if (y==floor) {
+              if ((x == xo+js-1) || (x==xo+length-1)) {
+                setBlock(x, y, HILL_TOP_RIGHT_IN);
+              }
+              else if ((x == xo + length - js) || (x == xo)) {
+                setBlock(x, y, HILL_TOP_LEFT_IN);
+              }
+              else {
+                setBlock(x, y, HILL_TOP);
+              }
+            }
+
+            // Hill underneath
+            else {
+              // Right side
+              if ((x == xo+js-1) || (x == xo+length-1)) {
+                setBlock(x, y, HILL_RIGHT);
+              }
+
+              // Left side
+              else if ((x == xo + length - js) || (x == xo)) {
+                setBlock(x, y, HILL_LEFT);
+              }
+
+              //
+              else {
+                if (x == xo) {
+                  setBlock(x, y, HILL_LEFT);
+                }
+                else if (x == xo + length-1) {
+                  setBlock(x, y, HILL_RIGHT);
+                }
+                else {
+                  setBlock(x, y, GROUND);
+                }
+              }
+            }
           }
           //if it is above ground, start making stairs of rocks
           else if (hasStairs) {

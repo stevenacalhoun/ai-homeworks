@@ -100,7 +100,8 @@ public class MyDNA extends DNA
 
   public String pickRandomChrom() {
     ArrayList<String> chromOptions = this.getChromOptions();
-    return chromOptions.get((int)(Math.random() * chromOptions.size()));
+    return "a";
+    // return chromOptions.get((int)(Math.random() * chromOptions.size()));
   }
 
   public void randomizeChrom() {
