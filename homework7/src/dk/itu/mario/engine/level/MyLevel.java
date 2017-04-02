@@ -49,10 +49,10 @@ public class MyLevel extends Level{
     for (int i=0;i<dna.length;i++) {
       switch (dna.chromosome.charAt(i)) {
         case 'a':
-          currentWorldLoc += this.buildCannons(currentWorldLoc, 20);
+          currentWorldLoc += this.buildHillStraight(currentWorldLoc, 20, 10);
           break;
         case 'b':
-          currentWorldLoc += this.buildHillStraight(currentWorldLoc, 10, 1);
+          currentWorldLoc += this.buildJump(currentWorldLoc, 10);
           break;
         case 'c':
           currentWorldLoc += this.buildHillStraight(currentWorldLoc,10, 1);
@@ -62,6 +62,8 @@ public class MyLevel extends Level{
           break;
       }
     }
+
+    this.fixWalls();
 
     //// YOUR CODE GOES ABOVE HERE ////
 
