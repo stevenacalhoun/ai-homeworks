@@ -175,7 +175,7 @@ public class MyLevelGenerator {
     }
 
     // Check for convergence
-    if (unchaningFitnessCount >= 100) {
+    if (unchaningFitnessCount >= 250) {
       System.out.println("Algorithm has converged");
       return true;
     }
@@ -234,7 +234,12 @@ public class MyLevelGenerator {
   }
 
   private int numberOfMutations () {
-    int num = 50;
+    int num = 0; // Default is no crossovers
+    // YOUR CODE GOES BELOW HERE
+
+    num = 50;
+
+    // YOUR CODE GOES ABOVE HERE
     return num;
   }
 

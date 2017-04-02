@@ -112,7 +112,6 @@ public class MyDNA extends DNA
     return result;
   }
 
-
   // For debugging purposes (optional)
   public String toString () {
     String s = super.toString();
@@ -128,7 +127,7 @@ public class MyDNA extends DNA
     this.numGenes = n;
   }
 
-
+  // Return all the chromosome options
   public ArrayList<String> getChromOptions() {
     ArrayList<String> chromOptions = new ArrayList<String>();
 
@@ -136,17 +135,21 @@ public class MyDNA extends DNA
     chromOptions.add("b");
     chromOptions.add("c");
     chromOptions.add("d");
+    chromOptions.add("e");
+    chromOptions.add("f");
 
     return chromOptions;
   }
 
+  // Pick a random chromosome character
   public String pickRandomChrom() {
     ArrayList<String> chromOptions = this.getChromOptions();
     return chromOptions.get((int)(Math.random() * chromOptions.size()));
   }
 
+  // Chreate a random chromosome
   public void randomizeChrom() {
-    int defaultChromLength = 100;
+    int defaultChromLength = 30;
     String chrom = new String("");
 
     for (int i=0;i<defaultChromLength;i++) {

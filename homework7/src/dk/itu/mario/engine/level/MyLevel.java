@@ -44,23 +44,42 @@ public class MyLevel extends Level{
     // Start your level at block index STARTOFFSET.
     //// YOUR CODE GOES BELOW HERE ////
 
+    // Keep up with current world loc
     int currentWorldLoc = STARTOFFSET;
 
+    // Generate each letter of the chromosome
     for (int i=0;i<dna.length;i++) {
       switch (dna.chromosome.charAt(i)) {
+        // Hill, long, difficult
         case 'a':
           currentWorldLoc += this.buildHillStraight(currentWorldLoc, 20, 10);
           break;
+
+        // Jump short
         case 'b':
           currentWorldLoc += this.buildJump(currentWorldLoc, 10);
           break;
+
+        // Straight, short, easy
         case 'c':
-          currentWorldLoc += this.buildStraight(currentWorldLoc,10, false, 0);
+          currentWorldLoc += this.buildStraight(currentWorldLoc,10, false, 1);
           break;
+
+        // Straight, safe, short, decorated
         case 'd':
           int length = this.buildStraight(currentWorldLoc,10, true, 0);
           this.decorate(currentWorldLoc, 10, DEFAULTHEIGHT, 10);
           currentWorldLoc += length;
+          break;
+
+        // Tubes, short, difficult
+        case 'e':
+          currentWorldLoc += this.buildTubes(currentWorldLoc,10, 10);
+          break;
+
+        // Cannons, short
+        case 'f':
+          currentWorldLoc += this.buildCannons(currentWorldLoc,10);
           break;
       }
     }
