@@ -44,24 +44,26 @@ public class MyLevel extends Level{
     // Start your level at block index STARTOFFSET.
     //// YOUR CODE GOES BELOW HERE ////
 
-    int currentWorldLoc = DEFAULTHEIGHT;
+    int currentWorldLoc = STARTOFFSET;
 
     for (int i=0;i<dna.length;i++) {
       switch (dna.chromosome.charAt(i)) {
         case 'a':
-          currentWorldLoc += this.buildCannons(i, 10);
+          currentWorldLoc += this.buildJump(currentWorldLoc, 20);
           break;
         case 'b':
-          currentWorldLoc += this.buildHillStraight(i, 10, 1);
+          currentWorldLoc += this.buildHillStraight(currentWorldLoc, 20, 10);
           break;
         case 'c':
-          currentWorldLoc += this.buildHillStraight(i,10, 1);
+          currentWorldLoc += this.buildHillStraight(currentWorldLoc,10, 1);
           break;
         case 'd':
-          currentWorldLoc += this.buildJump(i, 10);
+          currentWorldLoc += this.buildJump(currentWorldLoc, 10);
           break;
       }
     }
+
+    this.fixWalls();
 
     //// YOUR CODE GOES ABOVE HERE ////
 

@@ -92,8 +92,8 @@ public class MyDNA extends DNA
 
     chromOptions.add("a");
     chromOptions.add("b");
-    chromOptions.add("c");
-    chromOptions.add("d");
+    // chromOptions.add("c");
+    // chromOptions.add("d");
 
     return chromOptions;
   }
