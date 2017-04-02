@@ -55,14 +55,17 @@ public class MyLevel extends Level{
           currentWorldLoc += this.buildJump(currentWorldLoc, 10);
           break;
         case 'c':
-          currentWorldLoc += this.buildHillStraight(currentWorldLoc,10, 1);
+          currentWorldLoc += this.buildStraight(currentWorldLoc,10, false, 0);
           break;
         case 'd':
-          currentWorldLoc += this.buildJump(currentWorldLoc, 10);
+          int length = this.buildStraight(currentWorldLoc,10, true, 0);
+          this.decorate(currentWorldLoc, 10, DEFAULTHEIGHT, 10);
+          currentWorldLoc += length;
           break;
       }
     }
 
+    // Clean it up
     this.fixWalls();
 
     //// YOUR CODE GOES ABOVE HERE ////
