@@ -49,7 +49,7 @@ public class MyLevel extends Level{
     for (int i=0;i<dna.length;i++) {
       switch (dna.chromosome.charAt(i)) {
         case 'a':
-          currentWorldLoc += this.buildJump(currentWorldLoc, 20);
+          currentWorldLoc += this.buildCannons(currentWorldLoc, 20);
           break;
         case 'b':
           currentWorldLoc += this.buildHillStraight(currentWorldLoc, 10, 1);
@@ -168,15 +168,25 @@ public class MyLevel extends Level{
     int floor = height - 1 - random.nextInt(4);
     int xCannon = xo + 1 + random.nextInt(4);
     for (int x = xo; x < xo + length; x++) {
+
+      // Space each cannon by 2-6
       if (x > xCannon) {
         xCannon += 2 + random.nextInt(4);
       }
       if (xCannon == xo + length - 1) xCannon += 10;
+
+      // Random cannon height
       int cannonHeight = floor - random.nextInt(4) - 1;
 
       for (int y = 0; y < height; y++) {
+        // Paint ground under floor
         if (y >= floor) {
-          setBlock(x, y, GROUND);
+          if (y==floor) {
+            setBlock(x, y, HILL_TOP);
+          }
+          else {
+            setBlock(x, y, GROUND);
+          }
         }
         else {
           if (x == xCannon && y >= cannonHeight) {
