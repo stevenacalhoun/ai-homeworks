@@ -52,12 +52,12 @@ public class MyLevel extends Level{
       switch (dna.chromosome.charAt(i)) {
         // Hill, long, difficult
         case 'a':
-          currentWorldLoc += this.buildHillStraight(currentWorldLoc, 20, 10);
+          currentWorldLoc += this.buildHillStraight(currentWorldLoc, 10, 10);
           break;
 
         // Jump short
         case 'b':
-          currentWorldLoc += this.buildJump(currentWorldLoc, 10);
+          currentWorldLoc += this.buildJump(currentWorldLoc);
           break;
 
         // Straight, short, easy
@@ -74,15 +74,17 @@ public class MyLevel extends Level{
 
         // Tubes, short, difficult
         case 'e':
-          currentWorldLoc += this.buildTubes(currentWorldLoc,10, 10);
+          currentWorldLoc += this.buildTubes(currentWorldLoc, 10, 10);
           break;
 
         // Cannons, short
         case 'f':
-          currentWorldLoc += this.buildCannons(currentWorldLoc,10);
+          currentWorldLoc += this.buildCannons(currentWorldLoc, 10);
           break;
+
       }
     }
+    currentWorldLoc += this.buildStraight(currentWorldLoc, 5, true, 0);
 
     // Clean it up
     this.fixWalls();
@@ -102,11 +104,11 @@ public class MyLevel extends Level{
   /* BELOW HERE ARE EXAMPLE FUNCTIONS FOR HOW TO CREATE SOME INTERESTING STRUCTURES */
 
   //A built in function for helping to build a jump
-  public int buildJump(int xo, int maxLength) {
+  public int buildJump(int xo) {
     //jl: jump length
     //js: the number of blocks that are available at either side for free
-    int js = random.nextInt(4) + 2;
-    int jl = random.nextInt(2) + 2;
+    int js = 3;
+    int jl = 4;
     int length = js * 2 + jl;
 
     boolean hasStairs = random.nextInt(3) == 0;
@@ -185,9 +187,8 @@ public class MyLevel extends Level{
   }
 
   //A built in function for helping to build a cannon
-  public int buildCannons(int xo, int maxLength) {
-    int length = random.nextInt(10) + 2;
-    if (length > maxLength) length = maxLength;
+  public int buildCannons(int xo, int length) {
+    int length = length;
 
     int floor = height - 1 - random.nextInt(4);
     int xCannon = xo + 1 + random.nextInt(4);
@@ -231,10 +232,7 @@ public class MyLevel extends Level{
   }
 
   //A built in function for building a flat hill
-  public int buildHillStraight(int xo, int maxLength, int difficulty) {
-    int length = random.nextInt(10) + 10;
-    if (length > maxLength) length = maxLength;
-
+  public int buildHillStraight(int xo, int length, int difficulty) {
     int floor = height - 1 - random.nextInt(4);
     for (int x = xo; x < xo + length; x++) {
       for (int y = 0; y < height; y++) {
@@ -315,10 +313,7 @@ public class MyLevel extends Level{
   }
 
   //A built in function for building a tube (difficulty determines chance of flower spawn)
-  public int buildTubes(int xo, int maxLength, int difficulty) {
-    int length = random.nextInt(10) + 5;
-    if (length > maxLength) length = maxLength;
-
+  public int buildTubes(int xo, int length, int difficulty) {
     int floor = height - 1 - random.nextInt(4);
     int xTube = xo + 1 + random.nextInt(4);
     int tubeHeight = floor - random.nextInt(2) - 2;
@@ -358,14 +353,9 @@ public class MyLevel extends Level{
   }
 
   //A built in function for building a straight path
-  public int buildStraight(int xo, int maxLength, boolean safe, int difficulty) {
-    int length = random.nextInt(10) + 2;
-
-    if (safe)
-      length = 10 + random.nextInt(5);
-
-    if (length > maxLength)
-      length = maxLength;
+  public int buildStraight(int xo, int length, boolean safe, int difficulty) {
+    // if (safe)
+    //   length = 10 + random.nextInt(5);
 
     int floor = height - 1 - random.nextInt(4);
 

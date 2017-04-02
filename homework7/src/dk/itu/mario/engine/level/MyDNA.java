@@ -149,7 +149,7 @@ public class MyDNA extends DNA
 
   // Chreate a random chromosome
   public void randomizeChrom() {
-    int defaultChromLength = 30;
+    int defaultChromLength = 19;
     String chrom = new String("");
 
     for (int i=0;i<defaultChromLength;i++) {
