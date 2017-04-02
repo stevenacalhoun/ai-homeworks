@@ -19,6 +19,9 @@ public class MyLevelGenerator {
 
   public boolean verbose = false; //print debugging info
 
+  double bestPreviousFitness = 0.0;
+  int unchaningFitnessCount = 0;
+
   // MAKE ANY NEW MEMBER VARIABLES HERE
 
   // Called by the game engine.
@@ -160,14 +163,31 @@ public class MyLevelGenerator {
     boolean decision = false;
     // YOUR CODE GOES BELOW HERE
 
-    // Check if we have a fit enough candidate
     MyDNA best = getBestIndividual(population);
-    if (best.getFitness() > 0.8) {
+
+    // Track convergence
+    if (best.getFitness() == bestPreviousFitness) {
+      unchaningFitnessCount++;
+    }
+    else {
+      bestPreviousFitness = best.getFitness();
+      unchaningFitnessCount = 0;
+    }
+
+    // Check for convergence
+    if (unchaningFitnessCount >= 100) {
+      System.out.println("Algorithm has converged");
+      return true;
+    }
+
+    // Check if we have a fit enough candidate
+    if (best.getFitness() > 0.99) {
+      System.out.println("Achieved an incredibly high fitness");
       decision = true;
     }
 
     // Hard stop after a certain number of generations
-    if (count > 100) {
+    if (count > 1000) {
       System.out.println("Couldn't reach desired fitness");
       decision = true;
     }

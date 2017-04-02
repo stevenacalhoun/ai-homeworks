@@ -32,17 +32,59 @@ public class MyDNA extends DNA
     ArrayList<MyDNA> offspring = new ArrayList<MyDNA>();
     //YOUR CODE GOES BELOW HERE
 
-    String newChrom1 = this.chromosome.substring(0,(this.length/2)-1)+mate.chromosome.substring((this.length/2)-1);
-    String newChrom2 = mate.chromosome.substring(0,(this.length/2)-1)+this.chromosome.substring((this.length/2)-1);
+    // Create half split children
+    String childChrom1 = this.chromosome.substring(0,(this.length/2)-1)+mate.chromosome.substring((this.length/2)-1);
+    String childChrom2 = mate.chromosome.substring(0,(this.length/2)-1)+this.chromosome.substring((this.length/2)-1);
 
-    MyDNA newDNA1 = new MyDNA();
-    newDNA1.setChromosome(newChrom1);
-    offspring.add(newDNA1);
+    MyDNA child1 = new MyDNA();
+    child1.setChromosome(childChrom1);
+    offspring.add(child1);
 
-    MyDNA newDNA2 = new MyDNA();
-    newDNA2.setChromosome(newChrom2);
-    offspring.add(newDNA2);
+    MyDNA child2 = new MyDNA();
+    child2.setChromosome(childChrom2);
+    offspring.add(child2);
 
+    // Create alternating children
+    String childChrom3 = new String("");
+    String childChrom4 = new String("");
+
+    for (int i=0;i<this.length;i++) {
+      if (i % 2 == 0) {
+        childChrom3 += this.chromosome.charAt(i);
+        childChrom4 += mate.chromosome.charAt(i);
+      }
+      else {
+        childChrom3 += mate.chromosome.charAt(i);
+        childChrom4 += this.chromosome.charAt(i);
+      }
+    }
+
+    MyDNA child3 = new MyDNA();
+    child3.setChromosome(childChrom3);
+    offspring.add(child3);
+
+    MyDNA child4 = new MyDNA();
+    child4.setChromosome(childChrom4);
+    offspring.add(child4);
+
+    // Create a bunch of random children
+    for (int i=0;i<10;i++) {
+      String randomChildString = new String("");
+
+      // Randomly select a character from one of the parents
+      for (int j=0;i<this.length;i++) {
+        if (Math.random() < 0.5) {
+          randomChildString += this.chromosome.charAt(i);
+        }
+        else {
+          randomChildString += mate.chromosome.charAt(i);
+        }
+      }
+
+      MyDNA randomChild = new MyDNA();
+      randomChild.setChromosome(randomChildString);
+      offspring.add(randomChild);
+    }
 
     //YOUR CODE GOES ABOVE HERE
     return offspring;
