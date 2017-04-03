@@ -23,7 +23,7 @@ public class Jumper extends PlayerProfile{
 					break;
 				}
 			}
-			
+
 			if(isGap){
 				jumpInChunk[(int)x/4]=true;
 			}
@@ -33,7 +33,6 @@ public class Jumper extends PlayerProfile{
 				}
 			}
 		}
-		
 
 		double score = 0.0;
 		double numTrues = 0.0;

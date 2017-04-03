@@ -77,7 +77,7 @@ public class KillerJumper extends PlayerProfile{
 			jumpScore = 1.0;
 		}
 
-		double score = ((jumpScore + killerScore) / 2.0) * (1 - (Math.abs(numJumps-2*numTrues)/(numJumps+2*numTrues)));
+		double score = ((jumpScore + killerScore) / 2.0) * (1 - (Math.abs(numJumps-numTrues)/(numJumps+numTrues)));
 
 		return score;
 	}

@@ -111,7 +111,7 @@ public class MyLevel extends Level{
           currentWorldLoc += this.buildTubes(currentWorldLoc, chunkWidth, 20);
           break;
 
-        // Tubes, easy
+        // Tubes, hard
         case 'l':
           currentWorldLoc += this.buildTubes(currentWorldLoc, chunkWidth, 30);
           break;
@@ -121,9 +121,24 @@ public class MyLevel extends Level{
           currentWorldLoc += this.buildCannons(currentWorldLoc, chunkWidth);
           break;
 
-        // Jump land
+        // Jump land, safe
         case 'n':
-          currentWorldLoc += this.buildJumpLand(currentWorldLoc, chunkWidth);
+          currentWorldLoc += this.buildJumpLand(currentWorldLoc, chunkWidth, 0);
+          break;
+
+        // Jump land, easy
+        case 'o':
+          currentWorldLoc += this.buildJumpLand(currentWorldLoc, chunkWidth, 10);
+          break;
+
+        // Jump land, medium
+        case 'p':
+          currentWorldLoc += this.buildJumpLand(currentWorldLoc, chunkWidth, 20);
+          break;
+
+        // Jump land, hard
+        case 'q':
+          currentWorldLoc += this.buildJumpLand(currentWorldLoc, chunkWidth, 30);
           break;
       }
     }
@@ -145,9 +160,10 @@ public class MyLevel extends Level{
 
   /* BELOW HERE ARE EXAMPLE FUNCTIONS FOR HOW TO CREATE SOME INTERESTING STRUCTURES */
 
-  public int buildJumpLand(int xo, int length) {
+  public int buildJumpLand(int xo, int length, int difficulty) {
     int floor = height - 1 - random.nextInt(4);
-    int block = xo +1;
+    floor = 13;
+    int block = xo;
     boolean placedBlock = false;
 
     for (int x = xo; x < xo + length; x++) {
@@ -156,8 +172,9 @@ public class MyLevel extends Level{
         block += 2;
       }
 
-      // Random cannon height
+      // Random jump height
       int jumpHeight = floor - random.nextInt(4) - 1;
+      jumpHeight = 12;
 
       for (int y = 0; y < height; y++) {
         // Paint ground under floor
@@ -177,6 +194,9 @@ public class MyLevel extends Level{
         }
       }
     }
+
+    decorate(xo + 1, xo + length - 1, floor - 1, difficulty);
+
     return length;
   }
 
