@@ -111,6 +111,7 @@ public class MyLevel extends Level{
     int floor = height - 1 - random.nextInt(4);
     int block = xo +1;
     boolean placedBlock = false;
+    floor = height - 4;
 
     for (int x = xo; x < xo + length; x++) {
       if (placedBlock) {
@@ -343,7 +344,7 @@ public class MyLevel extends Level{
           type = random.nextInt(3);
         }
 
-        setSpriteTemplate(x, y, new SpriteTemplate(type, random.nextInt(35) < difficulty));//Second boolean value determines if enemy is flying
+        setSpriteTemplate(x, y-1, new SpriteTemplate(type, random.nextInt(35) < difficulty));//Second boolean value determines if enemy is flying
         ENEMIES++;
       }
     }
@@ -491,7 +492,7 @@ public class MyLevel extends Level{
         blockMap[x][y] = blocks == 4;
       }
     }
-    blockify(this, blockMap, width + 1, height + 1);
+    blockify(this, blockMap, width+1, height+1);
   }
 
   //blockify is used for fixing up walls
@@ -517,7 +518,7 @@ public class MyLevel extends Level{
         if (b[0][0] == b[1][0] && b[0][1] == b[1][1]) {
           if (b[0][0] == b[0][1]) {
             if (b[0][0]) {
-              level.setBlock(x, y, (byte) (1 + 9 * 16 + to));
+              level.setBlock(x, y-1, GROUND);
             }
             else {
               // KEEP OLD BLOCK!
@@ -526,44 +527,44 @@ public class MyLevel extends Level{
           else {
             if (b[0][0]) {
               //down grass top?
-              level.setBlock(x, y, (byte) (1 + 10 * 16 + to));
+              level.setBlock(x, y-1, (byte) (1 + 10 * 16 + to));
             }
             else {
               //up grass top
-              level.setBlock(x, y, (byte) (1 + 8 * 16 + to));
+              level.setBlock(x, y-1, (byte) (1 + 8 * 16 + to));
             }
           }
         }
         else if (b[0][0] == b[0][1] && b[1][0] == b[1][1]) {
           if (b[0][0]) {
             //right grass top
-            level.setBlock(x, y, (byte) (2 + 9 * 16 + to));
+            level.setBlock(x, y-1, RIGHT_GRASS_EDGE);
           }
           else {
             //left grass top
-            level.setBlock(x, y, (byte) (0 + 9 * 16 + to));
+            level.setBlock(x, y-1, LEFT_GRASS_EDGE);
           }
         }
         else if (b[0][0] == b[1][1] && b[0][1] == b[1][0]) {
-          level.setBlock(x, y, (byte) (1 + 9 * 16 + to));
+          level.setBlock(x, y, GROUND);
         }
         else if (b[0][0] == b[1][0]) {
           if (b[0][0]) {
             if (b[0][1]) {
-              level.setBlock(x, y, (byte) (3 + 10 * 16 + to));
+              level.setBlock(x, y-1, (byte) (3 + 10 * 16 + to));
             }
             else {
-              level.setBlock(x, y, (byte) (3 + 11 * 16 + to));
+              level.setBlock(x, y-1, (byte) (3 + 11 * 16 + to));
             }
           }
           else {
             if (b[0][1]) {
               //right up grass top
-              level.setBlock(x, y, (byte) (2 + 8 * 16 + to));
+              level.setBlock(x, y-1, RIGHT_UP_GRASS_EDGE);
             }
             else {
               //left up grass top
-              level.setBlock(x, y, (byte) (0 + 8 * 16 + to));
+              level.setBlock(x, y-1, LEFT_UP_GRASS_EDGE);
             }
           }
         }
@@ -571,24 +572,24 @@ public class MyLevel extends Level{
           if (b[0][1]) {
             if (b[0][0]) {
               //left pocket grass
-              level.setBlock(x, y, (byte) (3 + 9 * 16 + to));
+              level.setBlock(x, y-1, LEFT_POCKET_GRASS);
             }
             else {
               //right pocket grass
-              level.setBlock(x, y, (byte) (3 + 8 * 16 + to));
+              level.setBlock(x, y-1, RIGHT_POCKET_GRASS);
             }
           }
           else {
             if (b[0][0]) {
-              level.setBlock(x, y, (byte) (2 + 10 * 16 + to));
+              level.setBlock(x, y-1, (byte) (2 + 10 * 16 + to));
             }
             else {
-              level.setBlock(x, y, (byte) (0 + 10 * 16 + to));
+              level.setBlock(x, y-1, (byte) (0 + 10 * 16 + to));
             }
           }
         }
         else {
-          level.setBlock(x, y, (byte) (0 + 1 * 16 + to));
+          level.setBlock(x, y-1, (byte) (0 + 1 * 16 + to));
         }
       }
     }
