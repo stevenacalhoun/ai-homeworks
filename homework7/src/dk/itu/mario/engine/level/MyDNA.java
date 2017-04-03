@@ -137,6 +137,7 @@ public class MyDNA extends DNA
     chromOptions.add("d");
     chromOptions.add("e");
     chromOptions.add("f");
+    chromOptions.add("g");
 
     return chromOptions;
   }

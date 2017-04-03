@@ -188,6 +188,7 @@ public class MyLevelGenerator {
 
     // Hard stop after a certain number of generations
     if (count > 1000) {
+    // if (count > 10) {
       System.out.println("Couldn't reach desired fitness");
       decision = true;
     }
@@ -233,6 +234,7 @@ public class MyLevelGenerator {
 
   }
 
+  // Returns the number of times mutation should happen per iteration.
   private int numberOfMutations () {
     int num = 0; // Default is no crossovers
     // YOUR CODE GOES BELOW HERE

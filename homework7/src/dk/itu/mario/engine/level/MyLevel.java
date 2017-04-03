@@ -82,6 +82,10 @@ public class MyLevel extends Level{
           currentWorldLoc += this.buildCannons(currentWorldLoc, 10);
           break;
 
+        // Jump land
+        case 'g':
+          currentWorldLoc += this.buildJumpLand(currentWorldLoc, 10);
+          break;
       }
     }
     currentWorldLoc += this.buildStraight(currentWorldLoc, 5, true, 0);
@@ -102,6 +106,41 @@ public class MyLevel extends Level{
   }
 
   /* BELOW HERE ARE EXAMPLE FUNCTIONS FOR HOW TO CREATE SOME INTERESTING STRUCTURES */
+
+  public int buildJumpLand(int xo, int length) {
+    int floor = height - 1 - random.nextInt(4);
+    int block = xo +1;
+    boolean placedBlock = false;
+
+    for (int x = xo; x < xo + length; x++) {
+      if (placedBlock) {
+        placedBlock = false;
+        block += 2;
+      }
+
+      // Random cannon height
+      int jumpHeight = floor - random.nextInt(4) - 1;
+
+      for (int y = 0; y < height; y++) {
+        // Paint ground under floor
+        if (y >= floor) {
+          if (y==floor) {
+            setBlock(x, y, HILL_TOP);
+          }
+          else {
+            setBlock(x, y, GROUND);
+          }
+        }
+        else {
+          if (x == block && y >= jumpHeight) {
+            setBlock(x, y, Level.ROCK);
+            placedBlock = true;
+          }
+        }
+      }
+    }
+    return length;
+  }
 
   //A built in function for helping to build a jump
   public int buildJump(int xo) {
@@ -188,8 +227,6 @@ public class MyLevel extends Level{
 
   //A built in function for helping to build a cannon
   public int buildCannons(int xo, int length) {
-    int length = length;
-
     int floor = height - 1 - random.nextInt(4);
     int xCannon = xo + 1 + random.nextInt(4);
     for (int x = xo; x < xo + length; x++) {
