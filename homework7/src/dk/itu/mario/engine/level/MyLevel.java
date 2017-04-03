@@ -165,16 +165,20 @@ public class MyLevel extends Level{
     floor = 13;
     int block = xo;
     boolean placedBlock = false;
+    int highestJump = -1;
 
     for (int x = xo; x < xo + length; x++) {
       if (placedBlock) {
         placedBlock = false;
-        block += 2;
+        block += 3;
       }
 
       // Random jump height
       int jumpHeight = floor - random.nextInt(4) - 1;
-      jumpHeight = 12;
+
+      if ((jumpHeight < highestJump) || (highestJump == -1)) {
+        highestJump = jumpHeight;
+      }
 
       for (int y = 0; y < height; y++) {
         // Paint ground under floor
@@ -195,7 +199,7 @@ public class MyLevel extends Level{
       }
     }
 
-    decorate(xo + 1, xo + length - 1, floor - 1, difficulty);
+    decorate(xo + 1, xo + length - 1, highestJump, difficulty);
 
     return length;
   }
@@ -522,13 +526,15 @@ public class MyLevel extends Level{
             else if (random.nextInt(4) == 0) {
               if (random.nextInt(4) == 0) {
                 setBlock(x, floor - 4, (byte) (2 + 1 * 16));
+                // setBlock(x, floor - 4, (byte) (2 + 1 * 16));
               }
               else {
                 setBlock(x, floor - 4, (byte) (1 + 1 * 16));
+                // setBlock(x, floor - 4, BLOCK_COIN);
               }
             }
             else {
-              setBlock(x, floor - 4, BLOCK_EMPTY);
+              setBlock(x, floor - 4, BLOCK_COIN);
               BLOCKS_EMPTY++;
             }
           }

@@ -17,7 +17,7 @@ import dk.itu.mario.engine.sprites.Enemy;
 
 public class MyLevelGenerator {
 
-  public boolean verbose = false; //print debugging info
+  public boolean verbose = true; //print debugging info
 
   double bestPreviousFitness = 0.0;
   int unchaningFitnessCount = 0;
@@ -140,9 +140,9 @@ public class MyLevelGenerator {
     // Get the winner
     solution = this.getBestIndividual(population);
 
-    // if (this.verbose) {
-    System.out.println("Solution: " + solution + " fitnes: " + solution.getFitness());
-    // }
+    if (this.verbose) {
+      System.out.println("Solution: " + solution + " fitnes: " + solution.getFitness());
+    }
 
     return solution;
   }
@@ -175,7 +175,7 @@ public class MyLevelGenerator {
     }
 
     // Check for convergence
-    if (unchaningFitnessCount >= 250) {
+    if (unchaningFitnessCount >= 50) {
       System.out.println("Algorithm has converged");
       return true;
     }

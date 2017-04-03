@@ -75,16 +75,19 @@ public class LevelSceneTest extends LevelScene{
 		        		if (playerProfile.equals("Killer") ){
 		        			p = new Killer();
 		        		}
+								else if (playerProfile.equals("Collector")){
+		        			p = new Scrooge();
+		        		}
 		        		else if (playerProfile.equals("Jumper")){
 		        			p = new Jumper();
 		        		}
-		        		else if (playerProfile.equals("KillerCollector") || playerProfile.equals("KillerScrooge")){
+		        		else if (playerProfile.equals("KillerCollector") || playerProfile.equals("CollectorKiller")){
 		        			p = new KillerCollector();
 		        		}
-								else if (playerProfile.equals("KillerJumper")){
+								else if (playerProfile.equals("KillerJumper") || playerProfile.equals("JumperKiller")){
 		        			p = new KillerJumper();
 		        		}
-								else if (playerProfile.equals("JumperCollector") || playerProfile.equals("JumperScrooge")){
+								else if (playerProfile.equals("JumperCollector") || playerProfile.equals("CollectorJumper")){
 		        			p = new JumperCollector();
 		        		}
 								else {
