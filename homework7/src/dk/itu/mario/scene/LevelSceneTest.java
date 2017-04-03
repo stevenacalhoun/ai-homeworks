@@ -33,6 +33,8 @@ import dk.itu.mario.engine.PlayerProfile;
 import dk.itu.mario.engine.Scrooge;
 import dk.itu.mario.engine.Killer;
 import dk.itu.mario.engine.KillerCollector;
+import dk.itu.mario.engine.KillerJumper;
+import dk.itu.mario.engine.JumperCollector;
 import dk.itu.mario.engine.Jumper;
 
 public class LevelSceneTest extends LevelScene{
@@ -73,24 +75,33 @@ public class LevelSceneTest extends LevelScene{
 		        		if (playerProfile.equals("Killer") ){
 		        			p = new Killer();
 		        		}
-		        		else if (playerProfile.equals("Jumper") ){
+		        		else if (playerProfile.equals("Jumper")){
 		        			p = new Jumper();
 		        		}
-		        		else if(playerProfile.equals("KillerCollector")){
+		        		else if (playerProfile.equals("KillerCollector") || playerProfile.equals("KillerScrooge")){
 		        			p = new KillerCollector();
 		        		}
+								else if (playerProfile.equals("KillerJumper")){
+		        			p = new KillerJumper();
+		        		}
+								else if (playerProfile.equals("JumperCollector") || playerProfile.equals("JumperScrooge")){
+		        			p = new JumperCollector();
+		        		}
+								else {
+									System.out.println("Defaulting to Scrooge");
+								}
 
 		        		currentLevel = clg.generateLevel(p);
 
 		        		if (recorder==null){
 				            recorder = new DataRecorder(this,level,keys);
 				        }
-		        		
+
 		        		//You can use the following commands if you want to benefit from
 		        		//	the interface containing detailed information
-		                
+
 		              }
-			        	
+
 
 		        try {
 					 level = currentLevel.clone();
@@ -158,7 +169,7 @@ public class LevelSceneTest extends LevelScene{
 				recorder.tickRecord();
 			}
 
-			public void winActions(){				
+			public void winActions(){
 				marioComponent.win();
 			}
 
