@@ -47,48 +47,86 @@ public class MyLevel extends Level{
     // Keep up with current world loc
     int currentWorldLoc = STARTOFFSET;
 
+    int chunkWidth = 10;
     // Generate each letter of the chromosome
     for (int i=0;i<dna.length;i++) {
+      // Last chunk needs to be 5 wide
+      if (i == dna.length - 1) {
+        chunkWidth = 5;
+      }
+
       switch (dna.chromosome.charAt(i)) {
-        // Hill, long, difficult
+        // Hill, safe
         case 'a':
-          currentWorldLoc += this.buildHillStraight(currentWorldLoc, 10, 10);
+          currentWorldLoc += this.buildHillStraight(currentWorldLoc, chunkWidth, 0);
           break;
 
-        // Jump short
+        // Hill, easy
         case 'b':
-          currentWorldLoc += this.buildJump(currentWorldLoc);
+          currentWorldLoc += this.buildHillStraight(currentWorldLoc, chunkWidth, 10);
           break;
 
-        // Straight, short, easy
+        // Hill, medium
         case 'c':
-          currentWorldLoc += this.buildStraight(currentWorldLoc,10, false, 1);
+          currentWorldLoc += this.buildHillStraight(currentWorldLoc, chunkWidth, 20);
           break;
 
-        // Straight, safe, short, decorated
+        // Hill, hard
         case 'd':
-          int length = this.buildStraight(currentWorldLoc,10, true, 0);
-          this.decorate(currentWorldLoc, 10, DEFAULTHEIGHT, 10);
-          currentWorldLoc += length;
+          currentWorldLoc += this.buildHillStraight(currentWorldLoc, chunkWidth, 30);
           break;
 
-        // Tubes, short, difficult
+        // Jump
         case 'e':
-          currentWorldLoc += this.buildTubes(currentWorldLoc, 10, 10);
+          currentWorldLoc += this.buildJump(currentWorldLoc, chunkWidth);
           break;
 
-        // Cannons, short
+        // Straight, safe
         case 'f':
-          currentWorldLoc += this.buildCannons(currentWorldLoc, 10);
+          currentWorldLoc += this.buildStraight(currentWorldLoc, chunkWidth, false, 0);
+          break;
+
+        // Straight, easy
+        case 'g':
+          currentWorldLoc += this.buildStraight(currentWorldLoc, chunkWidth, false, 10);
+          break;
+
+        // Straight, med
+        case 'h':
+          currentWorldLoc += this.buildStraight(currentWorldLoc, chunkWidth, false, 20);
+          break;
+
+        // Straight, hard
+        case 'i':
+          currentWorldLoc += this.buildStraight(currentWorldLoc, chunkWidth, false, 30);
+          break;
+
+        // Tubes, easy
+        case 'j':
+          currentWorldLoc += this.buildTubes(currentWorldLoc, chunkWidth, 10);
+          break;
+
+        // Tubes, med
+        case 'k':
+          currentWorldLoc += this.buildTubes(currentWorldLoc, chunkWidth, 20);
+          break;
+
+        // Tubes, easy
+        case 'l':
+          currentWorldLoc += this.buildTubes(currentWorldLoc, chunkWidth, 30);
+          break;
+
+        // Cannons
+        case 'm':
+          currentWorldLoc += this.buildCannons(currentWorldLoc, chunkWidth);
           break;
 
         // Jump land
-        case 'g':
-          currentWorldLoc += this.buildJumpLand(currentWorldLoc, 10);
+        case 'n':
+          currentWorldLoc += this.buildJumpLand(currentWorldLoc, chunkWidth);
           break;
       }
     }
-    currentWorldLoc += this.buildStraight(currentWorldLoc, 5, true, 0);
 
     // Clean it up
     this.fixWalls();
@@ -111,7 +149,6 @@ public class MyLevel extends Level{
     int floor = height - 1 - random.nextInt(4);
     int block = xo +1;
     boolean placedBlock = false;
-    floor = height - 4;
 
     for (int x = xo; x < xo + length; x++) {
       if (placedBlock) {
@@ -144,14 +181,19 @@ public class MyLevel extends Level{
   }
 
   //A built in function for helping to build a jump
-  public int buildJump(int xo) {
+  public int buildJump(int xo, int length) {
     //jl: jump length
     //js: the number of blocks that are available at either side for free
     int js = 3;
     int jl = 4;
-    int length = js * 2 + jl;
 
     boolean hasStairs = random.nextInt(3) == 0;
+
+    if (length == 5) {
+      hasStairs = false;
+      js = 1;
+      jl = 2;
+    }
 
     int floor = height - 1 - random.nextInt(4);
     // Run from the start x position, for the whole length
@@ -271,6 +313,9 @@ public class MyLevel extends Level{
 
   //A built in function for building a flat hill
   public int buildHillStraight(int xo, int length, int difficulty) {
+    if (length == 5) {
+      return this.buildStraight(xo, length, false, difficulty);
+    }
     int floor = height - 1 - random.nextInt(4);
     for (int x = xo; x < xo + length; x++) {
       for (int y = 0; y < height; y++) {
@@ -392,9 +437,6 @@ public class MyLevel extends Level{
 
   //A built in function for building a straight path
   public int buildStraight(int xo, int length, boolean safe, int difficulty) {
-    // if (safe)
-    //   length = 10 + random.nextInt(5);
-
     int floor = height - 1 - random.nextInt(4);
 
     //runs from the specified x position to the length of the segment
@@ -531,7 +573,7 @@ public class MyLevel extends Level{
             }
             else {
               //up grass top
-              level.setBlock(x, y-1, (byte) (1 + 8 * 16 + to));
+              level.setBlock(x, y-1, HILL_TOP);
             }
           }
         }
@@ -589,7 +631,7 @@ public class MyLevel extends Level{
           }
         }
         else {
-          level.setBlock(x, y-1, (byte) (0 + 1 * 16 + to));
+          level.setBlock(x, y-1, BLOCK_EMPTY);
         }
       }
     }

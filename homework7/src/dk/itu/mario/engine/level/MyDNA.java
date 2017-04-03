@@ -138,6 +138,13 @@ public class MyDNA extends DNA
     chromOptions.add("e");
     chromOptions.add("f");
     chromOptions.add("g");
+    chromOptions.add("h");
+    chromOptions.add("i");
+    chromOptions.add("j");
+    chromOptions.add("k");
+    chromOptions.add("l");
+    chromOptions.add("m");
+    chromOptions.add("n");
 
     return chromOptions;
   }
@@ -150,7 +157,7 @@ public class MyDNA extends DNA
 
   // Chreate a random chromosome
   public void randomizeChrom() {
-    int defaultChromLength = 19;
+    int defaultChromLength = 20;
     String chrom = new String("");
 
     for (int i=0;i<defaultChromLength;i++) {
