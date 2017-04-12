@@ -187,6 +187,14 @@ class Agent:
   def egreedy(self, observation):
     # YOUR CODE GOES BELOW HERE
 
+    # Choose random action
+    if random.uniform(0,1) < self.epsilon:
+      return random.randint(0,4)
+
+    # Choose greedy option
+    else:
+      return self.greedy(observation)
+
     # YOUR CODE GOES ABOVE HERE
     return 0
 
