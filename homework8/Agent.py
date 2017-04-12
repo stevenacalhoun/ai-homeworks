@@ -199,6 +199,15 @@ class Agent:
     self.initializeVtableStateEntry(observation.worldState)
     # YOUR CODE GOES BELOW HERE
 
+    rewards = []
+    rewards.append(self.v_table[self.calculateFlatState(observation.worldState)][0])
+    rewards.append(self.v_table[self.calculateFlatState(observation.worldState)][1])
+    rewards.append(self.v_table[self.calculateFlatState(observation.worldState)][2])
+    rewards.append(self.v_table[self.calculateFlatState(observation.worldState)][3])
+    rewards.append(self.v_table[self.calculateFlatState(observation.worldState)][4])
+
+    return rewards.index(max(rewards))
+
     # YOUR CODE GOES ABOVE HERE
     return 0
 
