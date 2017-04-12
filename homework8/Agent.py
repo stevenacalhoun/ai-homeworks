@@ -72,6 +72,8 @@ class Agent:
   # Once learning is done, use this to run the agent
   # observation is the initial observation
   def executePolicy(self, observation):
+    outputfile = open("output.txt", "w+")
+
     # History stores up list of actions executed
     history = []
     # Start the counter
@@ -85,6 +87,7 @@ class Agent:
     self.initializeVtableStateEntry(self.workingObservation.worldState)
 
     if self.isVerbose():
+      outputfile.write("START\n")
       print("START")
 
     # While a terminal state has not been hit and the counter hasn't expired, take the best action for the current state
@@ -95,14 +98,17 @@ class Agent:
       history.append((newAction.actionValue, self.workingObservation.worldState))
 
       if self.isVerbose():
+        outputfile.write("state:" + str(self.workingObservation.worldState) + "\n")
+        outputfile.write("bot action:" + str(self.gridEnvironment.actionToString(newAction.actionValue)) + "\n")
         print "state:", self.workingObservation.worldState
         print "bot action:", self.gridEnvironment.actionToString(newAction.actionValue)
 
       # execute the step and get a new observation and reward
       currentObs, reward = self.gridEnvironment.env_step(newAction)
       if self.isVerbose():
+        outputfile.write("reward:" + str(reward.rewardValue) + "\n")
         print "reward:", reward.rewardValue
-
+        outputfile.write("\n")
 
       self.totalReward = self.totalReward + reward.rewardValue
       self.workingObservation = copy.deepcopy(currentObs)
@@ -111,6 +117,7 @@ class Agent:
       count = count + 1
 
     if self.isVerbose():
+      outputfile.write("END")
       print("END")
     return history
 

@@ -44,7 +44,7 @@ for i in range(episodes):
   totalr = gridAgent.totalReward
   if maxr == None or totalr > maxr:
     maxr = totalr
-  
+
   if i % trainingReportRate == 0:
     print "iteration:", i, "total reward", totalr, "max reward:", maxr
 
@@ -81,7 +81,7 @@ if play == 1:
     # print the map
     gridEnvironment.printEnvironment()
     print "total player reward:", totalr
-    
+
     # Player move
     print "Move?"
     move = None
@@ -115,7 +115,7 @@ if play == 1:
     newobs, reward = gridEnvironment.env_step(act)
 
     print "reward received:", reward.rewardValue
-    
+
     totalr = totalr + reward.rewardValue
 
 elif play == 2:
@@ -131,7 +131,7 @@ elif play == 2:
     # print the map
     gridEnvironment.printEnvironment()
     print "total bot reward:", totalr
-    
+
     # Enemy (player) move
     print "Move?"
     move = None
@@ -165,13 +165,11 @@ elif play == 2:
     act.actionValue = gridAgent.greedy(obs)
     print "enemy action:", gridEnvironment.actionToString(move)
     print "bot action:", gridEnvironment.actionToString(act.actionValue)
-    
+
     # bot and enemy (player) actions happen here
     newobs, reward = gridEnvironment.env_step(act)
 
     print "reward received:", reward.rewardValue
-    
+
     totalr = totalr + reward.rewardValue
     obs = copy.deepcopy(newobs)
-
-
