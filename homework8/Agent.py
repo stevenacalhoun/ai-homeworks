@@ -8,10 +8,6 @@ from Action import *
 from Environment import *
 from random import Random
 
-
-
-
-
 class Agent:
   # Random generator
   randGenerator=Random()
@@ -118,7 +114,6 @@ class Agent:
       print("END")
     return history
 
-
   # q-learning implementation
   # observation is the initial observation
   def qLearn(self, observation):
@@ -168,7 +163,6 @@ class Agent:
     # Done learning, reset environment
     self.gridEnvironment.env_reset()
 
-
   ### Update the v_table during q-learning.
   ### newState: the new state reached after performing newAction in lastState.
   ### lastState: the prior state
@@ -184,7 +178,6 @@ class Agent:
     # YOUR CODE GOES ABOVE HERE
     return None
 
-
   ### Return the best action according to the policy, or a random action epsilon percent of the time.
   ### observation: the current observation (state)
   ###
@@ -197,7 +190,6 @@ class Agent:
     # YOUR CODE GOES ABOVE HERE
     return 0
 
-
   ### Return the best action according to the policy
   ### observation: the current observation (state)
   ###
@@ -209,7 +201,6 @@ class Agent:
 
     # YOUR CODE GOES ABOVE HERE
     return 0
-
 
   # Reset the agent
   def agent_reset(self):

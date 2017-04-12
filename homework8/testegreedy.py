@@ -20,14 +20,14 @@ states = []
 
 # Make some states
 for i in range(numStates):
-	# Make a state
-	state = [random.randint(1,gridEnvironment.width-1), random.randint(1,gridEnvironment.height-1), True, random.randint(1,gridEnvironment.width-1), random.randint(1,gridEnvironment.height-1), False, False, False]
-	states.append(state)
-	# Create an entry in v_table for state
-	entry = []
-	for j in range(gridAgent.numActions):
-		entry.append((random.random()-0.5)*100.0)
-	gridAgent.v_table[gridAgent.calculateFlatState(state)] = entry
+  # Make a state
+  state = [random.randint(1,gridEnvironment.width-1), random.randint(1,gridEnvironment.height-1), True, random.randint(1,gridEnvironment.width-1), random.randint(1,gridEnvironment.height-1), False, False, False]
+  states.append(state)
+  # Create an entry in v_table for state
+  entry = []
+  for j in range(gridAgent.numActions):
+    entry.append((random.random()-0.5)*100.0)
+  gridAgent.v_table[gridAgent.calculateFlatState(state)] = entry
 print "v table:"
 print gridAgent.v_table
 
@@ -38,8 +38,8 @@ gridAgent.epsilon = 0.0
 
 # Call egreedy() k times
 for k in range(numStates):
-	observation = Observation()
-	observation.worldState = states[k]
-	observation.availableActions = gridEnvironment.validActions()
-	action = gridAgent.egreedy(observation)
-	print "Action selected for :", states[k], "is:", action
+  observation = Observation()
+  observation.worldState = states[k]
+  observation.availableActions = gridEnvironment.validActions()
+  action = gridAgent.egreedy(observation)
+  print "Action selected for :", states[k], "is:", action

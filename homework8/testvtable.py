@@ -29,24 +29,24 @@ print "---"
 
 # Execute the sequence of actions
 for a in actions:
-	# Make a new action
-	newAction = Action()
-	newAction.actionValue = a
-	# Execute the action
-	currentObs, reward = gridEnvironment.env_step(newAction)
-	# Make sure there is an entry in the v table for the new state
-	gridAgent.initializeVtableStateEntry(currentObs.worldState)
-	# Put things in the right form
-	lastFlatState = gridAgent.calculateFlatState(workingObservation.worldState)
-	newFlatState = gridAgent.calculateFlatState(currentObs.worldState)
-	# Update the v table
-	gridAgent.updateVtable(newFlatState, lastFlatState, newAction.actionValue, reward.rewardValue, currentObs.isTerminal, currentObs.availableActions)
-	# Report
-	print "v table after:"
-	print "   old state:", workingObservation.worldState
-	print "   action:", newAction.actionValue
-	print "   new state:", currentObs.worldState
-	print gridAgent.v_table
-	print "---"
-	# Update the last state
-	workingObservation = gridAgent.copyObservation(currentObs)
+  # Make a new action
+  newAction = Action()
+  newAction.actionValue = a
+  # Execute the action
+  currentObs, reward = gridEnvironment.env_step(newAction)
+  # Make sure there is an entry in the v table for the new state
+  gridAgent.initializeVtableStateEntry(currentObs.worldState)
+  # Put things in the right form
+  lastFlatState = gridAgent.calculateFlatState(workingObservation.worldState)
+  newFlatState = gridAgent.calculateFlatState(currentObs.worldState)
+  # Update the v table
+  gridAgent.updateVtable(newFlatState, lastFlatState, newAction.actionValue, reward.rewardValue, currentObs.isTerminal, currentObs.availableActions)
+  # Report
+  print "v table after:"
+  print "   old state:", workingObservation.worldState
+  print "   action:", newAction.actionValue
+  print "   new state:", currentObs.worldState
+  print gridAgent.v_table
+  print "---"
+  # Update the last state
+  workingObservation = gridAgent.copyObservation(currentObs)
