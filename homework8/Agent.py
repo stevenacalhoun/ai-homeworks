@@ -175,7 +175,7 @@ class Agent:
   def updateVtable(self, newState, lastState, action, reward, terminal, availableActions):
     # YOUR CODE GOES BELOW HERE
 
-    # Q(st, at) = Q(st,at) + alpha(rt+1 + gamma * max(Q(st+1, a')) - Q(st, at))
+    # Q(st, at) = Q(st,at) + lr*(rt+1 + gamma*max(Q(st+1, a')) - Q(st, at))
     if not terminal:
       # Calculate all rewards for potential actions
       potentialRewards = []
@@ -188,7 +188,7 @@ class Agent:
       # Calculate new val
       newVal = self.v_table[self.calculateFlatState(lastState)][action] + self.learningRate*estimatedFutureVal
 
-    # Q(st, at) = Q(st, at) + alpha(rt+1 - Q(st,at))
+    # Q(st, at) = Q(st, at) + lr*(rt+1 - Q(st,at))
     else:
       # Estmate future val
       estimatedFutureVal = reward - self.v_table[self.calculateFlatState(lastState)][action]
