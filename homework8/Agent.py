@@ -108,6 +108,7 @@ class Agent:
       if self.isVerbose():
         outputfile.write("reward:" + str(reward.rewardValue) + "\n")
         print "reward:", reward.rewardValue
+        outputfile.write(str(self.gridEnvironment)+"\n")
         outputfile.write("\n")
 
       self.totalReward = self.totalReward + reward.rewardValue

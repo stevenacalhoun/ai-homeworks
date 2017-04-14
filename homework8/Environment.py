@@ -324,6 +324,10 @@ class Environment:
   # Q = agent and enemy are co-located and enemy torturing agent
   # X = enemy is dead
   def printEnvironment(self):
+    print self
+
+  def __str__(self):
+    tp = ""
     for j in range(self.height):
       p = ""
       for i in range(self.width):
@@ -352,7 +356,8 @@ class Environment:
             # There is a human here, but that person has been saved
             q = '0'
         p = p + q + " "
-      print p
+      tp += p + "\n"
+    return tp
 
   def isVerbose(self):
     if isinstance(self.verbose, numbers.Number) and self.verbose == 0:
