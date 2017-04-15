@@ -96,11 +96,13 @@ class Agent:
 
     if writeFile:
       outputfile.write("START\n")
-      outputfile.write("LR:" + str(self.learningRate))
-      outputfile.write("Gamma:" + str(self.gamma))
+      outputfile.write("LR:" + str(self.learningRate) + "\n")
+      outputfile.write("Gamma:" + str(self.gamma) + "\n\n")
 
     if self.isVerbose():
       print("START")
+      print("LR:" + str(self.learningRate))
+      print("Gamma:" + str(self.gamma))
 
     # While a terminal state has not been hit and the counter hasn't expired, take the best action for the current state
     while not self.workingObservation.isTerminal and count < self.numSteps:
