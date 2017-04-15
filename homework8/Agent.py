@@ -7,6 +7,7 @@ from Reward import *
 from Action import *
 from Environment import *
 from random import Random
+import datetime
 
 class Agent:
   # Random generator
@@ -42,7 +43,8 @@ class Agent:
   totalReward = 0.0
 
   # Print debugging statements
-  verbose = True
+  verbose = False
+  verboseOverride = False
 
   # Number of actions in the environment
   numActions = 5
@@ -71,8 +73,14 @@ class Agent:
 
   # Once learning is done, use this to run the agent
   # observation is the initial observation
-  def executePolicy(self, observation):
-    outputfile = open("output.txt", "w+")
+  def executePolicy(self, observation, writeFile=False):
+    if writeFile:
+      dateString = str(datetime.datetime.now().isoformat())
+      dateString = dateString.replace("-","_")
+      dateString = dateString.split(".")[0]
+      dateString = dateString.replace(":",".")
+      dateString = dateString.replace("T", "-")
+      outputfile = open("output/" + dateString + ".txt", "w+")
 
     # History stores up list of actions executed
     history = []
@@ -86,8 +94,12 @@ class Agent:
     # Make sure the value table has the starting observation
     self.initializeVtableStateEntry(self.workingObservation.worldState)
 
-    if self.isVerbose():
+    if writeFile:
       outputfile.write("START\n")
+      outputfile.write("LR:" + str(self.learningRate))
+      outputfile.write("Gamma:" + str(self.gamma))
+
+    if self.isVerbose():
       print("START")
 
     # While a terminal state has not been hit and the counter hasn't expired, take the best action for the current state
@@ -97,19 +109,25 @@ class Agent:
       newAction.actionValue = self.greedy(self.workingObservation)
       history.append((newAction.actionValue, self.workingObservation.worldState))
 
-      if self.isVerbose():
+      if writeFile:
         outputfile.write("state:" + str(self.workingObservation.worldState) + "\n")
         outputfile.write("bot action:" + str(self.gridEnvironment.actionToString(newAction.actionValue)) + "\n")
+
+      if self.isVerbose():
         print "state:", self.workingObservation.worldState
         print "bot action:", self.gridEnvironment.actionToString(newAction.actionValue)
 
       # execute the step and get a new observation and reward
       currentObs, reward = self.gridEnvironment.env_step(newAction)
-      if self.isVerbose():
+      if writeFile:
         outputfile.write("reward:" + str(reward.rewardValue) + "\n")
-        print "reward:", reward.rewardValue
+        outputfile.write("total reward:" + str(self.totalReward + reward.rewardValue) + "\n")
         outputfile.write(str(self.gridEnvironment)+"\n")
         outputfile.write("\n")
+
+      if self.isVerbose():
+        print "reward:", reward.rewardValue
+        print "total reward:" + str(self.totalReward + reward.rewardValue)
 
       self.totalReward = self.totalReward + reward.rewardValue
       self.workingObservation = copy.deepcopy(currentObs)
@@ -117,8 +135,10 @@ class Agent:
       # increment counter
       count = count + 1
 
-    if self.isVerbose():
+    if writeFile:
       outputfile.write("END")
+
+    if self.isVerbose():
       print("END")
     return history
 
@@ -183,26 +203,28 @@ class Agent:
   def updateVtable(self, newState, lastState, action, reward, terminal, availableActions):
     # YOUR CODE GOES BELOW HERE
 
-    # Q(st, at) = Q(st,at) + lr*(rt+1 + gamma*max(Q(st+1, a')) - Q(st, at))
+    r_tp1 = float(reward)
+    Q_st_at = float(self.v_table[self.calculateFlatState(lastState)][action])
+    lr = float(self.learningRate)
+    y = float(self.gamma)
+
+    # Non terminal state
+    # Q(st, at) = Q(st,at) + lr*(rt+1 + y*max(Q(st+1, a')) - Q(st, at))
     if not terminal:
       # Calculate all rewards for potential actions
-      potentialRewards = []
+      Q_stp1_a = []
       for potentialAction in availableActions:
-        potentialRewards.append(self.v_table[self.calculateFlatState(newState)][potentialAction])
-
-      # Estmate future val
-      estimatedFutureVal = reward + self.gamma*max(potentialRewards) - self.v_table[self.calculateFlatState(lastState)][action]
+        Q_stp1_a.append(float(self.v_table[self.calculateFlatState(newState)][potentialAction]))
 
       # Calculate new val
-      newVal = self.v_table[self.calculateFlatState(lastState)][action] + self.learningRate*estimatedFutureVal
+      newVal = Q_st_at + lr*(r_tp1 + y*max(Q_stp1_a) - Q_st_at)
 
+    # Terminal state
     # Q(st, at) = Q(st, at) + lr*(rt+1 - Q(st,at))
     else:
-      # Estmate future val
-      estimatedFutureVal = reward - self.v_table[self.calculateFlatState(lastState)][action]
 
       # Calculate new val
-      newVal = self.v_table[self.calculateFlatState(lastState)][action] + self.learningRate*estimatedFutureVal
+      newVal = Q_st_at + lr*(r_tp1 - Q_st_at)
 
     # Update vtable
     self.v_table[self.calculateFlatState(lastState)][action] = newVal
@@ -277,5 +299,5 @@ class Agent:
 
   def isVerbose(self):
     if isinstance(self.verbose, numbers.Number) and self.verbose == 0:
-      return False
-    return self.verbose
+      return False and self.verboseOverride
+    return self.verbose and self.verboseOverride

@@ -50,15 +50,17 @@ for i in range(episodes):
 
 
 # Reset the environment for policy execution
-gridEnvironment.verbose = 1
+gridEnvironment.verbose = 0
 gridEnvironment.randomStart = False
 gridEnvironment.enemyMode = 1
 gridAgent.verbose = True
 
 print "Execute Policy"
 gridAgent.agent_reset()
-gridAgent.executePolicy(gridAgent.initialObs)
+gridAgent.executePolicy(gridAgent.initialObs, writeFile=True)
 print "total reward", gridAgent.totalReward
+
+gridEnvironment.verbose = 1
 
 ### HOW TO PLAY
 ### w: up
