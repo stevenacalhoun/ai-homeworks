@@ -22,7 +22,7 @@ class Agent:
   # Q-learning stuff: Step size, epsilon, gamma, learning rate
   epsilon = 0.5
   gamma = 0.9
-  learningRate = 0.5
+  learningRate = 1.0
 
   # Value table
   v_table = None
