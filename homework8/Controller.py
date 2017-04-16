@@ -48,7 +48,6 @@ for i in range(episodes):
   if i % trainingReportRate == 0:
     print "iteration:", i, "total reward", totalr, "max reward:", maxr
 
-
 # Reset the environment for policy execution
 gridEnvironment.verbose = 0
 gridEnvironment.randomStart = False
